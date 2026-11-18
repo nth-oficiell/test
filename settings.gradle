@@ -10,3 +10,7 @@ pluginManagement {
 }
 
 rootProject.name = 'utilikit'
+
+include 'fabric-1.20.1'
+include 'fabric-1.21.1'
+include 'fabric-1.21.11'

@@ -1,39 +1,59 @@
-# UtiliKit
+# ⛏ UtiliKit
 
-Mod utilitaire **client** Minecraft (Fabric 1.20.1) avec un **menu in-game** pour personnaliser ton jeu : modules activables/désactivables et réglages à la volée, sauvegardés automatiquement dans `config/utilikit.json`.
+**Mod utilitaire client pour Minecraft (Fabric)** — un seul menu in-game (**Maj droite** par défaut) pour personnaliser ton jeu : modules activables d'un clic, réglages à la volée, presets exportables. Le tout en français. 🇫🇷
 
-## Modules inclus (v0.1.0)
+🌐 **Site de téléchargement** : https://nth-oficiell.github.io/test/ (choisis ton launcher + ta version, et récupère le jar).
+
+## 📦 Versions disponibles
+
+| Version de Minecraft | Loader | Fichier |
+|---|---|---|
+| 1.20.1 | Fabric | `utilikit-1.20.1-v*` |
+| 1.21.1 | Fabric | `utilikit-1.21.1-v*` |
+| 1.21.11 | Fabric | `utilikit-1.21.11-v*` |
+| 26.1.2 / 26.2 / 26.3 | Fabric | 🚧 dès que les mappings Yarn sortent |
+
+> Les jars exacts et leur dernière version sont listés sur le site (ils sont générés par les builds GitHub Actions de ce dépôt).
+
+## 🧩 Modules
+
 | Module | Catégorie | Description |
 |---|---|---|
-| FullBright | Visuel | Luminosité au-delà du maximum du jeu (slider d'intensité) |
-| Zoom | Visuel | Maintiens la touche Zoom (C par défaut) pour zoomer, facteur réglable |
-| HUD Infos | Affichage | FPS, coordonnées, direction, heure du monde en haut à gauche |
+| **FullBright** | VISUEL | Luminosité max extension — slider d'intensité 1 à 16 |
+| **Zoom** | VISUEL | Zoom caméra en maintenant la touche (`C`) — facteur réglable |
+| **No Hurt Cam** | VISUEL | Désactive le tremblement de caméra quand tu prends des dégâts |
+| **Limite FPS** | VISUEL | Slider de limite de FPS appliqué immédiatement au jeu |
+| **HUD Infos** | AFFICHAGE | FPS, coordonnées, direction, heure du monde — toggles séparés |
+| **Keystrokes** | AFFICHAGE | ZQSD/WASD + clics affichés sous le crosshair, façon packs HUD |
+| **Ping HUD** | AFFICHAGE | Latence live avec le serveur, colorée (vert/orange/rouge) |
+| **Durabilité** | AFFICHAGE | Durabilité de l'objet en main, colorée selon l'usure |
+| **Auto Sprint** | PRATIQUE | Sprint automatique dès que tu avances |
+| **Copier Coordonnées** | PRATIQUE | Touche `O` : copie tes coords + message cliquable dans le chat |
+| **Presets** | — | Profils de config : sauvegarder / appliquer / supprimer / écraser-coller |
 
-## Menu in-game
-- Touche par défaut : **Maj droite** (rebindable dans Options > Contrôles > UtiliKit)
-- **Clic** sur un module : le sélectionner pour voir ses réglages
-- **Re-clic** sur le module sélectionné : l'activer / le désactiver
-- Toggles et sliders à droite, sauvegarde automatique
+## 🎮 Utilisation
 
-## Compilation
-Prérequis : JDK 17+.
+1. Installe **Fabric Loader** (compatible avec ton launcher) + **Fabric API** pour ta version.
+2. Glisse le jar UtiliKit dans le dossier `mods`.
+3. Lance le jeu, appuie sur **Maj droite** pour ouvrir le menu.
+4. Dans le menu : clique sur un module pour le sélectionner, re-clique pour l'activer/désactiver, règle les sliders/toggles à droite. Onglet **Presets** pour sauvegarder et partager ta config (export/import via le presse-papiers).
+
+Raccourcis (rebindables dans les options du jeu) :
+- **Maj droite** — ouvrir le menu UtiliKit
+- **C** — maintenir pour zoomer (si module Zoom activé)
+- **O** — copier tes coordonnées
+
+## 🛠 Développement
+
+Projet Gradle multi-versions : un cœur partagé (`common/`) + un sous-projet par version de Minecraft.
 
 ```bash
-gradle wrapper   # génère le wrapper la première fois (ou ouvre le projet dans IntelliJ)
-./gradlew build
+gradle build                    # compile TOUTES les versions
+gradle :fabric-1.21.1:build     # une seule version
 ```
 
-Le jar final se trouve dans `build/libs/utilikit-0.1.0.jar` (celui **sans** `-sources`).
+Chaque sous-projet `fabric-X` contient le code client dépendant de la version (entrypoint, écran, modules impl, mixins) et compile aussi le cœur commun depuis `common/src/main/java`.
 
-## Installation
-Fabric Loader >= 0.15 + Fabric API, dossier `mods/`.
+## 📄 Licence
 
-## Roadmap
-1. ✅ Système de modules + config JSON + menu in-game
-2. Presets de config (profils sauvegardables, import/export)
-3. Recherche dans le menu, catégories scrollables
-4. Portage Forge / NeoForge, puis versions plus récentes (1.21.x)
-5. Nouveaux modules : auto-reconnect, chat amélioré, HUD éditable, accents...
-
-## Licence
 MIT

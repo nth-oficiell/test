@@ -59,7 +59,7 @@
   </div>
 
   <div class="card guide">
-    <h2>🧰 Installation — <span id="launcherName"> guía selon ton launcher</span></h2>
+    <h2>🧰 Installation — <span id="launcherName">guide selon ton launcher</span></h2>
     <div id="guideVanilla">
       <h3>1. Installer Fabric Loader</h3>
       <p>Télécharge <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">l'installateur Fabric</a>, lance-le, choisis ta version de Minecraft puis <code>Installer</code>.</p>
@@ -89,6 +89,10 @@
       <div class="mod"><b>Zoom</b><small>Zoom fluide en maintenant C — facteur réglable</small></div>
       <div class="mod"><b>Keystrokes</b><small>ZQSD + clics affichés sous le crosshair</small></div>
       <div class="mod"><b>HUD Infos</b><small>FPS, coordonnées, direction et heure à l'écran</small></div>
+      <div class="mod"><b>Auto Sprint</b><small>Sprint automatique dès que tu avances</small></div>
+      <div class="mod"><b>Ping HUD</b><small>Ta latence live en haut à droite, colorée</small></div>
+      <div class="mod"><b>Durabilité</b><small>L'état de l'objet en main, coloré selon l'usure</small></div>
+      <div class="mod"><b>Limite FPS</b><small>Change la limite de FPS du jeu via un slider</small></div>
       <div class="mod"><b>No Hurt Cam</b><small>Stoppe le tremblement caméra des dégâts</small></div>
       <div class="mod"><b>Copier Coordonnées</b><small>Touche O pour copier/claquer ses coords dans le chat</small></div>
       <div class="mod"><b>Presets</b><small>Profils de config sauvegardables et partageables</small></div>
@@ -99,7 +103,9 @@
     <h2>🗺️ Versions supportées</h2>
     <ul>
       <li><b>1.20.1</b> (Fabric) — ✅ disponible</li>
-      <li><b>1.21.x</b>, <b>1.19.x</b>, <b>1.18.2</b>, <b>1.16.5</b>, <b>1.8.9</b> — 🚧 portage à venir</li>
+      <li><b>1.21.1</b> (Fabric) — ✅ disponible</li>
+      <li><b>1.21.11</b> (Fabric) — ✅ disponible</li>
+      <li><b>26.1.2</b>, <b>26.2</b>, <b>26.3</b> (Fabric) — 🚧 bientôt (mappings indisponibles pour le moment)</li>
       <li>Forge / NeoForge — 🚧 portage à venir</li>
     </ul>
   </div>
@@ -129,7 +135,7 @@
     });
     const versions = Object.values(groups).sort((a,b) => compareVer(a.mc, b.mc) * -1);
     versionSelect.innerHTML = '';
-    const upcoming = ['1.21.x','1.20.4','1.19.x','1.18.2','1.16.5','1.8.9'];
+    const upcoming = ['26.3','26.2','26.1.2','1.19.x'];
     versions.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.file;

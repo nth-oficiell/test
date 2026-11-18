@@ -1,11 +1,15 @@
 package dev.utilikit.client;
 
 import dev.utilikit.client.modules.ModuleManager;
+import dev.utilikit.client.modules.impl.AutoSprintModule;
 import dev.utilikit.client.modules.impl.CopyCoordsModule;
+import dev.utilikit.client.modules.impl.DurabilityModule;
 import dev.utilikit.client.modules.impl.FullBrightModule;
 import dev.utilikit.client.modules.impl.HudInfoModule;
 import dev.utilikit.client.modules.impl.KeystrokesModule;
+import dev.utilikit.client.modules.impl.MaxFpsModule;
 import dev.utilikit.client.modules.impl.NoHurtCamModule;
+import dev.utilikit.client.modules.impl.PingHudModule;
 import dev.utilikit.client.modules.impl.ZoomModule;
 import dev.utilikit.client.ui.UtiliKitScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -44,6 +48,10 @@ public class UtiliKitClient implements ClientModInitializer {
         ModuleManager.register(new HudInfoModule());
         ModuleManager.register(new KeystrokesModule());
         ModuleManager.register(copyCoords);
+        ModuleManager.register(new AutoSprintModule());
+        ModuleManager.register(new PingHudModule());
+        ModuleManager.register(new DurabilityModule());
+        ModuleManager.register(new MaxFpsModule());
         ModuleManager.load();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -52,6 +60,7 @@ public class UtiliKitClient implements ClientModInitializer {
                 ModuleManager.applyLoadedStates();
             }
             zoom.tick();
+            AutoSprintModule.tick();
             while (menuKey.wasPressed()) {
                 client.setScreen(new UtiliKitScreen());
             }
@@ -60,6 +69,8 @@ public class UtiliKitClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((context, tickDelta) -> {
             HudInfoModule.renderHud(context, MinecraftClient.getInstance());
             KeystrokesModule.renderHud(context, MinecraftClient.getInstance());
+            PingHudModule.renderHud(context, MinecraftClient.getInstance());
+            DurabilityModule.renderHud(context, MinecraftClient.getInstance());
         });
 
         copyCoords.registerTick();

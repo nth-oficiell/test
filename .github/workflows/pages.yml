@@ -26,28 +26,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Setup JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.8'
+          gradle-version: '8.14'
 
-      - name: Build mod
+      - name: Build all versions
         run: gradle build
 
-      - name: Copy jar + manifest into site
+      - name: Copy jars + manifest into site
         run: |
           set -e
           mkdir -p docs/downloads
           MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
-          MC_VERSION=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)
-          find build/libs -maxdepth 1 -name 'utilikit-*.jar' ! -name '*sources*' \
-            -exec cp {} "docs/downloads/utilikit-${MC_VERSION}-v${MOD_VERSION}.jar" \;
+          for d in fabric-*/; do
+            mc="${d#fabric-}"; mc="${mc%/}"
+            for jar in "${d}build/libs/utilikit-*.jar"; do
+              [ -e "$jar" ] || continue
+              case "$jar" in *sources*) continue ;; esac
+              cp "$jar" "docs/downloads/utilikit-${mc}-v${MOD_VERSION}.jar"
+            done
+          done
           python3 - <<'PY'
           import json, os, glob, re
           entries = []
@@ -56,7 +61,9 @@ jobs:
               if m:
                   entries.append({"file": os.path.basename(jar),
                                   "mc": m.group(1), "modver": m.group(2)})
-          entries.sort(key=lambda e: tuple(int(x) for x in e["mc"].split(".")), reverse=True)
+          def key(e):
+              return [int(x) for x in e["mc"].replace('+', '.').split('.')]
+          entries.sort(key=key, reverse=True)
           with open('docs/downloads/manifest.json', 'w') as f:
               json.dump({"latest": entries[0] if entries else None, "builds": entries}, f, indent=2)
           PY
