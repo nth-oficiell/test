@@ -17,7 +17,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: fabric-1.20.1
+            java: '17'
+            gradle: '8.8'
+          - project: fabric-1.21.1
+            java: '21'
+            gradle: '8.14'
+          - project: fabric-1.21.11
+            java: '21'
+            gradle: '8.14'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Gradle ${{ matrix.gradle }}
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ matrix.gradle }}
+
+      - name: Build ${{ matrix.project }}
+        run: gradle :${{ matrix.project }}:build
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project }}
+          path: ${{ matrix.project }}/build/libs/*.jar
+          if-no-files-found: error
+
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -26,28 +67,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 21
-        uses: actions/setup-java@v5
+      - name: Download jars
+        uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.14'
-
-      - name: Build all versions
-        run: gradle build
+          pattern: fabric-*
+          path: jars
 
       - name: Copy jars + manifest into site
         run: |
           set -e
           mkdir -p docs/downloads
           MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
-          for d in fabric-*/; do
-            mc="${d#fabric-}"; mc="${mc%/}"
-            for jar in "${d}build/libs/utilikit-*.jar"; do
+          for dir in jars/fabric-*/; do
+            project=$(basename "$dir")
+            mc="${project#fabric-}"
+            for jar in "$dir"utilikit-*.jar; do
               [ -e "$jar" ] || continue
               case "$jar" in *sources*) continue ;; esac
               cp "$jar" "docs/downloads/utilikit-${mc}-v${MOD_VERSION}.jar"
@@ -67,6 +101,7 @@ jobs:
           with open('docs/downloads/manifest.json', 'w') as f:
               json.dump({"latest": entries[0] if entries else None, "builds": entries}, f, indent=2)
           PY
+          cp docs/downloads/manifest.json /tmp/manifest-preview.json
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

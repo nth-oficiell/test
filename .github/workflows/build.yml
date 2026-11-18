@@ -8,27 +8,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: fabric-1.20.1
+            java: '17'
+            gradle: '8.8'
+          - project: fabric-1.21.1
+            java: '21'
+            gradle: '8.14'
+          - project: fabric-1.21.11
+            java: '21'
+            gradle: '8.14'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 21
+      - name: Setup JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: ${{ matrix.java }}
 
-      - name: Setup Gradle
+      - name: Setup Gradle ${{ matrix.gradle }}
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.14'
+          gradle-version: ${{ matrix.gradle }}
 
-      - name: Build all versions
-        run: gradle build --stacktrace
+      - name: Build ${{ matrix.project }}
+        run: gradle :${{ matrix.project }}:build --stacktrace
 
-      - name: Upload jars
+      - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
-          name: utilikit-jars
-          path: fabric-*/build/libs/*.jar
+          name: ${{ matrix.project }}
+          path: ${{ matrix.project }}/build/libs/*.jar
           if-no-files-found: error
