@@ -1,5 +1,6 @@
 package dev.utilikit.client.ui;
 
+import dev.utilikit.client.config.PresetManager;
 import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
@@ -8,6 +9,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -20,9 +22,19 @@ public class UtiliKitScreen extends Screen {
     private static final int ROW_H = 22;
     private static final int HEADER_H = 18;
     private static final int GAP = 8;
+    private static final int PRESET_ROW_H = 20;
+
+    private enum View {
+        MODULES,
+        PRESETS
+    }
 
     private final List<Row> rows = new ArrayList<>();
+    private final List<PresetRow> presetRows = new ArrayList<>();
     private Module selected;
+    private View view = View.MODULES;
+    private String status = null;
+    private int presetScroll = 0;
 
     public UtiliKitScreen() {
         super(Text.literal("UtiliKit"));
@@ -34,6 +46,7 @@ public class UtiliKitScreen extends Screen {
     @Override
     protected void init() {
         rows.clear();
+        presetRows.clear();
         int y = layoutTop();
         for (ModuleCategory category : ModuleCategory.values()) {
             boolean hasModule = ModuleManager.all().stream().anyMatch(m -> m.category == category);
@@ -53,8 +66,20 @@ public class UtiliKitScreen extends Screen {
         }
 
         addDrawable((context, mouseX, mouseY, delta) -> renderCustom(context, mouseX, mouseY));
-        addSettingsWidgets();
+        if (view == View.MODULES) {
+            addSettingsWidgets();
+        } else {
+            addPresetWidgets();
+        }
 
+        addDrawableChild(ButtonWidget.builder(Text.literal(view == View.MODULES ? "Presets" : "Modules"),
+                        b -> {
+                            view = view == View.MODULES ? View.PRESETS : View.MODULES;
+                            status = null;
+                            rebuild();
+                        })
+                .dimensions(16, this.height - 26, 80, 18)
+                .build());
         addDrawableChild(ButtonWidget.builder(Text.literal("Fermer"), b -> close())
                 .dimensions(this.width / 2 - 40, this.height - 26, 80, 18)
                 .build());
@@ -113,16 +138,37 @@ public class UtiliKitScreen extends Screen {
             }
         }
 
-        if (selected != null) {
-            context.drawTextWithShadow(this.textRenderer, "§l" + selected.name, settingsLeft + 8, top + 6, 0xFFFFFF);
-            for (String descLine : wrap(selected.description, settingsWidth - 16).split("\n")) {
-                context.drawTextWithShadow(this.textRenderer, descLine, settingsLeft + 8, top + 18, 0x8A8A9E);
+        if (view == View.MODULES && selected != null) {
+            context.drawTextWithShadow(this.textRenderer, "§l" + selected.name,
+                    settingsLeft + 8, top + 6, 0xFFFFFF);
+            int descY = top + 18;
+            for (String descLine : wrap(selected.description, settingsWidth - 16)) {
+                context.drawTextWithShadow(this.textRenderer, descLine, settingsLeft + 8, descY, 0x8A8A9E);
+                descY += 11;
+            }
+        } else if (view == View.PRESETS) {
+            context.drawTextWithShadow(this.textRenderer, "§lGestion des presets",
+                    settingsLeft + 8, top + 6, 0xFFFFFF);
+            if (status != null) {
+                context.drawTextWithShadow(this.textRenderer, status,
+                        settingsLeft + 8, top + 18, 0x55FFAA);
+            }
+            for (PresetRow row : presetRows) {
+                if (!row.visible) {
+                    continue;
+                }
+                String name = this.textRenderer.trimToWidth(row.name, settingsWidth - 110);
+                context.drawTextWithShadow(this.textRenderer, name,
+                        settingsLeft + 8, row.y + 6, 0xDDDDDD);
             }
         }
     }
 
     private List<String> wrap(String text, int maxWidth) {
         List<String> lines = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return lines;
+        }
         if (this.textRenderer.getWidth(text) <= maxWidth) {
             lines.add(text);
             return lines;
@@ -154,7 +200,7 @@ public class UtiliKitScreen extends Screen {
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        if (button == 0) {
+        if (button == 0 && view == View.MODULES) {
             for (Row row : rows) {
                 if (row.module == null) {
                     continue;
@@ -171,6 +217,25 @@ public class UtiliKitScreen extends Screen {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        if (view == View.PRESETS
+                && mouseX >= settingsX() && mouseX <= settingsX() + settingsW()
+                && mouseY >= layoutTop() && mouseY <= listBottom()) {
+            int viewport = listBottom() - contentTop() - 40;
+            int maxScroll = Math.max(0, presetRows.size() * PRESET_ROW_H - viewport + 8);
+            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(amount) * PRESET_ROW_H));
+            presetScroll = Math.min(presetScroll, maxScroll);
+            rebuild();
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, amount);
+    }
+
+    private int contentTop() {
+        return layoutTop() + 82;
     }
 
     private void addSettingsWidgets() {
@@ -197,6 +262,91 @@ public class UtiliKitScreen extends Screen {
                 addDrawableChild(new ModuleSliderWidget(x, y, w, 18, selected, slider));
                 y += 26;
             }
+        }
+    }
+
+    private void addPresetWidgets() {
+        int x = settingsX() + 8;
+        int w = settingsW() - 16;
+        int y = layoutTop() + 34;
+
+        TextFieldWidget nameField = new TextFieldWidget(this.textRenderer, x, y, w, 18,
+                Text.literal("Nom du preset"));
+        nameField.setMaxLength(32);
+        nameField.setText("");
+        addDrawableChild(nameField);
+        setFocused(nameField);
+        nameField.setTextFieldFocused(true);
+        y += 22;
+
+        int half = (w - 6) / 2;
+        addDrawableChild(ButtonWidget.builder(Text.literal("Exporter"), b -> {
+                    String json = PresetManager.exportCurrent();
+                    if (json != null && client != null && client.keyboard != null) {
+                        client.keyboard.setClipboard(json);
+                        status = "Config copiée dans le presse-papiers ✓";
+                    } else {
+                        status = "Export impossible";
+                    }
+                    rebuild();
+                })
+                .dimensions(x, y, half, 18)
+                .build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("Importer"), b -> {
+                    String json = client != null && client.keyboard != null ? client.keyboard.getClipboard() : "";
+                    String presetName = nameField.getText();
+                    if (PresetManager.importJson(presetName, json)) {
+                        status = "Preset importé ✓";
+                    } else {
+                        status = "Import impossible (JSON invalide ?)";
+                    }
+                    rebuild();
+                })
+                .dimensions(x + half + 6, y, w - half - 6, 18)
+                .build());
+        y += 22;
+
+        addDrawableChild(ButtonWidget.builder(Text.literal("Sauvegarder la config actuelle"), b -> {
+                    if (PresetManager.save(nameField.getText())) {
+                        status = "Preset « " + PresetManager.sanitize(nameField.getText()) + " » sauvegardé ✓";
+                    } else {
+                        status = "Entre d'abord un nom de preset";
+                    }
+                    rebuild();
+                })
+                .dimensions(x, y, w, 18)
+                .build());
+
+        int listY = contentTop();
+        List<String> names = PresetManager.names();
+        int viewport = listBottom() - listY - 8;
+        int halfRow = (w - 6) / 2;
+        for (int i = 0; i < names.size(); i++) {
+            int rowTop = listY + i * PRESET_ROW_H - presetScroll;
+            boolean visibleRow = rowTop >= listY - PRESET_ROW_H && rowTop + PRESET_ROW_H <= listBottom();
+            String name = names.get(i);
+            if (visibleRow) {
+                int finalY = rowTop;
+                addDrawableChild(ButtonWidget.builder(Text.literal("Appliquer"), b -> {
+                            if (PresetManager.apply(name)) {
+                                status = "Preset « " + name + " » appliqué ✓";
+                            } else {
+                                status = "Application impossible";
+                            }
+                            rebuild();
+                        })
+                        .dimensions(x, finalY, halfRow, 17)
+                        .build());
+                addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> {
+                            if (PresetManager.delete(name)) {
+                                status = "Preset « " + name + " » supprimé";
+                            }
+                            rebuild();
+                        })
+                        .dimensions(x + halfRow + 6, finalY, w - halfRow - 6, 17)
+                        .build());
+            }
+            presetRows.add(new PresetRow(name, rowTop, visibleRow));
         }
     }
 
@@ -243,6 +393,18 @@ public class UtiliKitScreen extends Screen {
             this.category = category;
             this.y = y;
             this.h = h;
+        }
+    }
+
+    private static final class PresetRow {
+        final String name;
+        final int y;
+        final boolean visible;
+
+        PresetRow(String name, int y, boolean visible) {
+            this.name = name;
+            this.y = y;
+            this.visible = visible;
         }
     }
 }

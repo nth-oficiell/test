@@ -48,4 +48,18 @@ public final class ModuleManager {
             }
         }
     }
+
+    public static void syncStates(Map<String, Boolean> before) {
+        for (Module module : MODULES.values()) {
+            boolean target = module.enabled;
+            Boolean was = before.get(module.id);
+            boolean changed = was == null || was != target;
+            if (changed) {
+                module.enabled = !target;
+                module.setEnabled(target);
+            } else if (target) {
+                module.onSettingChanged();
+            }
+        }
+    }
 }

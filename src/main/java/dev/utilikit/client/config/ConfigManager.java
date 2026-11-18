@@ -21,8 +21,74 @@ public final class ConfigManager {
     private ConfigManager() {
     }
 
-    private static Path path() {
+    public static Gson gson() {
+        return GSON;
+    }
+
+    public static Path path() {
         return FabricLoader.getInstance().getConfigDir().resolve("utilikit.json");
+    }
+
+    public static JsonObject toJson(Collection<Module> modules) {
+        JsonObject root = new JsonObject();
+        JsonObject modulesJson = new JsonObject();
+        for (Module module : modules) {
+            JsonObject moduleJson = new JsonObject();
+            moduleJson.addProperty("enabled", module.enabled);
+            JsonObject settingsJson = new JsonObject();
+            for (Setting setting : module.settings) {
+                if (setting instanceof Setting.Toggle toggle) {
+                    settingsJson.addProperty(setting.id, toggle.value);
+                } else if (setting instanceof Setting.Slider slider) {
+                    settingsJson.addProperty(setting.id, slider.value);
+                }
+            }
+            moduleJson.add("settings", settingsJson);
+            modulesJson.add(module.id, moduleJson);
+        }
+        root.add("modules", modulesJson);
+        return root;
+    }
+
+    public static void applyJson(JsonObject root, Collection<Module> modules) {
+        if (root == null) {
+            return;
+        }
+        JsonObject modulesJson = root.getAsJsonObject("modules");
+        if (modulesJson == null) {
+            return;
+        }
+        for (Module module : modules) {
+            JsonObject moduleJson = modulesJson.getAsJsonObject(module.id);
+            if (moduleJson == null) {
+                continue;
+            }
+            boolean enabled = moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean();
+            module.enabled = enabled;
+            JsonObject settingsJson = moduleJson.getAsJsonObject("settings");
+            if (settingsJson == null) {
+                continue;
+            }
+            for (Setting setting : module.settings) {
+                JsonElement element = settingsJson.get(setting.id);
+                if (element == null) {
+                    continue;
+                }
+                if (setting instanceof Setting.Toggle toggle && element.isJsonPrimitive()) {
+                    toggle.value = element.getAsBoolean();
+                } else if (setting instanceof Setting.Slider slider && element.isJsonPrimitive()) {
+                    slider.value = Math.max(slider.min, Math.min(slider.max, element.getAsDouble()));
+                }
+            }
+        }
+    }
+
+    public static void save(Collection<Module> modules) {
+        try {
+            Files.writeString(path(), GSON.toJson(toJson(modules)));
+        } catch (Exception e) {
+            LOGGER.error("Impossible de sauvegarder la config UtiliKit", e);
+        }
     }
 
     public static void load(Collection<Module> modules) {
@@ -31,64 +97,9 @@ public final class ConfigManager {
             return;
         }
         try {
-            JsonObject root = GSON.fromJson(Files.readString(file), JsonObject.class);
-            if (root == null) {
-                return;
-            }
-            JsonObject modulesJson = root.getAsJsonObject("modules");
-            if (modulesJson == null) {
-                return;
-            }
-            for (Module module : modules) {
-                JsonObject moduleJson = modulesJson.getAsJsonObject(module.id);
-                if (moduleJson == null) {
-                    continue;
-                }
-                boolean enabled = moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean();
-                JsonObject settingsJson = moduleJson.getAsJsonObject("settings");
-                if (settingsJson != null) {
-                    for (Setting setting : module.settings) {
-                        JsonElement element = settingsJson.get(setting.id);
-                        if (element == null) {
-                            continue;
-                        }
-                        if (setting instanceof Setting.Toggle toggle && element.isJsonPrimitive()) {
-                            toggle.value = element.getAsBoolean();
-                        } else if (setting instanceof Setting.Slider slider && element.isJsonPrimitive()) {
-                            slider.value = Math.max(slider.min, Math.min(slider.max, element.getAsDouble()));
-                        }
-                    }
-                }
-                module.enabled = enabled;
-            }
+            applyJson(GSON.fromJson(Files.readString(file), JsonObject.class), modules);
         } catch (Exception e) {
             LOGGER.error("Impossible de charger la config UtiliKit", e);
-        }
-    }
-
-    public static void save(Collection<Module> modules) {
-        Path file = path();
-        try {
-            JsonObject root = new JsonObject();
-            JsonObject modulesJson = new JsonObject();
-            for (Module module : modules) {
-                JsonObject moduleJson = new JsonObject();
-                moduleJson.addProperty("enabled", module.enabled);
-                JsonObject settingsJson = new JsonObject();
-                for (Setting setting : module.settings) {
-                    if (setting instanceof Setting.Toggle toggle) {
-                        settingsJson.addProperty(setting.id, toggle.value);
-                    } else if (setting instanceof Setting.Slider slider) {
-                        settingsJson.addProperty(setting.id, slider.value);
-                    }
-                }
-                moduleJson.add("settings", settingsJson);
-                modulesJson.add(module.id, moduleJson);
-            }
-            root.add("modules", modulesJson);
-            Files.writeString(file, GSON.toJson(root));
-        } catch (Exception e) {
-            LOGGER.error("Impossible de sauvegarder la config UtiliKit", e);
         }
     }
 }

@@ -23,6 +23,15 @@ public class ZoomModule extends Module {
         keyHeld = zoomKey.isPressed();
     }
 
+    @Override
+    protected void onEnable() {
+    }
+
+    @Override
+    protected void onDisable() {
+        keyHeld = false;
+    }
+
     public static boolean shouldZoom() {
         Module base = ModuleManager.get("zoom");
         if (!(base instanceof ZoomModule zoom) || !zoom.enabled) {

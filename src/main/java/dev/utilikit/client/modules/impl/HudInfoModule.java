@@ -31,6 +31,14 @@ public class HudInfoModule extends Module {
         settings.add(background);
     }
 
+    @Override
+    protected void onEnable() {
+    }
+
+    @Override
+    protected void onDisable() {
+    }
+
     public static void renderHud(DrawContext context, MinecraftClient client) {
         Module base = ModuleManager.get("hudinfo");
         if (!(base instanceof HudInfoModule hud) || !hud.enabled) {
