@@ -25,11 +25,11 @@ public final class ModuleManager {
     }
 
     public static void load() {
-        ConfigManager.load(MODULES);
+        ConfigManager.load(MODULES.values());
     }
 
     public static void save() {
-        ConfigManager.save(MODULES);
+        ConfigManager.save(MODULES.values());
     }
 
     public static void applyLoadedStates() {

@@ -276,7 +276,7 @@ public class UtiliKitScreen extends Screen {
         nameField.setText("");
         addDrawableChild(nameField);
         setFocused(nameField);
-        nameField.setTextFieldFocused(true);
+        nameField.setFocused(true);
         y += 22;
 
         int half = (w - 6) / 2;
