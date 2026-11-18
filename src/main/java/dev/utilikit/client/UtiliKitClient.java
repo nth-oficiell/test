@@ -1,8 +1,11 @@
 package dev.utilikit.client;
 
 import dev.utilikit.client.modules.ModuleManager;
+import dev.utilikit.client.modules.impl.CopyCoordsModule;
 import dev.utilikit.client.modules.impl.FullBrightModule;
 import dev.utilikit.client.modules.impl.HudInfoModule;
+import dev.utilikit.client.modules.impl.KeystrokesModule;
+import dev.utilikit.client.modules.impl.NoHurtCamModule;
 import dev.utilikit.client.modules.impl.ZoomModule;
 import dev.utilikit.client.ui.UtiliKitScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -32,9 +35,15 @@ public class UtiliKitClient implements ClientModInitializer {
         KeyBinding zoomKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.utilikit.zoom", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, KEY_CATEGORY));
 
+        ZoomModule zoom = new ZoomModule(zoomKey);
+        CopyCoordsModule copyCoords = new CopyCoordsModule(CopyCoordsModule.registerKey());
+
         ModuleManager.register(new FullBrightModule());
-        ModuleManager.register(new ZoomModule(zoomKey));
+        ModuleManager.register(zoom);
+        ModuleManager.register(new NoHurtCamModule());
         ModuleManager.register(new HudInfoModule());
+        ModuleManager.register(new KeystrokesModule());
+        ModuleManager.register(copyCoords);
         ModuleManager.load();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -42,16 +51,18 @@ public class UtiliKitClient implements ClientModInitializer {
                 initialStatesApplied = true;
                 ModuleManager.applyLoadedStates();
             }
-            ZoomModule zoom = (ZoomModule) ModuleManager.get("zoom");
-            if (zoom != null) {
-                zoom.tick();
-            }
+            zoom.tick();
             while (menuKey.wasPressed()) {
                 client.setScreen(new UtiliKitScreen());
             }
         });
 
-        HudRenderCallback.EVENT.register((context, tickDelta) -> HudInfoModule.renderHud(context, MinecraftClient.getInstance()));
+        HudRenderCallback.EVENT.register((context, tickDelta) -> {
+            HudInfoModule.renderHud(context, MinecraftClient.getInstance());
+            KeystrokesModule.renderHud(context, MinecraftClient.getInstance());
+        });
+
+        copyCoords.registerTick();
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.disableAll());
 

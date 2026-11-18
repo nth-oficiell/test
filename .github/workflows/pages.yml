@@ -1,0 +1,76 @@
+name: Pages
+
+on:
+  push:
+    branches:
+      - main
+      - 'vibe/**'
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.8'
+
+      - name: Build mod
+        run: gradle build
+
+      - name: Copy jar + manifest into site
+        run: |
+          set -e
+          mkdir -p docs/downloads
+          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
+          MC_VERSION=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)
+          find build/libs -maxdepth 1 -name 'utilikit-*.jar' ! -name '*sources*' \
+            -exec cp {} "docs/downloads/utilikit-${MC_VERSION}-v${MOD_VERSION}.jar" \;
+          python3 - <<'PY'
+          import json, os, glob, re
+          entries = []
+          for jar in glob.glob('docs/downloads/*.jar'):
+              m = re.match(r'utilikit-(.+)-v(.+)\.jar', os.path.basename(jar))
+              if m:
+                  entries.append({"file": os.path.basename(jar),
+                                  "mc": m.group(1), "modver": m.group(2)})
+          entries.sort(key=lambda e: tuple(int(x) for x in e["mc"].split(".")), reverse=True)
+          with open('docs/downloads/manifest.json', 'w') as f:
+              json.dump({"latest": entries[0] if entries else None, "builds": entries}, f, indent=2)
+          PY
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UtiliKit — Téléchargement</title>
+<style>
+  :root { --bg:#0d0d14; --panel:#16161f; --panel2:#1d1d2a; --accent:#55ff88; --text:#e8e8f0; --muted:#9a9ab0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:"Segoe UI",system-ui,sans-serif; min-height:100vh; }
+  header { text-align:center; padding:48px 16px 28px; }
+  header h1 { font-size:2.6rem; letter-spacing:2px; color:var(--accent); text-shadow:0 0 24px rgba(85,255,136,.35); }
+  header p { color:var(--muted); margin-top:10px; }
+  main { max-width:880px; margin:0 auto; padding:0 16px 64px; }
+  .card { background:var(--panel); border:1px solid #2a2a3d; border-radius:12px; padding:22px; margin-bottom:20px; }
+  h2 { font-size:1.15rem; margin-bottom:14px; color:#fff; }
+  label { display:block; color:var(--muted); font-size:.85rem; margin:12px 0 5px; }
+  select { width:100%; background:var(--panel2); color:var(--text); border:1px solid #3a3a52; border-radius:8px; padding:11px 12px; font-size:1rem; outline:none; }
+  select:focus { border-color:var(--accent); }
+  #downloadBtn { display:block; width:100%; margin-top:16px; background:var(--accent); color:#06290f; font-weight:700; font-size:1.05rem; border:none; border-radius:8px; padding:14px; cursor:pointer; transition:filter .15s; text-align:center; text-decoration:none; }
+  #downloadBtn:hover:not([disabled]) { filter:brightness(1.12); }
+  #downloadBtn[disabled] { background:#3a3a52; color:#8a8a9e; cursor:not-allowed; }
+  .meta { color:var(--muted); font-size:.85rem; margin-top:10px; text-align:center; }
+  .status { margin-top:10px; font-size:.9rem; text-align:center; }
+  .status.ok { color:var(--accent); } .status.err { color:#ff7788; }
+  ul { margin-left:20px; color:var(--muted); line-height:1.7; font-size:.95rem; }
+  .guide h3 { margin:14px 0 4px; color:#cfcfe0; font-size:1rem; }
+  .guide p, .guide li { color:var(--muted); line-height:1.65; font-size:.93rem; }
+  code { background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:.85em; color:var(--accent); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px; }
+  .mod { background:var(--panel2); border:1px solid #2f2f45; border-radius:8px; padding:10px 14px; font-size:.9rem; }
+  .mod b { color:#fff; } .mod small { color:var(--muted); display:block; margin-top:3px; }
+  footer { text-align:center; color:var(--muted); font-size:.8rem; padding:24px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>⛏ UtiliKit</h1>
+  <p>Mod utilitaire client — un seul menu (Maj droite) pour tout personnaliser</p>
+</header>
+<main>
+  <div class="card">
+    <h2>📥 Télécharger</h2>
+    <label for="launcher">Ton launcher</label>
+    <select id="launcher">
+      <option value="vanilla">Minecraft officiel (Vanilla Launcher)</option>
+      <option value="curseforge">CurseForge App</option>
+      <option value="modrinth">App Modrinth</option>
+      <option value="prism">Prism Launcher / MultiMC</option>
+    </select>
+    <label for="mcversion">Version de Minecraft</label>
+    <select id="mcversion">
+      <option>Chargement…</option>
+    </select>
+    <a id="downloadBtn" disabled>Télécharger UtiliKit</a>
+    <p class="meta" id="buildMeta"></p>
+    <p class="status" id="status"></p>
+  </div>
+
+  <div class="card guide">
+    <h2>🧰 Installation — <span id="launcherName"> guía selon ton launcher</span></h2>
+    <div id="guideVanilla">
+      <h3>1. Installer Fabric Loader</h3>
+      <p>Télécharge <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">l'installateur Fabric</a>, lance-le, choisis ta version de Minecraft puis <code>Installer</code>.</p>
+      <h3>2. Lancer le profil Fabric</h3>
+      <p>Dans le launcher officiel, sélectionne le profil <code>fabric-loader</code> et lance le jeu une fois pour créer le dossier <code>mods</code>.</p>
+      <h3>3. Ajouter UtiliKit</h3>
+      <p>Glisse le jar téléchargé ci-dessus (et <a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a>) dans <code>%appdata%\.minecraft\mods</code>, relance le jeu, appuie sur <b>Maj droite</b>.</p>
+    </div>
+    <div id="guideCurseforge" style="display:none">
+      <h3>CurseForge App</h3>
+      <p>Crée (ou choisis) un profil en <b>Fabric</b> avec la bonne version → bouton <code>Dossier</code> → ouvre <code>mods</code> → colle le jar téléchargé (plus <a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a>) → relance le profil.</p>
+    </div>
+    <div id="guideModrinth" style="display:none">
+      <h3>App Modrinth</h3>
+      <p>Crée une instance <b>Fabric</b> avec la bonne version → onglet <code>Dossiers</code> → <code>mods</code> → ajoute le jar téléchargé (plus <a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a>) → lance l'instance.</p>
+    </div>
+    <div id="guidePrism" style="display:none">
+      <h3>Prism / MultiMC</h3>
+      <p><code>Ajouter une instance</code> → Fabric + ta version → clic droit <code>Modifier</code> → <code>Ajouter les mods Minecraft</code> → colle le jar téléchargé (plus <a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a>) → lance.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧩 Modules inclus</h2>
+    <div class="grid">
+      <div class="mod"><b>FullBright</b><small>Luminosité max extension — slider 1 à 16</small></div>
+      <div class="mod"><b>Zoom</b><small>Zoom fluide en maintenant C — facteur réglable</small></div>
+      <div class="mod"><b>Keystrokes</b><small>ZQSD + clics affichés sous le crosshair</small></div>
+      <div class="mod"><b>HUD Infos</b><small>FPS, coordonnées, direction et heure à l'écran</small></div>
+      <div class="mod"><b>No Hurt Cam</b><small>Stoppe le tremblement caméra des dégâts</small></div>
+      <div class="mod"><b>Copier Coordonnées</b><small>Touche O pour copier/claquer ses coords dans le chat</small></div>
+      <div class="mod"><b>Presets</b><small>Profils de config sauvegardables et partageables</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗺️ Versions supportées</h2>
+    <ul>
+      <li><b>1.20.1</b> (Fabric) — ✅ disponible</li>
+      <li><b>1.21.x</b>, <b>1.19.x</b>, <b>1.18.2</b>, <b>1.16.5</b>, <b>1.8.9</b> — 🚧 portage à venir</li>
+      <li>Forge / NeoForge — 🚧 portage à venir</li>
+    </ul>
+  </div>
+</main>
+<footer>UtiliKit — MIT. Site généré automatiquement, les fichiers listés viennent des builds de ce dépôt.</footer>
+<script>
+  const repo = 'nth-oficiell/test';
+  const launcherNames = {vanilla:'Minecraft officiel', curseforge:'CurseForge App', modrinth:'App Modrinth', prism:'Prism / MultiMC'};
+  const forgeSelect = document.getElementById('launcher');
+  const versionSelect = document.getElementById('mcversion');
+  const btn = document.getElementById('downloadBtn');
+  const meta = document.getElementById('buildMeta');
+  const status = document.getElementById('status');
+  let builds = [];
+
+  forgeSelect.addEventListener('change', () => {
+    document.getElementById('launcherName').textContent = launcherNames[forgeSelect.value] || '';
+    ['Vanilla','Curseforge','Modrinth','Prism'].forEach(k => {
+      document.getElementById('guide'+k).style.display = (forgeSelect.value === k.toLowerCase()) ? 'block' : 'none';
+    });
+  });
+
+  function refreshVersionUi() {
+    const groups = {};
+    builds.forEach(b => {
+      if (!groups[b.mc] || compareVer(b.modver, groups[b.mc].modver) > 0) groups[b.mc] = b;
+    });
+    const versions = Object.values(groups).sort((a,b) => compareVer(a.mc, b.mc) * -1);
+    versionSelect.innerHTML = '';
+    const upcoming = ['1.21.x','1.20.4','1.19.x','1.18.2','1.16.5','1.8.9'];
+    versions.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.file;
+      opt.textContent = 'Minecraft ' + v.mc + '  —  Fabric';
+      versionSelect.appendChild(opt);
+    });
+    upcoming.forEach(u => {
+      if (versions.some(v => v.mc.startsWith(u.replace('.x','')))) return;
+      const opt = document.createElement('option');
+      opt.disabled = true;
+      opt.textContent = 'Minecraft ' + u + ' — bientôt';
+      versionSelect.appendChild(opt);
+    });
+    updateDownload();
+  }
+
+  function compareVer(a, b) {
+    const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const d = (pa[i]||0) - (pb[i]||0);
+      if (d) return d;
+    }
+    return 0;
+  }
+
+  function updateDownload() {
+    const file = versionSelect.value;
+    const build = builds.find(b => b.file === file);
+    if (!build) {
+      btn.disabled = true;
+      btn.removeAttribute('href');
+      meta.textContent = '';
+      return;
+    }
+    btn.disabled = false;
+    btn.href = './downloads/' + build.file;
+    btn.textContent = '⬇ Télécharger pour Minecraft ' + build.mc;
+    meta.textContent = 'UtiliKit v' + build.modver + ' • Fabric • ' + build.file;
+  }
+
+  versionSelect.addEventListener('change', updateDownload);
+
+  fetch('./downloads/manifest.json')
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(m => {
+      builds = m.builds || [];
+      if (!builds.length) throw new Error('empty');
+      status.textContent = '✓ ' + builds.length + ' build(s) disponible(s)';
+      status.className = 'status ok';
+      refreshVersionUi();
+    })
+    .catch(() => {
+      versionSelect.innerHTML = '<option value="">Indisponible</option>';
+      btn.disabled = true;
+      status.textContent = 'Liste des builds indisponible — va sur la page des versions du dépôt.';
+      status.className = 'status err';
+      btn.removeAttribute('href');
+    });
+</script>
+</body>
+</html>
