@@ -64,29 +64,29 @@ public class KeystrokesModule extends Module {
         }
 
         drawKeyBox(context, client, startX + PADDING + (BOX + PADDING), y, BOX, BOX,
-                client.options.keyForward.isPressed(), azerty ? "Z" : "W");
+                client.options.forwardKey.isPressed(), azerty ? "Z" : "W");
         int midY = y + BOX + PADDING;
         drawKeyBox(context, client, startX + PADDING, midY, BOX, BOX,
-                client.options.keyLeft.isPressed(), azerty ? "Q" : "A");
+                client.options.leftKey.isPressed(), azerty ? "Q" : "A");
         drawKeyBox(context, client, startX + PADDING + (BOX + PADDING), midY, BOX, BOX,
-                client.options.keyBack.isPressed(), "S");
+                client.options.backKey.isPressed(), "S");
         drawKeyBox(context, client, startX + PADDING + 2 * (BOX + PADDING), midY, BOX, BOX,
-                client.options.keyRight.isPressed(), "D");
+                client.options.rightKey.isPressed(), "D");
         int cursorY = midY + BOX + PADDING;
 
         if (space) {
             int spaceX = startX + PADDING + (BOX + PADDING) / 2;
             int spaceW = 2 * BOX + PADDING;
             drawKeyBox(context, client, spaceX, cursorY, spaceW, 10,
-                    client.options.keyJump.isPressed(), "· · ·");
+                    client.options.jumpKey.isPressed(), "· · ·");
             cursorY += 12;
         }
 
         if (mouse) {
             drawKeyBox(context, client, startX + PADDING, cursorY, BOX, BOX,
-                    client.options.keyAttack.isPressed(), azerty ? "C1" : "L");
+                    client.options.attackKey.isPressed(), azerty ? "C1" : "L");
             drawKeyBox(context, client, startX + PADDING + (BOX + PADDING), cursorY, BOX, BOX,
-                    client.options.keyUse.isPressed(), azerty ? "C2" : "R");
+                    client.options.useKey.isPressed(), azerty ? "C2" : "R");
         }
     }
 
