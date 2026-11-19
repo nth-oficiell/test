@@ -1058,6 +1058,8 @@ public final class ClientIntegrations {
             return;
         }
         dev.utilikit.client.modules.extra.HudDrag.beginFrame();
+        int[] hudColors = {0xFFFFFFFF, 0xFF55FF55, 0xFFFF5555, 0xFF5555FF, 0xFFFFFF55, 0xFF55FFFF, 0xFFFF55FF, 0xFF141420};
+        int textColor = hudColors[dev.utilikit.client.modules.extra.ExtraModules.hudColorIndex()];
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int x = 6 + hudOffset[0];
         int y = 6 + hudOffset[1] + hudInfoHeight();
@@ -1086,7 +1088,7 @@ public final class ClientIntegrations {
             if (info.hasBackground()) {
                 graphics.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
             }
-            graphics.text(client.font, text, lineX, lineY, 0xFFFFFFFF, true);
+            graphics.text(client.font, text, lineX, lineY, textColor, true);
             y += lineHeight;
         }
 

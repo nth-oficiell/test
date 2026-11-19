@@ -893,6 +893,8 @@ public final class ClientIntegrations {
             return;
         }
         dev.utilikit.client.modules.extra.HudDrag.beginFrame();
+        int[] hudColors = {0xFFFFFF, 0x55FF55, 0xFF5555, 0x5555FF, 0xFFFF55, 0x55FFFF, 0xFF55FF, 0x141420};
+        int textColor = hudColors[dev.utilikit.client.modules.extra.ExtraModules.hudColorIndex()];
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int x = 6 + hudOffset[0];
         int y = 6 + hudOffset[1] + hudInfoHeight();
@@ -921,7 +923,7 @@ public final class ClientIntegrations {
             if (info.hasBackground()) {
                 context.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
             }
-            context.drawTextWithShadow(client.textRenderer, text, lineX, lineY, 0xFFFFFF);
+            context.drawTextWithShadow(client.textRenderer, text, lineX, lineY, textColor);
             y += lineHeight;
         }
 

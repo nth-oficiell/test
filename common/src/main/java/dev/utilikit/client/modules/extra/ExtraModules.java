@@ -19,6 +19,7 @@ public final class ExtraModules {
     private static final int WINDOW = 20;
     private static final int[] CLICKS_LEFT = new int[WINDOW];
     private static final int[] CLICKS_RIGHT = new int[WINDOW];
+    private static final long[] TOTALS = new long[2];
     private static int clicksIndex;
     private static boolean prevLeft;
     private static boolean prevRight;
@@ -44,6 +45,13 @@ public final class ExtraModules {
         ModuleManager.register(radarModule());
         ModuleManager.register(vigilanceModule());
         ModuleManager.register(mountLifeModule());
+        ModuleManager.register(chatLogModule());
+        ModuleManager.register(hungerAlertModule());
+        ModuleManager.register(hudColorModule());
+        ModuleManager.register(chronoModule());
+        ModuleManager.register(chronoResetModule());
+        ModuleManager.register(clicksTotalModule());
+        ModuleManager.register(durAlertModule());
         Waypoints.load();
         HudDrag.load();
     }
@@ -56,6 +64,9 @@ public final class ExtraModules {
         AntiAfk.tick(game);
         ChatMention.tick(game);
         Vigilance.tick(game);
+        ChatLog.tick(game);
+        HungerAlert.tick(game);
+        DurAlert.tick(game);
     }
 
     private static Module crosshairModule() {
@@ -180,6 +191,164 @@ public final class ExtraModules {
                 });
         module.settings.add(new Setting.Text("words", "Mots-clés (virgules)", "nth, admin"));
         return module;
+    }
+
+    private static Module chatLogModule() {
+        Module module = new TickModule("chatlog", "Log de chat",
+                "Enregistre toutes les lignes de chat dans un fichier texte (utilikit-chatlog.txt) pour les relire plus tard.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        return module;
+    }
+
+    private static Module hungerAlertModule() {
+        Module module = new TickModule("hungeralert", "Alerte faim",
+                "Prévient par notification quand ta faim passe sous le seuil réglé.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("seuil", "Seuil de faim", 2.0D, 19.0D, 6.0D));
+        return module;
+    }
+
+    private static Module durAlertModule() {
+        Module module = new TickModule("duralert", "Alerte durabilité",
+                "Prévient quand l'objet en main passe sous un pourcentage de durabilité (réarmé quand tu changes ou répares).",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("seuil", "Seuil (%)", 5.0D, 50.0D, 20.0D));
+        return module;
+    }
+
+    private static Module hudColorModule() {
+        Module module = new TickModule("hudcolor", "Couleur du HUD",
+                "Change la couleur du texte des lignes d'infos du HUD NTH Utils.",
+                ModuleCategory.VISUEL,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("couleur", "Couleur (0 blanc, 1 vert, 2 rouge, 3 bleu, 4 jaune, 5 cyan, 6 magenta, 7 noir)", 0.0D, 7.0D, 0.0D));
+        return module;
+    }
+
+    private static Module chronoModule() {
+        return new InfoModule("chrono", "Chrono",
+                "Affiche un chrono qui démarre avec le mod et repart après un reset.",
+                ModuleCategory.AFFICHAGE,
+                game -> Chrono.line());
+    }
+
+    private static Module chronoResetModule() {
+        return new ActionModule("chronoreset", "Chrono reset",
+                "Remet le chrono à zéro. Active-le d'un clic ou assigne-lui une touche.",
+                ModuleCategory.PRATIQUE) {
+            @Override
+            protected void execute() {
+                Chrono.reset();
+                Notifier.push("Chrono remis à zéro");
+            }
+        };
+    }
+
+    private static Module clicksTotalModule() {
+        return new InfoModule("clickstotal", "Clics totaux",
+                "Compte le total de clics gauche et droit depuis le début de la session.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    long[] totals = CPS.snapshotTotals();
+                    return "Clics total : " + totals[0] + " G · " + totals[1] + " D";
+                });
+    }
+
+    public static int hudColorIndex() {
+        Module module = ModuleManager.get("hudcolor");
+        if (module == null || !module.enabled) {
+            return 0;
+        }
+        Setting.Slider color = module.slider("couleur");
+        return color == null ? 0 : (int) Math.max(0, Math.min(7, Math.round(color.value)));
+    }
+
+    private static final class HungerAlert {
+        private static long lastAlert;
+        private static boolean wasLow;
+
+        static void tick(Object game) {
+            Module module = ModuleManager.get("hungeralert");
+            if (module == null || !module.enabled) {
+                wasLow = false;
+                return;
+            }
+            try {
+                Object player = game.getClass().getField("player").get(game);
+                if (player == null) {
+                    wasLow = false;
+                    return;
+                }
+                Object food = method(player, "getHungerManager", "getFoodData");
+                Number level = food == null ? null : numberByName(food, "getFoodLevel");
+                if (level == null) {
+                    return;
+                }
+                Setting.Slider threshold = module.slider("seuil");
+                double limit = threshold == null ? 6.0D
+                        : Math.max(threshold.min, Math.min(threshold.max, threshold.value));
+                long now = System.currentTimeMillis();
+                if (level.doubleValue() > limit) {
+                    wasLow = false;
+                    return;
+                }
+                if (!wasLow || now - lastAlert >= 30000L) {
+                    wasLow = true;
+                    lastAlert = now;
+                    Notifier.push("\u26a0 Alerte faim : " + level.intValue() + " / 20");
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private static final class DurAlert {
+        private static boolean wasLow;
+
+        static void tick(Object game) {
+            Module module = ModuleManager.get("duralert");
+            if (module == null || !module.enabled) {
+                wasLow = false;
+                return;
+            }
+            try {
+                Object player = game.getClass().getField("player").get(game);
+                if (player == null) {
+                    wasLow = false;
+                    return;
+                }
+                Object stack = method(player, "getMainHandStack", "getMainHandItem");
+                if (stack == null || (Boolean) stack.getClass().getMethod("isEmpty").invoke(stack)) {
+                    wasLow = false;
+                    return;
+                }
+                Number max = numberByName(stack, "getMaxDamage");
+                Number damage = numberByName(stack, "getDamage", "getDamageValue");
+                if (max == null || damage == null || max.intValue() <= 0) {
+                    return;
+                }
+                int percent = (int) Math.round((max.intValue() - damage.intValue()) * 100.0D / max.intValue());
+                Setting.Slider threshold = module.slider("seuil");
+                double limit = threshold == null ? 20.0D
+                        : Math.max(threshold.min, Math.min(threshold.max, threshold.value));
+                if (percent > limit + 5) {
+                    wasLow = false;
+                    return;
+                }
+                if (percent <= limit && !wasLow) {
+                    wasLow = true;
+                    Notifier.push("\u26a0 Objet en main : " + percent + " % de durabilité");
+                }
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     public static int[] crosshairSpec() {
@@ -321,6 +490,16 @@ public final class ExtraModules {
                 if (value != null) {
                     return value;
                 }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private static Number numberByName(Object owner, String... methodNames) {
+        for (String methodName : methodNames) {
+            try {
+                return (Number) owner.getClass().getMethod(methodName).invoke(owner);
             } catch (Exception ignored) {
             }
         }
@@ -655,9 +834,11 @@ public final class ExtraModules {
             }
             if (left && !prevLeft) {
                 CLICKS_LEFT[clicksIndex]++;
+                TOTALS[0]++;
             }
             if (right && !prevRight) {
                 CLICKS_RIGHT[clicksIndex]++;
+                TOTALS[1]++;
             }
             prevLeft = left;
             prevRight = right;
@@ -671,6 +852,10 @@ public final class ExtraModules {
                 right += CLICKS_RIGHT[i];
             }
             return new int[] {left, right};
+        }
+
+        static long[] snapshotTotals() {
+            return new long[] {TOTALS[0], TOTALS[1]};
         }
 
         private static Boolean keyHeld(Object game, String[] fieldNames) {
