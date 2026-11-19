@@ -42,6 +42,8 @@ public class UtiliKitScreen extends Screen {
     private String status = null;
     private Module bindingTarget = null;
     private int presetScroll = 0;
+    private int moduleScroll = 0;
+    private int moduleMaxScroll = 0;
 
     public UtiliKitScreen() {
         super(Text.literal("NTH Utils"));
@@ -54,7 +56,8 @@ public class UtiliKitScreen extends Screen {
     protected void init() {
         rows.clear();
         presetRows.clear();
-        int y = layoutTop() + (view == View.MODULES ? 26 : 0);
+        int y = listContentTop();
+        int listStartY = y;
         String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleCategory.values()) {
             boolean hasModule = !needle.isEmpty()
@@ -77,6 +80,8 @@ public class UtiliKitScreen extends Screen {
             }
             y += GAP;
         }
+        moduleMaxScroll = Math.max(0, (y - listStartY) - (listBottom() - listStartY));
+        moduleScroll = Math.max(0, Math.min(moduleScroll, moduleMaxScroll));
 
         if (view == View.MODULES) {
             searchField = new TextFieldWidget(this.textRenderer, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Text.literal("Recherche\u2026"));
@@ -103,6 +108,7 @@ public class UtiliKitScreen extends Screen {
                         b -> {
                             view = view == View.MODULES ? View.PRESETS : View.MODULES;
                             status = null;
+                            moduleScroll = 0;
                             rebuild();
                         })
                 .dimensions(16, this.height - 26, 80, 18)
@@ -119,6 +125,10 @@ public class UtiliKitScreen extends Screen {
 
     private int layoutTop() {
         return 34;
+    }
+
+    private int listContentTop() {
+        return layoutTop() + (view == View.MODULES ? 26 : 0);
     }
 
     private int listBottom() {
@@ -148,21 +158,34 @@ public class UtiliKitScreen extends Screen {
         context.drawBorder(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         for (Row row : rows) {
+            int rowY = row.y - moduleScroll;
+            if (rowY < top || rowY + row.h > bottom || rowY < listContentTop()) {
+                continue;
+            }
             if (row.category != null) {
                 context.drawTextWithShadow(this.textRenderer, row.category.label,
-                        LIST_X + 6, row.y + 5, 0xFF9A9AB0);
+                        LIST_X + 6, rowY + 5, 0xFF9A9AB0);
             } else if (row.module != null) {
-                boolean hovered = isOverRow(row, mouseX, mouseY);
+                boolean hovered = isOverRow(row, rowY, mouseX, mouseY);
                 int bg = row.module == selected ? 0x50FFFFFF : (hovered ? 0x28FFFFFF : 0x00000000);
                 if (bg != 0) {
-                    context.fill(LIST_X + 2, row.y, LIST_X + LIST_W - 2, row.y + row.h, bg);
+                    context.fill(LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, bg);
                 }
                 int statusColor = row.module.enabled ? 0xFF55FF55 : 0xFFFF5555;
-                context.fill(LIST_X + 6, row.y + row.h / 2 - 1, LIST_X + 10, row.y + row.h / 2 + 3, statusColor);
+                context.fill(LIST_X + 6, rowY + row.h / 2 - 1, LIST_X + 10, rowY + row.h / 2 + 3, statusColor);
                 int textColor = row.module.enabled ? 0xFFFFFFFF : 0xFFAAAAAA;
                 context.drawTextWithShadow(this.textRenderer, row.module.name,
-                        LIST_X + 16, row.y + 7, textColor);
+                        LIST_X + 16, rowY + 7, textColor);
             }
+        }
+        if (moduleMaxScroll > 0) {
+            int trackTop = listContentTop();
+            int trackH = bottom - trackTop;
+            int contentH = trackH + moduleMaxScroll;
+            int thumbH = Math.max(12, trackH * trackH / contentH);
+            int thumbY = trackTop + (trackH - thumbH) * moduleScroll / moduleMaxScroll;
+            context.fill(LIST_X + LIST_W - 6, trackTop, LIST_X + LIST_W - 4, bottom, 0x40FFFFFF);
+            context.fill(LIST_X + LIST_W - 6, thumbY, LIST_X + LIST_W - 4, thumbY + thumbH, 0xFF61B8FF);
         }
 
         if (view != View.PRESETS && selected != null) {
@@ -221,8 +244,10 @@ public class UtiliKitScreen extends Screen {
         return lines;
     }
 
-    private boolean isOverRow(Row row, int mouseX, int mouseY) {
-        return mouseX >= LIST_X && mouseX <= LIST_X + LIST_W && mouseY >= row.y && mouseY < row.y + row.h;
+    private boolean isOverRow(Row row, int rowY, int mouseX, int mouseY) {
+        return mouseX >= LIST_X && mouseX <= LIST_X + LIST_W
+                && mouseY >= rowY && mouseY < rowY + row.h
+                && rowY >= listContentTop() && rowY + row.h <= listBottom();
     }
 
     @Override
@@ -235,13 +260,15 @@ public class UtiliKitScreen extends Screen {
                 if (row.module == null) {
                     continue;
                 }
-                if (isOverRow(row, (int) mouseX, (int) mouseY)) {
+                int rowY = row.y - moduleScroll;
+                if (isOverRow(row, rowY, (int) mouseX, (int) mouseY)) {
                     selected = row.module;
                     if (button == 0) {
                         dev.utilikit.client.modules.ModuleActions.activate(row.module);
                     } else if (button == 1) {
                         bindingTarget = null;
                         view = View.PARAMS;
+                        moduleScroll = 0;
                     }
                     rebuild();
                     return true;
@@ -261,6 +288,12 @@ public class UtiliKitScreen extends Screen {
             presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(amount) * PRESET_ROW_H));
             presetScroll = Math.min(presetScroll, maxScroll);
             rebuild();
+            return true;
+        }
+        if (mouseX >= LIST_X && mouseX <= LIST_X + LIST_W
+                && mouseY >= layoutTop() && mouseY <= listBottom()) {
+            moduleScroll = Math.max(0, moduleScroll - (int) Math.signum(amount) * (ROW_H + 2));
+            moduleScroll = Math.min(moduleScroll, moduleMaxScroll);
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, amount);

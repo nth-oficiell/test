@@ -79,6 +79,7 @@ public class UtiliKitScreen extends Screen {
                         b -> {
                             view = view == View.MODULES ? View.PRESETS : View.MODULES;
                             status = null;
+                            listScroll = 0;
                             rebuild();
                         })
                 .bounds(LIST_X, this.height - 26, 80, 18)
@@ -109,11 +110,11 @@ public class UtiliKitScreen extends Screen {
         }
         if (rows.get(rows.size() - 1).y > listBottom()) {
             addRenderableWidget(Button.builder(Component.literal("\u25B2"), b -> {
-                        listScroll = Math.max(0, listScroll - 4);
+                        listScroll = Math.max(0, listScroll - (ROW_H + 2) * 2);
                         rebuild();
                     }).bounds(LIST_X + LIST_W / 2 - 40, listBottom() + 2, 38, 16).build());
             addRenderableWidget(Button.builder(Component.literal("\u25BC"), b -> {
-                        listScroll = listScroll + 4;
+                        listScroll = listScroll + (ROW_H + 2) * 2;
                         rebuild();
                     }).bounds(LIST_X + LIST_W / 2 + 2, listBottom() + 2, 38, 16).build());
         }
@@ -124,8 +125,8 @@ public class UtiliKitScreen extends Screen {
     private List<Runnable> listBuilders() {
         List<Runnable> builders = new ArrayList<>();
         rows = new ArrayList<>();
-        int y = layoutTop() + (view == View.MODULES ? 26 : 0);
-        int visibleIndex = 0;
+        int y = layoutTop() + 26;
+        int startY = y;
         String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleManager.categories()) {
             boolean hasModule = !needle.isEmpty()
@@ -143,23 +144,26 @@ public class UtiliKitScreen extends Screen {
                 if (!needle.isEmpty() && !module.name.toLowerCase().contains(needle)) {
                     continue;
                 }
-                if (visibleIndex >= listScroll && y + ROW_H <= listBottom()) {
-                    Module moduleF = module;
-                    int rowY = y;
-                    rows.add(new Row(module, null, y, ROW_H, null));
-                    builders.add(() -> {
-                        Button b = Button.builder(Component.literal(moduleF.name + (moduleF.enabled ? "  \u2713" : "")),
-                                        btn -> UtiliKitScreen.this.handleRowClick(moduleF))
-                                .bounds(LIST_X + 2, rowY, LIST_W - 4, ROW_H - 4)
-                                .build();
-                        addRenderableWidget(b);
-                    });
-                }
-                visibleIndex++;
+                Module moduleF = module;
+                int rowYF = y;
+                rows.add(new Row(module, null, y, ROW_H, null));
+                builders.add(() -> {
+                    int shiftedY = rowYF - listScroll;
+                    if (shiftedY < startY || shiftedY + ROW_H > listBottom()) {
+                        return;
+                    }
+                    Button b = Button.builder(Component.literal(moduleF.name + (moduleF.enabled ? "  \u2713" : "")),
+                                    btn -> UtiliKitScreen.this.handleRowClick(moduleF))
+                            .bounds(LIST_X + 2, shiftedY, LIST_W - 4, ROW_H - 4)
+                            .build();
+                    addRenderableWidget(b);
+                });
                 y += ROW_H + 2;
             }
             y += GAP;
         }
+        int maxScroll = Math.max(0, (y - startY) - (listBottom() - startY));
+        listScroll = Math.max(0, Math.min(listScroll, maxScroll));
         return builders;
     }
 
@@ -417,19 +421,28 @@ public class UtiliKitScreen extends Screen {
         graphics.fill(settingsLeft, top, settingsLeft + settingsWidth, bottom, 0xC0101018);
         graphics.outline(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
-        int visibleIndex = 0;
-        for (Row row : rows) {
-            if (row.category != null) {
-                if (visibleIndex >= listScroll && row.y + row.h <= listBottom()) {
-                    graphics.text(this.font, row.category.label + " \u2014", LIST_X + 6, row.y + 5, 0xFF9A9AB0, true);
+        if (view != View.PRESETS && !rows.isEmpty()) {
+            int contentTopY = layoutTop() + 26;
+            for (Row row : rows) {
+                int rowY = row.y - listScroll;
+                if (rowY < contentTopY || rowY + row.h > listBottom()) {
+                    continue;
                 }
-            } else if (row.module != null) {
-                if (visibleIndex >= listScroll && row.y + row.h <= listBottom() && row.module == selected) {
-                    graphics.outline(LIST_X + 2, row.y - 2, LIST_W - 4, row.h, 0xFF61B8FF);
+                if (row.category != null) {
+                    graphics.text(this.font, row.category.label + " \u2014", LIST_X + 6, rowY + 5, 0xFF9A9AB0, true);
+                } else if (row.module != null && row.module == selected) {
+                    graphics.outline(LIST_X + 2, rowY - 2, LIST_W - 4, row.h, 0xFF61B8FF);
                 }
             }
-            if (row.category == null) {
-                visibleIndex++;
+            Row lastRow = rows.get(rows.size() - 1);
+            int maxScroll = Math.max(0, (lastRow.y + lastRow.h - contentTopY) - (listBottom() - contentTopY));
+            if (maxScroll > 0) {
+                int trackH = listBottom() - contentTopY;
+                int contentH = trackH + maxScroll;
+                int thumbH = Math.max(12, trackH * trackH / contentH);
+                int thumbY = contentTopY + (trackH - thumbH) * listScroll / maxScroll;
+                graphics.fill(LIST_X + LIST_W - 6, contentTopY, LIST_X + LIST_W - 4, listBottom(), 0x40FFFFFF);
+                graphics.fill(LIST_X + LIST_W - 6, thumbY, LIST_X + LIST_W - 4, thumbY + thumbH, 0xFF61B8FF);
             }
         }
 
@@ -492,14 +505,17 @@ public class UtiliKitScreen extends Screen {
                 if (row.module == null) {
                     continue;
                 }
+                int rowY = row.y - listScroll;
                 if (event.x() >= LIST_X + 2 && event.x() <= LIST_X + LIST_W - 2
-                        && event.y() >= row.y && event.y() < row.y + row.h - 4) {
+                        && event.y() >= rowY && event.y() < rowY + row.h - 4
+                        && rowY >= layoutTop() + 26 && rowY + row.h - 4 <= listBottom()) {
                     selected = row.module;
                     if (button == left) {
                         dev.utilikit.client.modules.ModuleActions.activate(selected);
                     } else {
                         KeybindEngine.cancelCapture();
                         view = View.PARAMS;
+                        listScroll = 0;
                     }
                     rebuild();
                     return true;
@@ -508,6 +524,18 @@ public class UtiliKitScreen extends Screen {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (view != View.PRESETS
+                && mouseX >= LIST_X && mouseX <= LIST_X + LIST_W
+                && mouseY >= layoutTop() && mouseY <= listBottom()) {
+            listScroll = Math.max(0, listScroll - (int) Math.signum(scrollY) * (ROW_H + 2));
+            rebuild();
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

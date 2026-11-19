@@ -36,7 +36,7 @@ Chaque module a ses réglages (toggles, sliders) dans le menu in-game, sauvegard
 1. Installe **Fabric Loader** (compatible avec ton launcher) + **Fabric API** pour ta version.
 2. Glisse le jar NTH Utils dans le dossier `mods`.
 3. Lance le jeu, appuie sur **Maj droite** pour ouvrir le menu.
-4. Dans le menu : **clic gauche** sur un module pour l'activer/désactiver, **clic droit** pour ouvrir ses paramètres complets (sliders, toggles) et y configurer une **touche d'activation** personnalisée (clique sur « Touche d'activation » puis appuie sur la touche ; Échap annule). Onglet **Presets** pour sauvegarder et partager ta config (export/import via le presse-papiers, touches incluses).
+4. Dans le menu : **clic gauche** sur un module pour l'activer/désactiver, **clic droit** pour ouvrir ses paramètres complets (sliders, toggles) et y configurer une **touche d'activation** personnalisée (clique sur « Touche d'activation » puis appuie sur la touche ; Échap annule). La liste des modules se **défile à la molette** (barre de scroll à droite de la liste). Onglet **Presets** pour sauvegarder et partager ta config (export/import via le presse-papiers, touches incluses).
 
 Raccourcis (rebindables dans les options du jeu) :
 - **Maj droite** — ouvrir le menu NTH Utils
