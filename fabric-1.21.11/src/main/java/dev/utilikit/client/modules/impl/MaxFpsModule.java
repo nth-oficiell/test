@@ -9,7 +9,7 @@ public class MaxFpsModule extends Module {
     private final Setting.Slider limit;
 
     public MaxFpsModule() {
-        super("maxfps", "Limite FPS", "Change la limite de FPS du jeu directement depuis le menu UtiliKit.", ModuleCategory.VISUEL);
+        super("maxfps", "Limite FPS", "Change la limite de FPS du jeu directement depuis le menu NTH Utils.", ModuleCategory.VISUEL);
         limit = new Setting.Slider("limit", "FPS max", 30.0D, 260.0D, 260.0D);
         settings.add(limit);
     }

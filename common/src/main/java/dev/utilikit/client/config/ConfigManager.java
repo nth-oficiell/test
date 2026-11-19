@@ -91,7 +91,7 @@ public final class ConfigManager {
         try {
             Files.writeString(path(), GSON.toJson(toJson(modules)));
         } catch (Exception e) {
-            LOGGER.error("Impossible de sauvegarder la config UtiliKit", e);
+            LOGGER.error("Impossible de sauvegarder la config NTH Utils", e);
         }
     }
 
@@ -103,7 +103,7 @@ public final class ConfigManager {
         try {
             applyJson(GSON.fromJson(Files.readString(file), JsonObject.class), modules);
         } catch (Exception e) {
-            LOGGER.error("Impossible de charger la config UtiliKit", e);
+            LOGGER.error("Impossible de charger la config NTH Utils", e);
         }
     }
 }

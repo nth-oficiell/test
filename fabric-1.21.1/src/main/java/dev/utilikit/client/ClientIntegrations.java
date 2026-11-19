@@ -749,13 +749,13 @@ public final class ClientIntegrations {
                         + net.fabricmc.loader.api.FabricLoader.getInstance().getAllMods().size()));
 
         ModuleManager.register(new InfoModule("about", "\u00c0 propos",
-                "Affiche la version d'UtiliKit install\u00e9e.",
+                "Affiche la version de NTH Utils install\u00e9e.",
                 ModuleCategory.PRATIQUE,
                 game -> {
                     var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("utilikit");
                     String version = container
                             .map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
-                    return "UtiliKit v" + version;
+                    return "NTH Utils v" + version;
                 }));
 
         ModuleManager.register(new InfoModule("fabricver", "Version Fabric",

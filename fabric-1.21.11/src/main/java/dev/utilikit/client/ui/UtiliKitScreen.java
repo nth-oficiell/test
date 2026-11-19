@@ -7,11 +7,14 @@ import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
 import dev.utilikit.client.modules.Setting;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.input.MouseInput;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -37,11 +40,13 @@ public class UtiliKitScreen extends Screen {
     private Module selected;
     private View view = View.MODULES;
     private String status = null;
-    private Module bindingTarget = null;
     private int presetScroll = 0;
+    private double lastMouseX = 0.0D;
+    private double lastMouseY = 0.0D;
+    private Module bindingTarget = null;
 
     public UtiliKitScreen() {
-        super(Text.literal("UtiliKit"));
+        super(Text.literal("NTH Utils"));
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }
@@ -117,12 +122,12 @@ public class UtiliKitScreen extends Screen {
         int top = layoutTop();
         int bottom = listBottom();
         context.fill(LIST_X, top, LIST_X + LIST_W, bottom, 0xC0101018);
-        context.drawBorder(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
+        context.drawStrokedRectangle(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
         context.fill(settingsLeft, top, settingsLeft + settingsWidth, bottom, 0xC0101018);
-        context.drawBorder(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
+        context.drawStrokedRectangle(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         for (Row row : rows) {
             if (row.category != null) {
@@ -166,8 +171,9 @@ public class UtiliKitScreen extends Screen {
                         settingsLeft + 8, row.y + 6, 0xDDDDDD);
             }
         }
+
         context.drawTextWithShadow(this.textRenderer,
-                "\u00a77Clic gauche : activer \u00b7 Clic droit : param\u00e8tres + touche",
+                "§7Clic gauche : activer · Clic droit : paramètres + touche",
                 LIST_X, this.height - 44, 0x777788);
     }
 
@@ -203,8 +209,19 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(mouseX, mouseY, button)) {
+    public void mouseMoved(double mouseX, double mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        super.mouseMoved(mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        return mouseClickedInternal(click.x(), click.y(), click.button());
+    }
+
+    private boolean mouseClickedInternal(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(new Click(lastMouseX, lastMouseY, new MouseInput(button, 0)), false)) {
             return true;
         }
         if (view == View.MODULES) {
@@ -229,39 +246,39 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (view == View.PRESETS
                 && mouseX >= settingsX() && mouseX <= settingsX() + settingsW()
                 && mouseY >= layoutTop() && mouseY <= listBottom()) {
             int viewport = listBottom() - contentTop() - 40;
             int maxScroll = Math.max(0, presetRows.size() * PRESET_ROW_H - viewport + 8);
-            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(amount) * PRESET_ROW_H));
+            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(verticalAmount) * PRESET_ROW_H));
             presetScroll = Math.min(presetScroll, maxScroll);
             rebuild();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
-    }
-
-    private int contentTop() {
-        return layoutTop() + 82;
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput input) {
         if (bindingTarget != null) {
-            if (keyCode == 256) {
+            if (input.key() == 256) {
                 bindingTarget = null;
                 rebuild();
                 return true;
             }
-            bindingTarget.keyCode = keyCode;
+            bindingTarget.keyCode = input.key();
             ModuleManager.save();
             bindingTarget = null;
             rebuild();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(input);
+    }
+
+    private int contentTop() {
+        return layoutTop() + 82;
     }
 
     private void addSettingsWidgets() {
@@ -292,7 +309,7 @@ public class UtiliKitScreen extends Screen {
         if (view == View.PARAMS) {
             String keyLabel;
             if (bindingTarget == selected) {
-                keyLabel = "Appuie sur une touche\u2026 (\u00c9chap = annuler)";
+                keyLabel = "Appuie sur une touche… (Échap = annuler)";
             } else {
                 keyLabel = "Touche d'activation : "
                         + (selected.keyCode <= 0 ? "Aucune" : KeyNames.keyName(selected.keyCode));
@@ -301,7 +318,7 @@ public class UtiliKitScreen extends Screen {
                         bindingTarget = bindingTarget == selected ? null : selected;
                         rebuild();
                     })
-                    .dimensions(x, y + 6, w, 18)
+                    .dimensions(x + 6, y + 6, w, 18)
                     .build());
             y += 28;
             addDrawableChild(ButtonWidget.builder(Text.literal("Retirer la touche"), b -> {
@@ -311,7 +328,7 @@ public class UtiliKitScreen extends Screen {
                         bindingTarget = null;
                         rebuild();
                     })
-                    .dimensions(x, y + 6, w, 18)
+                    .dimensions(x + 6, y + 6, w, 18)
                     .build());
         }
     }

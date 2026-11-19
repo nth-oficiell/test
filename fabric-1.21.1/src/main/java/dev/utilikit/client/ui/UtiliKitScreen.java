@@ -41,7 +41,7 @@ public class UtiliKitScreen extends Screen {
     private int presetScroll = 0;
 
     public UtiliKitScreen() {
-        super(Text.literal("UtiliKit"));
+        super(Text.literal("NTH Utils"));
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }
@@ -229,18 +229,18 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (view == View.PRESETS
                 && mouseX >= settingsX() && mouseX <= settingsX() + settingsW()
                 && mouseY >= layoutTop() && mouseY <= listBottom()) {
             int viewport = listBottom() - contentTop() - 40;
             int maxScroll = Math.max(0, presetRows.size() * PRESET_ROW_H - viewport + 8);
-            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(amount) * PRESET_ROW_H));
+            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(verticalAmount) * PRESET_ROW_H));
             presetScroll = Math.min(presetScroll, maxScroll);
             rebuild();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     private int contentTop() {

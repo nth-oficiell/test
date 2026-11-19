@@ -53,7 +53,7 @@ public class CopyCoordsModule extends Module {
                                 Text.literal("Clique pour copier"))));
         Text dimensionLabel = Text.literal("[" + dimension + "] ").formatted(Formatting.GRAY);
         client.inGameHud.getChatHud().addMessage(
-                Text.literal("[UtiliKit] ").formatted(Formatting.GRAY)
+                Text.literal("[NTH Utils] ").formatted(Formatting.GRAY)
                         .append(dimensionLabel)
                         .append(clickable));
     }

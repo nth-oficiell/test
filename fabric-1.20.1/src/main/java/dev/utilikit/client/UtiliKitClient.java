@@ -81,6 +81,6 @@ public class UtiliKitClient implements ClientModInitializer {
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.disableAll());
 
-        LOGGER.info("[UtiliKit] Client initialisé — {} module(s) chargé(s).", ModuleManager.all().size());
+        LOGGER.info("[NTH Utils] Client initialisé — {} module(s) chargé(s).", ModuleManager.all().size());
     }
 }

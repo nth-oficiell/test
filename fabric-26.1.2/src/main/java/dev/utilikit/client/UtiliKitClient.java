@@ -67,7 +67,7 @@ public class UtiliKitClient implements ClientModInitializer {
             }
             zoom.tick();
             ClientIntegrations.tick(client);
-            ClientIntegrations.pollKeybinds(client, !isScreenOpen(client));
+            ClientIntegrations.pollKeybinds(client, isScreenOpen(client));
             AutoSprintModule.tick();
             while (menuKey.consumeClick()) {
                 client.setScreen(new UtiliKitScreen());
@@ -78,7 +78,7 @@ public class UtiliKitClient implements ClientModInitializer {
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.disableAll());
 
-        LOGGER.info("[UtiliKit] Client initialisé — {} module(s) chargé(s).", ModuleManager.all().size());
+        LOGGER.info("[NTH Utils] Client initialisé — {} module(s) chargé(s).", ModuleManager.all().size());
     }
 
     public static boolean isScreenOpen(Minecraft client) {

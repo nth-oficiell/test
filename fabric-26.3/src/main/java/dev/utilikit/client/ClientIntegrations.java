@@ -101,6 +101,9 @@ public final class ClientIntegrations {
     private static java.lang.reflect.Method keyDownMethod;
 
     public static void pollKeybinds(Minecraft client, boolean screenOpen) {
+        if (pollKeybindCapture(client)) {
+            return;
+        }
         if (screenOpen) {
             return;
         }
@@ -111,6 +114,44 @@ public final class ClientIntegrations {
         for (Module module : ModuleManager.all()) {
             KeybindEngine.poll(module, isKeyDown(handle, module.keyCode));
         }
+    }
+
+    private static boolean keybindCaptureWasActive = false;
+
+    private static boolean keybindCapturePrimed = false;
+
+    private static boolean pollKeybindCapture(Minecraft client) {
+        if (!KeybindEngine.isCapturing()) {
+            keybindCaptureWasActive = false;
+            return false;
+        }
+        if (!keybindCaptureWasActive) {
+            keybindCapturePrimed = false;
+            keybindCaptureWasActive = true;
+        }
+        long handle = windowHandle(client.getWindow());
+        int firstDown = -1;
+        boolean anyDown = false;
+        if (handle != 0L) {
+            for (int code = 30; code <= 350; code++) {
+                if (isKeyDown(handle, code)) {
+                    anyDown = true;
+                    if (firstDown == -1) {
+                        firstDown = code;
+                    }
+                }
+            }
+        }
+        if (!anyDown) {
+            keybindCapturePrimed = true;
+        } else if (keybindCapturePrimed) {
+            KeybindEngine.pollCapture(firstDown,
+                    firstDown == 256 || firstDown == 41 || firstDown == 27);
+        }
+        if (!KeybindEngine.isCapturing()) {
+            keybindCaptureWasActive = false;
+        }
+        return true;
     }
 
     private static long windowHandle(Object window) {
@@ -818,13 +859,13 @@ public final class ClientIntegrations {
                         + net.fabricmc.loader.api.FabricLoader.getInstance().getAllMods().size()));
 
         ModuleManager.register(new InfoModule("about", "\u00c0 propos",
-                "Affiche la version d'UtiliKit install\u00e9e.",
+                "Affiche la version de NTH Utils install\u00e9e.",
                 ModuleCategory.PRATIQUE,
                 game -> {
                     var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("utilikit");
                     String version = container
                             .map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
-                    return "UtiliKit v" + version;
+                    return "NTH Utils v" + version;
                 }));
 
         ModuleManager.register(new InfoModule("fabricver", "Version Fabric",

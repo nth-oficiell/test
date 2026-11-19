@@ -42,7 +42,7 @@ public class CopyCoordsModule extends Module {
         String dimension = client.level.dimension().identifier().getPath();
         String coords = pos.getX() + " " + pos.getY() + " " + pos.getZ();
         client.keyboardHandler.setClipboard(coords);
-        client.player.sendSystemMessage(Component.literal("[UtiliKit] [" + dimension + "] ")
+        client.player.sendSystemMessage(Component.literal("[NTH Utils] [" + dimension + "] ")
                 .withStyle(style -> style.withColor(0x55FFAA))
                 .append(Component.literal("Coordonnées copiées : " + coords)));
     }

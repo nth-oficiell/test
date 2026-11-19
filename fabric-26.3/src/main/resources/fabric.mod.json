@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "utilikit",
   "version": "${version}",
-  "name": "UtiliKit",
+  "name": "NTH Utils",
   "description": "Mod utilitaire client avec un menu in-game pour personnaliser ton jeu : modules activables et réglages à la volée.",
   "authors": [
-    "UtiliKit"
+    "NTH"
   ],
   "license": "MIT",
   "environment": "client",

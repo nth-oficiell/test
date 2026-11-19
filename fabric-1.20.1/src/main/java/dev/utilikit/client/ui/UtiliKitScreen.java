@@ -41,7 +41,7 @@ public class UtiliKitScreen extends Screen {
     private int presetScroll = 0;
 
     public UtiliKitScreen() {
-        super(Text.literal("UtiliKit"));
+        super(Text.literal("NTH Utils"));
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }

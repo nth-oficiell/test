@@ -12,6 +12,7 @@ import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -37,13 +38,25 @@ public class UtiliKitScreen extends Screen {
     private Module selected;
     private View view = View.MODULES;
     private String status = null;
-    private Module bindingTarget = null;
+    private static final int MOUSE_BUTTON_LEFT;
+
+    static {
+        int left = 0;
+        try {
+            left = Class.forName("com.mojang.blaze3d.platform.InputConstants")
+                    .getField("MOUSE_BUTTON_LEFT").getInt(null);
+        } catch (Throwable ignored) {
+            left = 0;
+        }
+        MOUSE_BUTTON_LEFT = left;
+    }
+
     private int listScroll = 0;
     private int presetScroll = 0;
     private EditBox presetNameField;
 
     public UtiliKitScreen() {
-        super(Component.literal("UtiliKit"));
+        super(Component.literal("NTH Utils"));
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }
@@ -162,14 +175,18 @@ public class UtiliKitScreen extends Screen {
         }
         if (view == View.PARAMS) {
             String keyLabel;
-            if (bindingTarget == selected) {
+            if (KeybindEngine.isCapturing(selected)) {
                 keyLabel = "Appuie sur une touche\u2026 (\u00c9chap = annuler)";
             } else {
                 keyLabel = "Touche d'activation : "
                         + (selected.keyCode <= 0 ? "Aucune" : KeyNames.keyName(selected.keyCode));
             }
             addRenderableWidget(Button.builder(Component.literal(keyLabel), b -> {
-                        bindingTarget = bindingTarget == selected ? null : selected;
+                        if (KeybindEngine.isCapturing(selected)) {
+                            KeybindEngine.cancelCapture();
+                        } else {
+                            KeybindEngine.beginCapture(selected);
+                        }
                         rebuild();
                     })
                     .bounds(x, y + 30, w, 18)
@@ -177,8 +194,8 @@ public class UtiliKitScreen extends Screen {
             addRenderableWidget(Button.builder(Component.literal("Retirer la touche"), b -> {
                         selected.keyCode = -1;
                         KeybindEngine.clear(selected.id);
+                        KeybindEngine.cancelCapture();
                         ModuleManager.save();
-                        bindingTarget = null;
                         rebuild();
                     })
                     .bounds(x, y + 52, w, 18)
@@ -349,7 +366,7 @@ public class UtiliKitScreen extends Screen {
             }
             graphics.text(this.font, (view == View.PARAMS
                             ? "Clic gauche : activer \u00b7 setting/touche ici"
-                            : "Modules : " + ModuleManager.all().size() + " — UtiliKit"),
+                            : "Modules : " + ModuleManager.all().size() + " — NTH Utils"),
                     settingsLeft + 8, bottom - 16, 0xFF556677, true);
         } else if (view == View.PRESETS) {
             graphics.text(this.font, "\u00A7lGestion des presets", settingsLeft + 8, top + 6, 0xFFFFFFFF, true);
@@ -387,41 +404,34 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-        if (mouseButton == 1 && view == View.MODULES) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        if (super.mouseClicked(event, doubled)) {
+            return true;
+        }
+        int left = MOUSE_BUTTON_LEFT;
+        int right = left == 0 ? 1 : 3;
+        int button = event.button();
+        if ((button == left || button == right) && view == View.MODULES) {
             for (Row row : rows) {
                 if (row.module == null) {
                     continue;
                 }
-                if (mouseX >= LIST_X + 2 && mouseX <= LIST_X + LIST_W - 2
-                        && mouseY >= row.y && mouseY < row.y + row.h - 4) {
+                if (event.x() >= LIST_X + 2 && event.x() <= LIST_X + LIST_W - 2
+                        && event.y() >= row.y && event.y() < row.y + row.h - 4) {
                     selected = row.module;
-                    bindingTarget = null;
-                    view = View.PARAMS;
+                    if (button == left) {
+                        selected.setEnabled(!selected.enabled);
+                    } else {
+                        KeybindEngine.cancelCapture();
+                        view = View.PARAMS;
+                    }
                     rebuild();
                     return true;
                 }
             }
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (bindingTarget != null) {
-            if (keyCode == 256) {
-                bindingTarget = null;
-                rebuild();
-                return true;
-            }
-            bindingTarget.keyCode = keyCode;
-            ModuleManager.save();
-            bindingTarget = null;
-            rebuild();
-            return true;
-        }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return false;
     }
 
     @Override

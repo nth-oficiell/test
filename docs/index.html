@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UtiliKit — le mod qui personnalise ton Minecraft | 96 modules, 6 versions</title>
-<meta name="description" content="UtiliKit : mod utilitaire client Fabric avec 96 modules personnalisables depuis un menu in-game. Choisit ton launcher et ta version de Minecraft, télécharge le jar." />
+<title>NTH Utils — le mod qui personnalise ton Minecraft | 96 modules, 6 versions</title>
+<meta name="description" content="NTH Utils : mod utilitaire client Fabric avec 96 modules personnalisables depuis un menu in-game. Choisit ton launcher et ta version de Minecraft, télécharge le jar." />
 <style>
   :root {
     --bg: #0b0e17;
@@ -192,7 +192,7 @@
 
 <header>
   <div class="wrap nav">
-    <a class="logo" href="#"><span class="dot">U</span>UtiliKit</a>
+    <a class="logo" href="#"><span class="dot">N</span>NTH Utils</a>
     <a class="link" href="#telecharger">Télécharger</a>
     <a class="link" href="#modules">96 Modules</a>
     <span class="spacer"></span>
@@ -204,11 +204,11 @@
   <div class="wrap">
     <div class="badge">✅ Client-only • Fabric • 100 % gratuit • open-source</div>
     <h1>Personnalise ton jeu<br /><span class="grad">avec 96 modules</span></h1>
-    <p class="sub">UtiliKit ajoute un menu in-game (touche <b>Shift droit</b>) pour activer et régler plus de 96 modules : HUD, visuels, infos de jeu, presets… compatible avec ton launcher préféré.</p>
+    <p class="sub">NTH Utils ajoute un menu in-game (touche <b>Shift droit</b>) pour activer et régler plus de 96 modules : HUD, visuels, infos de jeu, presets… compatible avec ton launcher préféré.</p>
     <div class="ctas" style="flex-direction:column;align-items:center">
       <a class="btn mega" href="#telecharger">
         <span class="arrow">⬇️</span>
-        <span>Télécharger UtiliKit<small>Gratuit • sans compte • jar direct</small></span>
+        <span>Télécharger NTH Utils<small>Gratuit • sans compte • jar direct</small></span>
       </a>
       <a class="btn ghost" href="#modules">Voir les 96 modules</a>
     </div>
@@ -275,7 +275,7 @@
 
 <footer>
   <div class="wrap foot">
-    <div>UtiliKit — mod utilitaire client open-source (MIT).</div>
+    <div>NTH Utils — mod utilitaire client open-source (MIT).</div>
     <div><a style="color:var(--accent)" href="https://github.com/nth-oficiell/test" target="_blank" rel="noopener">Sources sur GitHub</a></div>
   </div>
 </footer>
@@ -313,7 +313,7 @@ const LAUNCHER_STEPS = {
     "Ouvre Prism Launcher et sélectionne ton instance",
     "Clic droit sur l'instance → <code>Éditer</code> → <code>Mods</code>",
     "Glisse le fichier .jar téléchargé dans la liste (avec Fabric API activé)",
-    "Lance le jeu, puis appuie sur <code>Shift droit</code> pour ouvrir UtiliKit"
+    "Lance le jeu, puis appuie sur <code>Shift droit</code> pour ouvrir NTH Utils"
   ],
   modrinth: [
     "Ouvre l'app Modrinth et ton profil",
@@ -366,7 +366,7 @@ document.querySelectorAll('#launchers .choice').forEach(btn => {
 
 function renderVersionButtons() {
   vwrap.innerHTML = builds.map(b => `
-    <button class="choice ${version === b.mc ? 'on' : ''}" data-v="${b.mc}">MC <b>${b.mc}</b><small>UtiliKit v${b.modver}</small></button>
+    <button class="choice ${version === b.mc ? 'on' : ''}" data-v="${b.mc}">MC <b>${b.mc}</b><small>NTH Utils v${b.modver}</small></button>
   `).join('');
   vwrap.querySelectorAll('.choice').forEach(btn => {
     btn.addEventListener('click', () => {
