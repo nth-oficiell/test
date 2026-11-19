@@ -415,6 +415,7 @@ public final class ClientIntegrations {
                 game -> {
                     double fall = player(game).fallDistance;
                     return fall > 0.5D ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
+                }));
 
         ModuleManager.register(new InfoModule("moon", "Phase de lune",
                 "Affiche la phase actuelle de la lune.",
