@@ -38,7 +38,7 @@ public class UtiliKitClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.utilikit.menu", InputConstants.Type.KEYBOARD, InputConstants.KEY_RIGHT_SHIFT, KEY_CATEGORY));
+                "key.utilikit.menu", InputConstants.Type.KEYBOARD, InputConstants.KEY_RSHIFT, KEY_CATEGORY));
 
         KeyMapping zoomKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.utilikit.zoom", InputConstants.Type.KEYBOARD, InputConstants.KEY_C, KEY_CATEGORY));

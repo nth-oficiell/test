@@ -44,7 +44,7 @@ public class CopyCoordsModule extends Module {
         client.keyboardHandler.setClipboard(coords);
         client.player.sendSystemMessage(Component.literal("[UtiliKit] [" + dimension + "] ")
                 .withStyle(style -> style.withColor(0x55FFAA))
-                .append(Component.literal("Coordonnées copiées : " + coords)), false);
+                .append(Component.literal("Coordonnées copiées : " + coords)));
     }
 
     @Override
