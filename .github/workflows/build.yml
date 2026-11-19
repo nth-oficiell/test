@@ -21,6 +21,15 @@ jobs:
           - project: fabric-1.21.11
             java: '25'
             gradle: '9.9.1'
+          - project: fabric-26.1.2
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-26.2
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-26.3
+            java: '25'
+            gradle: '9.9.1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

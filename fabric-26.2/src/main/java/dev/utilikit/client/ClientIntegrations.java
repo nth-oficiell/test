@@ -1,0 +1,581 @@
+package dev.utilikit.client;
+
+import dev.utilikit.client.modules.InfoModule;
+import dev.utilikit.client.modules.Module;
+import dev.utilikit.client.modules.ModuleCategory;
+import dev.utilikit.client.modules.ModuleManager;
+import dev.utilikit.client.modules.Setting;
+import dev.utilikit.client.modules.TickModule;
+import dev.utilikit.client.modules.impl.DurabilityModule;
+import dev.utilikit.client.modules.impl.HudInfoModule;
+import dev.utilikit.client.modules.impl.KeystrokesModule;
+import dev.utilikit.client.modules.impl.PingHudModule;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+public final class ClientIntegrations {
+    private static final DateTimeFormatter IRL_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private static double lastX;
+    private static double lastY;
+    private static double lastZ;
+    private static boolean statsInit;
+    private static double horizontalSpeed;
+    private static double verticalSpeed;
+    private static double travelled;
+    private static int steps;
+    private static long sessionTicks;
+    private static int fpsMin = Integer.MAX_VALUE;
+    private static int fpsMax;
+    private static double fpsSum;
+    private static int fpsSamples;
+
+    private ClientIntegrations() {
+    }
+
+    public static void register() {
+        registerInfoModules();
+        ModuleManager.register(new FovLockModule());
+        ModuleManager.register(new SmoothCamModule());
+        ModuleManager.register(new TickModule("antirain", "Anti Pluie",
+                "Supprime les visuels et sons de pluie en forçant le temps clair en local.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    if (client.level != null) {
+                        client.level.setRainLevel(0.0F);
+                    }
+                }));
+
+        ClientTickEvents.END_CLIENT_TICK.register(ClientIntegrations::tick);
+
+        HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
+                Identifier.fromNamespaceAndPath("utilikit", "hud_overlay"), (graphics, deltaTracker) -> {
+                    Minecraft client = Minecraft.getInstance();
+                    HudInfoModule.renderHud(graphics, client);
+                    KeystrokesModule.renderHud(graphics, client);
+                    PingHudModule.renderHud(graphics, client);
+                    DurabilityModule.renderHud(graphics, client);
+                    ClientIntegrations.renderOverlay(graphics, client);
+                });
+    }
+
+    public static void tick(Minecraft client) {
+        for (Module module : ModuleManager.all()) {
+            if (module.enabled && module instanceof InfoModule info) {
+                info.tick(client);
+            } else if (module.enabled && module instanceof TickModule tick) {
+                tick.tick(client);
+            }
+        }
+        updateStats(client);
+    }
+
+    private static void updateStats(Minecraft client) {
+        if (client.player != null) {
+            double x = client.player.getX();
+            double y = client.player.getY();
+            double z = client.player.getZ();
+            if (!statsInit) {
+                statsInit = true;
+                lastX = x;
+                lastY = y;
+                lastZ = z;
+            }
+            double dx = x - lastX;
+            double dy = y - lastY;
+            double dz = z - lastZ;
+            horizontalSpeed = Math.sqrt(dx * dx + dz * dz) * 20.0D;
+            verticalSpeed = dy * 20.0D;
+            if (client.player.onGround() && dx * dx + dz * dz < 2.5D) {
+                travelled += Math.sqrt(dx * dx + dz * dz);
+                steps += (int) (Math.sqrt(dx * dx + dz * dz) / 0.8D);
+            }
+            lastX = x;
+            lastY = y;
+            lastZ = z;
+            sessionTicks++;
+            int fps = client.getFps();
+            if (fps > 0) {
+                fpsMin = Math.min(fpsMin, fps);
+                fpsMax = Math.max(fpsMax, fps);
+                fpsSum += fps;
+                fpsSamples++;
+            }
+        } else {
+            statsInit = false;
+            sessionTicks = 0;
+        }
+    }
+
+    private static void registerInfoModules() {
+        ModuleManager.register(new InfoModule("coords", "Coordonnées",
+                "Affiche ta position X, Y et Z en continu.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    BlockPos pos = player(game).blockPosition();
+                    return "Position : X " + pos.getX() + "  Y " + pos.getY() + "  Z " + pos.getZ();
+                }));
+        ModuleManager.register(new InfoModule("altitude", "Altitude",
+                "Affiche uniquement ton altitude Y.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Altitude : Y " + player(game).blockPosition().getY()));
+        ModuleManager.register(new InfoModule("chunk", "Chunk",
+                "Affiche tes coordonnées de chunk en cours.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    BlockPos pos = player(game).blockPosition();
+                    return "Chunk : CX " + (pos.getX() >> 4) + "  CZ " + (pos.getZ() >> 4);
+                }));
+        ModuleManager.register(new InfoModule("facing", "Direction visuelle",
+                "Affiche le point cardinal vers lequel tu regardes.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    Direction direction = player.getDirection();
+                    return "Direction : " + directionLabel(direction) + " (" + String.format(Locale.ROOT, "%.0f", player.getYRot()) + "°)";
+                }));
+        ModuleManager.register(new InfoModule("rotation", "Angles de vue",
+                "Affiche ton yaw et ton pitch en degrés.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    return "Angles : yaw " + (int) player.getYRot() + "° / pitch " + (int) player.getXRot() + "°";
+                }));
+        ModuleManager.register(new InfoModule("biome", "Biome",
+                "Affiche le nom du biome dans lequel tu te trouves.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    return "Biome : " + prettify(client.level.getBiome(player(game).blockPosition())
+                            .unwrapKey().map(key -> key.location().getPath()).orElse("inconnu"));
+                }));
+        ModuleManager.register(new InfoModule("dimension", "Dimension",
+                "Affiche la dimension dans laquelle tu joues.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    return "Dimension : " + prettify(client.level.dimension().location().getPath());
+                }));
+        ModuleManager.register(new InfoModule("light", "Lumière",
+                "Affiche le niveau de lumière au bloc et au ciel.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    BlockPos pos = player(game).blockPosition();
+                    return "Lumière : " + client.level.getBrightness(LightLayer.BLOCK, pos)
+                            + " (bloc " + client.level.getBrightness(LightLayer.BLOCK, pos)
+                            + " / ciel " + client.level.getBrightness(LightLayer.SKY, pos) + ")";
+                }));
+        ModuleManager.register(new InfoModule("gametime", "Heure du monde",
+                "Affiche l'heure in-game en format horloge.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    long ticks = client.level.getDayTime() % 24000L;
+                    int hours = (int) ((ticks / 1000L + 6L) % 24L);
+                    int minutes = (int) (ticks % 1000L * 60L / 1000L);
+                    return "Heure du monde : " + String.format("%02d:%02d", hours, minutes);
+                }));
+        ModuleManager.register(new InfoModule("day", "Jour du monde",
+                "Affiche le numéro du jour in-game.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    return "Jour : " + (client.level.getGameTime() / 24000L + 1L);
+                }));
+        ModuleManager.register(new InfoModule("fpsinfo", "FPS info",
+                "Affiche un compteur FPS indépendant, séparé du HUD global.",
+                ModuleCategory.AFFICHAGE,
+                game -> "FPS : " + ((Minecraft) game).getFps()));
+        ModuleManager.register(new InfoModule("fpsmm", "FPS min/moy/max",
+                "Affiche le minimum, la moyenne et le maximum de FPS de la session.",
+                ModuleCategory.AFFICHAGE,
+                game -> "FPS min " + (fpsMin == Integer.MAX_VALUE ? 0 : fpsMin)
+                        + " / moy " + (fpsSamples == 0 ? 0 : (int) (fpsSum / fpsSamples))
+                        + " / max " + fpsMax));
+        ModuleManager.register(new InfoModule("ram", "Mémoire (RAM)",
+                "Affiche la mémoire utilisée et allouée par le jeu.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Runtime runtime = Runtime.getRuntime();
+                    long used = (runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L);
+                    long max = runtime.maxMemory() / (1024L * 1024L);
+                    return "RAM : " + used + " Mo / " + max + " Mo";
+                }));
+        ModuleManager.register(new InfoModule("speed", "Vitesse",
+                "Affiche ta vitesse de déplacement horizontale en m/s.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Vitesse : " + String.format(Locale.ROOT, "%.1f", horizontalSpeed) + " m/s"));
+        ModuleManager.register(new InfoModule("vspeed", "Vitesse verticale",
+                "Affiche ta vitesse de déplacement verticale en m/s.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Vitesse verticale : " + String.format(Locale.ROOT, "%.1f", verticalSpeed) + " m/s"));
+        ModuleManager.register(new InfoModule("distance", "Distance parcourue",
+                "Compte la distance totale parcourue à pied depuis le début de la session.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Distance parcourue : " + (int) travelled + " m"));
+        ModuleManager.register(new InfoModule("steps", "Compteur de pas",
+                "Compte le nombre de pas effectués depuis le début de la session.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Pas : " + steps));
+        ModuleManager.register(new InfoModule("health", "Vie",
+                "Affiche tes points de vie.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    return "Vie : " + String.format(Locale.ROOT, "%.0f", player.getHealth())
+                            + " / " + String.format(Locale.ROOT, "%.0f", player.getMaxHealth());
+                }));
+        ModuleManager.register(new InfoModule("hunger", "Faim",
+                "Affiche tes points de faim.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Faim : " + player(game).getFoodData().getFoodLevel() + " / 20"));
+        ModuleManager.register(new InfoModule("saturation", "Saturation",
+                "Affiche ton niveau de saturation.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Saturation : " + String.format(Locale.ROOT, "%.1f",
+                        player(game).getFoodData().getSaturationLevel())));
+        ModuleManager.register(new InfoModule("air", "Air",
+                "Affiche tes bulles d'air quand tu es sous l'eau.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Air : " + player(game).getAirSupply() + " / 300"));
+        ModuleManager.register(new InfoModule("xplevel", "Niveau XP",
+                "Affiche ton niveau d'expérience.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Niveau XP : " + player(game).experienceLevel));
+        ModuleManager.register(new InfoModule("xpprogress", "Progression XP",
+                "Affiche ta progression vers le niveau suivant.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Progression XP : " + (int) (player(game).experienceProgress * 100.0F) + "%"));
+        ModuleManager.register(new InfoModule("xptotal", "XP total",
+                "Affiche ton total de points d'expérience.",
+                ModuleCategory.AFFICHAGE,
+                game -> "XP total : " + player(game).totalExperience));
+        ModuleManager.register(new InfoModule("armor", "Armure",
+                "Affiche tes points d'armure.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Armure : " + player(game).getArmorValue() + " points"));
+        ModuleManager.register(new InfoModule("helditem", "Objet en main",
+                "Affiche le nom de l'objet que tu tiens.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    if (player.getMainHandItem() == null || player.getMainHandItem().isEmpty()) {
+                        return null;
+                    }
+                    String name = player.getMainHandItem().getHoverName().getString();
+                    int count = player.getMainHandItem().getCount();
+                    return "En main : " + name + (count > 1 ? " x" + count : "");
+                }));
+        ModuleManager.register(new InfoModule("helddur", "Durabilité en main",
+                "Affiche la durabilité restante de l'objet tenu.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    if (player.getMainHandItem() == null || !player.getMainHandItem().isDamaged()) {
+                        return null;
+                    }
+                    int max = player.getMainHandItem().getMaxDamage();
+                    int remaining = max - player.getMainHandItem().getDamageValue();
+                    return "Durabilité : " + remaining + " / " + max
+                            + " (" + (int) (remaining * 100.0D / max) + "%)";
+                }));
+        ModuleManager.register(new InfoModule("weather", "Météo",
+                "Affiche la météo du monde.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    String weather = client.level.isThundering() ? "Orage" : (client.level.isRaining() ? "Pluie" : "Clair");
+                    return "Météo : " + weather;
+                }));
+        ModuleManager.register(new InfoModule("server", "Serveur",
+                "Affiche l'adresse du serveur sur lequel tu es connecté.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    return "Serveur : " + (client.getCurrentServer() != null ? client.getCurrentServer().ip : "Solo");
+                }));
+        ModuleManager.register(new InfoModule("brand", "Marque du serveur",
+                "Affiche la plateforme du serveur (vanilla, paper...).",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    if (client.getConnection() == null) {
+                        return null;
+                    }
+                    return "Plateforme : " + client.getConnection().getBrand();
+                }));
+        ModuleManager.register(new InfoModule("session", "Temps de session",
+                "Compte le temps de jeu depuis ton arrivée dans un monde.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Session : " + String.format("%02d:%02d", sessionTicks / (20L * 60L),
+                        (sessionTicks / 20L) % 60L)));
+        ModuleManager.register(new InfoModule("entities", "Entités proches",
+                "Compte les entités présentes autour de toi (16 blocs).",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    LocalPlayer player = player(game);
+                    return "Entités proches : " + client.level.getEntities(player,
+                            player.getBoundingBox().inflate(16.0D), entity -> true).size();
+                }));
+        ModuleManager.register(new InfoModule("irlclock", "Heure réelle",
+                "Affiche l'heure réelle de ton PC.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Heure réelle : " + LocalTime.now().format(IRL_FORMAT)));
+        ModuleManager.register(new InfoModule("playername", "Pseudo",
+                "Affiche ton pseudo.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Pseudo : " + player(game).getGameProfile().getName()));
+        ModuleManager.register(new InfoModule("uuid", "UUID",
+                "Affiche ton UUID.",
+                ModuleCategory.AFFICHAGE,
+                game -> "UUID : " + player(game).getUUID()));
+        ModuleManager.register(new InfoModule("nether", "Coordonnées Nether",
+                "Convertit tes coordonnées en coordonnées Nether/Overworld selon la dimension.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    BlockPos pos = player(game).blockPosition();
+                    String dimension = client.level.dimension().location().getPath();
+                    if (dimension.contains("nether")) {
+                        return "Overworld ↔ : X " + (pos.getX() * 8) + "  Z " + (pos.getZ() * 8);
+                    }
+                    if (dimension.contains("overworld")) {
+                        return "Nether ↔ : X " + (pos.getX() / 8) + "  Z " + (pos.getZ() / 8);
+                    }
+                    return null;
+                }));
+        ModuleManager.register(new InfoModule("gamemode", "Mode de jeu",
+                "Affiche ton mode de jeu actuel.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    LocalPlayer player = player(game);
+                    if (player.isSpectator()) {
+                        return "Mode : Spectateur";
+                    }
+                    if (player.isCreative()) {
+                        return "Mode : Créatif";
+                    }
+                    return "Mode : Survie ou Aventure";
+                }));
+        ModuleManager.register(new InfoModule("targetblock", "Bloc visé",
+                "Affiche le nom du bloc que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    if (!(client.hitResult instanceof BlockHitResult hit) || client.level == null) {
+                        return null;
+                    }
+                    return "Bloc visé : " + client.level.getBlockState(hit.getBlockPos()).getBlock().getName().getString()
+                            + " (" + hit.getBlockPos().getX() + " " + hit.getBlockPos().getY() + " " + hit.getBlockPos().getZ() + ")";
+                }));
+        ModuleManager.register(new InfoModule("targetentity", "Entité visée",
+                "Affiche le nom de l'entité que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    if (client.hitResult instanceof EntityHitResult hit) {
+                        return "Entité visée : " + hit.getEntity().getName().getString();
+                    }
+                    return null;
+                }));
+        ModuleManager.register(new InfoModule("targetdist", "Distance de visée",
+                "Affiche la distance avec ce que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    Minecraft client = (Minecraft) game;
+                    LocalPlayer player = player(game);
+                    HitResult target = client.hitResult;
+                    if (target instanceof EntityHitResult hit) {
+                        return "Distance cible : " + String.format(Locale.ROOT, "%.1f", player.distanceTo(hit.getEntity())) + " m";
+                    }
+                    if (target instanceof BlockHitResult hit) {
+                        double distance = player.getEyePosition().distanceTo(Vec3.atCenterOf(hit.getBlockPos()));
+                        return "Distance cible : " + String.format(Locale.ROOT, "%.1f", distance) + " m";
+                    }
+                    return null;
+                }));
+        ModuleManager.register(new InfoModule("attackcd", "Recharge d'attaque",
+                "Affiche la recharge de ton attaque en pourcentage.",
+                ModuleCategory.PRATIQUE,
+                game -> "Recharge d'attaque : " + (int) (player(game).getAttackStrengthScale(0.0F) * 100.0F) + "%"));
+        ModuleManager.register(new InfoModule("fall", "Hauteur de chute",
+                "Affiche la hauteur de chute en cours.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    float fall = player(game).fallDistance;
+                    return fall > 0.5F ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
+                }));
+    }
+
+    private static LocalPlayer player(Object game) {
+        Minecraft client = (Minecraft) game;
+        if (client.player == null) {
+            throw new IllegalStateException("no player");
+        }
+        return client.player;
+    }
+
+    private static String prettify(String path) {
+        if (path == null || path.isEmpty()) {
+            return "inconnu";
+        }
+        String raw = path.substring(path.indexOf('/') + 1);
+        String[] words = raw.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return sb.toString();
+    }
+
+    private static String directionLabel(Direction direction) {
+        return switch (direction) {
+            case NORTH -> "Nord (Z-)";
+            case SOUTH -> "Sud (Z+)";
+            case WEST -> "Ouest (X-)";
+            case EAST -> "Est (X+)";
+            default -> direction.toString();
+        };
+    }
+
+    public static void renderOverlay(GuiGraphicsExtractor graphics, Minecraft client) {
+        if (client.options == null || client.player == null || client.level == null) {
+            return;
+        }
+        int x = 6;
+        int y = 6 + hudInfoHeight();
+        int startY = y;
+        int lineHeight = 12;
+        int columnWidth = 170;
+        int maxY = client.getWindow().getGuiScaledHeight() - 50;
+
+        for (Module module : ModuleManager.all()) {
+            if (!(module instanceof InfoModule info) || !info.enabled) {
+                continue;
+            }
+            String text = info.line(client);
+            if (text == null) {
+                continue;
+            }
+            if (y > maxY) {
+                x += columnWidth;
+                y = startY;
+            }
+            if (info.hasBackground()) {
+                int width = client.font.width(text);
+                graphics.fill(x - 3, y - 2, x + width + 3, y + 10, 0x90000000);
+            }
+            graphics.text(client.font, text, x, y, 0xFFFFFFFF, true);
+            y += lineHeight;
+        }
+    }
+
+    private static int hudInfoHeight() {
+        Module hudInfo = ModuleManager.get("hudinfo");
+        if (hudInfo == null || !hudInfo.enabled) {
+            return 0;
+        }
+        int lines = 0;
+        for (Setting setting : hudInfo.settings) {
+            if (setting instanceof Setting.Toggle toggle && toggle.value && !"background".equals(toggle.id)) {
+                lines++;
+            }
+        }
+        return lines * 12 + 4;
+    }
+
+    private static class FovLockModule extends TickModule {
+        private final Setting.Slider fov;
+        private Double previous;
+
+        FovLockModule() {
+            super("fovlock", "FOV personnalisé",
+                    "Force un champ de vision spécifique, quel que soit ton réglage vanilla.",
+                    ModuleCategory.VISUEL, game -> {
+                    });
+            fov = new Setting.Slider("fov", "FOV", 30.0D, 150.0D, 110.0D);
+            settings.add(fov);
+        }
+
+        @Override
+        public void tick(Object game) {
+            if (!enabled) {
+                return;
+            }
+            Minecraft client = (Minecraft) game;
+            if (client.options != null) {
+                client.options.fov().set((int) Math.round(fov.value));
+            }
+        }
+
+        @Override
+        protected void onEnable() {
+            Minecraft client = Minecraft.getInstance();
+            if (client != null && client.options != null) {
+                previous = client.options.fov().get();
+            }
+        }
+
+        @Override
+        protected void onDisable() {
+            Minecraft client = Minecraft.getInstance();
+            if (previous != null && client != null && client.options != null) {
+                client.options.fov().set(Math.min(previous.doubleValue(), 110.0D));
+            }
+            previous = null;
+        }
+
+        @Override
+        public void onSettingChanged() {
+            if (enabled) {
+                tick(Minecraft.getInstance());
+            }
+        }
+    }
+
+    private static class SmoothCamModule extends TickModule {
+        SmoothCamModule() {
+            super("smoothcam", "Caméra lisse",
+                    "Active le mouvement de caméra cinéma (comme la touche F8) en continu.",
+                    ModuleCategory.VISUEL, game -> {
+                        Minecraft client = (Minecraft) game;
+                        if (client.options != null) {
+                            client.options.smoothCameraEnabled = true;
+                        }
+                    });
+        }
+
+        @Override
+        protected void onDisable() {
+            Minecraft client = Minecraft.getInstance();
+            if (client != null && client.options != null) {
+                client.options.smoothCameraEnabled = false;
+            }
+        }
+    }
+}

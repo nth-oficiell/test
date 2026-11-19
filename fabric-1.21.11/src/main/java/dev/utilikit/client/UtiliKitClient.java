@@ -11,6 +11,7 @@ import dev.utilikit.client.modules.impl.MaxFpsModule;
 import dev.utilikit.client.modules.impl.NoHurtCamModule;
 import dev.utilikit.client.modules.impl.PingHudModule;
 import dev.utilikit.client.modules.impl.ZoomModule;
+import dev.utilikit.client.ClientIntegrations;
 import dev.utilikit.client.ui.UtiliKitScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -54,6 +55,7 @@ public class UtiliKitClient implements ClientModInitializer {
         ModuleManager.register(new PingHudModule());
         ModuleManager.register(new DurabilityModule());
         ModuleManager.register(new MaxFpsModule());
+        ClientIntegrations.register();
         ModuleManager.load();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -62,6 +64,7 @@ public class UtiliKitClient implements ClientModInitializer {
                 ModuleManager.applyLoadedStates();
             }
             zoom.tick();
+            ClientIntegrations.tick(client);
             AutoSprintModule.tick();
             while (menuKey.wasPressed()) {
                 client.setScreen(new UtiliKitScreen());

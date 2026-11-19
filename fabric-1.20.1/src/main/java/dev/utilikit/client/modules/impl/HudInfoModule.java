@@ -76,6 +76,23 @@ public class HudInfoModule extends Module {
         return lineHeight + 2;
     }
 
+    public int lineCount() {
+        int lines = 0;
+        if (showFps.value) {
+            lines++;
+        }
+        if (showCoords.value) {
+            lines++;
+        }
+        if (showDirection.value) {
+            lines++;
+        }
+        if (showClock.value) {
+            lines++;
+        }
+        return lines;
+    }
+
     private static String directionLabel(Direction direction) {
         return switch (direction) {
             case NORTH -> "Nord (Z-)";

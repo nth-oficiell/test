@@ -8,28 +8,28 @@
 
 | Version de Minecraft | Loader | Fichier |
 |---|---|---|
-| 1.20.1 | Fabric | `utilikit-1.20.1-v*` |
-| 1.21.1 | Fabric | `utilikit-1.21.1-v*` |
-| 1.21.11 | Fabric | `utilikit-1.21.11-v*` |
-| 26.1.2 / 26.2 / 26.3 | Fabric | 🚧 dès que les mappings Yarn sortent |
+| 1.20.1 | Fabric (mappings Yarn) | `utilikit-1.20.1-v*` |
+| 1.21.1 | Fabric (mappings Yarn) | `utilikit-1.21.1-v*` |
+| 1.21.11 | Fabric (mappings Yarn) | `utilikit-1.21.11-v*` |
+| 26.1.2 | Fabric (noms officiels Mojang) | `utilikit-26.1.2-v*` |
+| 26.2 | Fabric (noms officiels Mojang) | `utilikit-26.2-v*` |
+| 26.3 | Fabric (noms officiels Mojang) | `utilikit-26.3-v*` |
+
+### 🔓 La solution 26.x
+
+Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms de classes officiels de Mojang et Yarn n'est plus maintenu au-delà de 1.21.11. Les sous-projets 26.x compilent donc **sans aucune mappings** avec le nouveau plugin Loom non-remap (`net.fabricmc.fabric-loom`), en ciblant les **noms officiels Mojang** (`Minecraft`, `LocalPlayer`, `GuiGraphicsExtractor`, `HudElementRegistry`…). Résultat : les 6 versions sont supportées en parallèle, avec les mêmes 55 modules. |
 
 > Les jars exacts et leur dernière version sont listés sur le site (ils sont générés par les builds GitHub Actions de ce dépôt).
 
-## 🧩 Modules
+## 🧩 Modules (55)
 
-| Module | Catégorie | Description |
-|---|---|---|
-| **FullBright** | VISUEL | Luminosité max extension — slider d'intensité 1 à 16 |
-| **Zoom** | VISUEL | Zoom caméra en maintenant la touche (`C`) — facteur réglable |
-| **No Hurt Cam** | VISUEL | Désactive le tremblement de caméra quand tu prends des dégâts |
-| **Limite FPS** | VISUEL | Slider de limite de FPS appliqué immédiatement au jeu |
-| **HUD Infos** | AFFICHAGE | FPS, coordonnées, direction, heure du monde — toggles séparés |
-| **Keystrokes** | AFFICHAGE | ZQSD/WASD + clics affichés sous le crosshair, façon packs HUD |
-| **Ping HUD** | AFFICHAGE | Latence live avec le serveur, colorée (vert/orange/rouge) |
-| **Durabilité** | AFFICHAGE | Durabilité de l'objet en main, colorée selon l'usure |
-| **Auto Sprint** | PRATIQUE | Sprint automatique dès que tu avances |
-| **Copier Coordonnées** | PRATIQUE | Touche `O` : copie tes coords + message cliquable dans le chat |
-| **Presets** | — | Profils de config : sauvegarder / appliquer / supprimer / écraser-coller |
+| Catégorie | Exemples |
+|---|---|
+| **Affichage (39)** | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité |
+| **Pratique (9)** | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées |
+| **Visuel (7)** | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie |
+
+Chaque module a ses réglages (toggles, sliders) dans le menu in-game, sauvegardés automatiquement et exportables via presets.
 
 ## 🎮 Utilisation
 
@@ -45,7 +45,7 @@ Raccourcis (rebindables dans les options du jeu) :
 
 ## 🛠 Développement
 
-Projet Gradle multi-versions : un cœur partagé (`common/`) + un sous-projet par version de Minecraft.
+Projet Gradle multi-versions : un cœur partagé (`common/`) + un sous-projet par version de Minecraft. Les sous-projets 1.20.x/1.21.x utilisent Yarn ; les 26.x utilisent les noms officiels Mojang, sans mappings.
 
 ```bash
 gradle build                    # compile TOUTES les versions

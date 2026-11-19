@@ -2,8 +2,10 @@ package dev.utilikit.client.modules;
 
 import dev.utilikit.client.config.ConfigManager;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class ModuleManager {
@@ -22,6 +24,19 @@ public final class ModuleManager {
 
     public static Collection<Module> all() {
         return MODULES.values();
+    }
+
+    public static List<ModuleCategory> categories() {
+        List<ModuleCategory> used = new ArrayList<>();
+        for (ModuleCategory category : ModuleCategory.values()) {
+            for (Module module : MODULES.values()) {
+                if (module.category == category) {
+                    used.add(category);
+                    break;
+                }
+            }
+        }
+        return used;
     }
 
     public static void load() {
