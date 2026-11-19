@@ -56,7 +56,7 @@ public class UtiliKitScreen extends Screen {
 
     private int listScroll = 0;
     private ModuleCategory activeCategory = null;
-    private final Map<ModuleCategory, Integer> categoryCounts = new java.util.EnumMap<>(ModuleCategory.class);
+    private final java.util.Map<ModuleCategory, Integer> categoryCounts = new java.util.EnumMap<>(ModuleCategory.class);
     private int presetScroll = 0;
     private EditBox presetNameField;
 

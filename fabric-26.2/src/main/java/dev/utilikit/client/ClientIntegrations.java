@@ -53,7 +53,7 @@ public final class ClientIntegrations {
     public static void register() {
         registerInfoModules();
         ModuleManager.register(new FovLockModule());
-        ModuleManager.register(new FpsOptimizerModule());
+        ModuleManager.register(new dev.utilikit.client.modules.impl.FpsOptimizerModule());
         ModuleManager.register(new SmoothCamModule());
         ModuleManager.register(new TickModule("antirain", "Anti Pluie",
                 "Supprime les visuels et sons de pluie en forçant le temps clair en local.",

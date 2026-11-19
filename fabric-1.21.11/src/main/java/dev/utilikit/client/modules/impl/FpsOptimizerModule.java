@@ -6,7 +6,7 @@ import dev.utilikit.client.modules.Setting;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.GraphicsMode;
-import net.minecraft.client.option.ParticlesMode;
+import net.minecraft.particle.ParticlesMode;
 
 public class FpsOptimizerModule extends Module {
     private final Setting.Toggle particles;
@@ -68,8 +68,8 @@ public class FpsOptimizerModule extends Module {
             client.options.getSimulationDistance().setValue(5);
         }
         if (graphics.value) {
-            prevGraphics = client.options.getGraphicsMode().getValue();
-            client.options.getGraphicsMode().setValue(GraphicsMode.FAST);
+            prevGraphics = client.options.getPreset().getValue();
+            client.options.getPreset().setValue(GraphicsMode.FAST);
         }
     }
 
@@ -95,7 +95,7 @@ public class FpsOptimizerModule extends Module {
             client.options.getSimulationDistance().setValue(prevSimulation);
         }
         if (prevGraphics != null) {
-            client.options.getGraphicsMode().setValue((GraphicsMode) prevGraphics);
+            client.options.getPreset().setValue((GraphicsMode) prevGraphics);
         }
         prevParticles = null;
         prevClouds = null;
