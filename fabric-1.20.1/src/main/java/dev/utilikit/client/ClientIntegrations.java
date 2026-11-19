@@ -605,6 +605,169 @@ public final class ClientIntegrations {
                     MinecraftClient client = (MinecraftClient) game;
                     return "Rendu : " + client.options.getViewDistance().getValue() + " chunks";
                 }));
+
+        ModuleManager.register(new InfoModule("roundedpos", "Position arrondie",
+                "Affiche ta position arrondie \u00e0 la case pr\u00e8s.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    ClientPlayerEntity p = player(game);
+                    return "Arrondi : " + Math.round(p.getX()) + " / " + Math.round(p.getY())
+                            + " / " + Math.round(p.getZ());
+                }));
+
+        ModuleManager.register(new InfoModule("chunklocal", "Chunk local",
+                "Affiche ta position \u00e0 l'int\u00e9rieur du chunk courant.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    ClientPlayerEntity p = player(game);
+                    return "Chunk local : " + (p.getBlockX() & 15) + " / " + (p.getBlockY() & 15)
+                            + " / " + (p.getBlockZ() & 15);
+                }));
+
+        ModuleManager.register(new InfoModule("daycount", "Jour \u00e9coul\u00e9",
+                "Affiche le nombre de jours \u00e9coul\u00e9s dans le monde.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world == null) {
+                        return null;
+                    }
+                    return "Jour n\u00b0 " + (client.world.getTime() / 24000L + 1L);
+                }));
+
+        ModuleManager.register(new InfoModule("offhand", "Main secondaire",
+                "Affiche l'objet de ta main secondaire.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    net.minecraft.item.ItemStack stack = offhandStack(player(game));
+                    return stack == null || stack.isEmpty() ? "Main secondaire : vide"
+                            : "Main secondaire : " + stack.getName().getString();
+                }));
+
+        ModuleManager.register(new InfoModule("armorpieces", "Pi\u00e8ces d'armure",
+                "Compte les pi\u00e8ces d'armure que tu portes.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    int worn = 0;
+                    for (int i = 0; i < 4; i++) {
+                        if (!player(game).getInventory().armor.get(i).isEmpty()) {
+                            worn++;
+                        }
+                    }
+                    return "Armure \u00e9quip\u00e9e : " + worn + " / 4";
+                }));
+
+        ModuleManager.register(new InfoModule("stackmaxhand", "Empilement max main",
+                "Affiche la taille maximale d'empilement de ton objet en main.",
+                ModuleCategory.AFFICHAGE,
+                game -> "Empilement max : " + player(game).getMainHandStack().getMaxCount()));
+
+        ModuleManager.register(new InfoModule("itemrarity", "Raret\u00e9 de l'objet",
+                "Affiche la raret\u00e9 de ton objet en main.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    net.minecraft.item.ItemStack stack = player(game).getMainHandStack();
+                    return stack.isEmpty() ? null : "Raret\u00e9 : " + prettify(String.valueOf(stack.getRarity()));
+                }));
+
+        ModuleManager.register(new InfoModule("durabilhand", "Durabilit\u00e9 % main",
+                "Affiche la durabilit\u00e9 restante de ton objet en main en pourcentage.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    net.minecraft.item.ItemStack stack = player(game).getMainHandStack();
+                    if (stack.isEmpty()) {
+                        return null;
+                    }
+                    int max = stack.getMaxDamage();
+                    if (max <= 0) {
+                        return null;
+                    }
+                    return "Durabilit\u00e9 : " + Math.round((max - stack.getDamage()) * 100.0D / max) + " %";
+                }));
+
+        ModuleManager.register(new InfoModule("targetface", "Face vis\u00e9e",
+                "Affiche la face du bloc que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.crosshairTarget instanceof BlockHitResult hit) {
+                        return "Face : " + prettify(hit.getSide().getName());
+                    }
+                    return null;
+                }));
+
+        ModuleManager.register(new InfoModule("targetlife", "Vie vis\u00e9e",
+                "Affiche les points de vie de l'entit\u00e9 vis\u00e9e.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.crosshairTarget instanceof EntityHitResult hit
+                            && hit.getEntity() instanceof net.minecraft.entity.LivingEntity living) {
+                        return "Vie vis\u00e9e : " + String.format(Locale.ROOT, "%.1f", living.getHealth())
+                                + " / " + String.format(Locale.ROOT, "%.1f", living.getMaxHealth());
+                    }
+                    return null;
+                }));
+
+        ModuleManager.register(new InfoModule("targetcoords", "Entit\u00e9 vis\u00e9e (pos)",
+                "Affiche la position de l'entit\u00e9 que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.crosshairTarget instanceof EntityHitResult hit) {
+                        return "Position entit\u00e9 : " + hit.getEntity().getBlockPos().toShortString();
+                    }
+                    return null;
+                }));
+
+        ModuleManager.register(new InfoModule("hurt", "D\u00e9g\u00e2ts r\u00e9cents",
+                "Indique si tu viens de recevoir des d\u00e9g\u00e2ts.",
+                ModuleCategory.PRATIQUE,
+                game -> "D\u00e9g\u00e2ts r\u00e9cents : " + (player(game).hurtTime > 0 ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("origin", "Distance au 0,0",
+                "Affiche ta distance au point d'origine du monde.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    ClientPlayerEntity p = player(game);
+                    double d = Math.sqrt((double) p.getBlockX() * (double) p.getBlockX()
+                            + (double) p.getBlockZ() * (double) p.getBlockZ());
+                    return d >= 1000.0D
+                            ? "Origine : " + String.format(Locale.ROOT, "%.1f", d / 1000.0D) + " km"
+                            : "Origine : " + (int) d + " m";
+                }));
+
+        ModuleManager.register(new InfoModule("modcount", "Mods charg\u00e9s",
+                "Affiche le nombre de mods charg\u00e9s par Fabric.",
+                ModuleCategory.PRATIQUE,
+                game -> "Mods charg\u00e9s : "
+                        + net.fabricmc.loader.api.FabricLoader.getInstance().getAllMods().size()));
+
+        ModuleManager.register(new InfoModule("about", "\u00c0 propos",
+                "Affiche la version d'UtiliKit install\u00e9e.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("utilikit");
+                    String version = container
+                            .map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
+                    return "UtiliKit v" + version;
+                }));
+
+        ModuleManager.register(new InfoModule("fabricver", "Version Fabric",
+                "Affiche la version de Fabric Loader et de Fabric API.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
+                    var container = loader.getModContainer("fabric-api");
+                    if (container.isEmpty()) {
+                        container = loader.getModContainer("fabric");
+                    }
+                    if (container.isEmpty()) {
+                        container = loader.getModContainer("fabricloader");
+                    }
+                    String fapi = container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("absente");
+                    return "Fabric API : " + fapi;
+                }));
     }
 
     private static ClientPlayerEntity player(Object game) {
@@ -632,6 +795,20 @@ public final class ClientIntegrations {
         return null;
     }
 
+
+    private static net.minecraft.item.ItemStack offhandStack(Object playerObj) {
+        try {
+            for (var method : playerObj.getClass().getMethods()) {
+                if (method.getParameterCount() == 0 && method.getReturnType() == net.minecraft.item.ItemStack.class
+                        && method.getName().toLowerCase(Locale.ROOT).contains("offhand")) {
+                    return (net.minecraft.item.ItemStack) method.invoke(playerObj);
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return null;
+        }
+        return null;
+    }
 
     private static String prettify(String path) {
         if (path == null || path.isEmpty()) {

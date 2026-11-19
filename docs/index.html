@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UtiliKit — le mod qui personnalise ton Minecraft | 80 modules, 6 versions</title>
-<meta name="description" content="UtiliKit : mod utilitaire client Fabric avec 80 modules personnalisables depuis un menu in-game. Choisit ton launcher et ta version de Minecraft, télécharge le jar." />
+<title>UtiliKit — le mod qui personnalise ton Minecraft | 96 modules, 6 versions</title>
+<meta name="description" content="UtiliKit : mod utilitaire client Fabric avec 96 modules personnalisables depuis un menu in-game. Choisit ton launcher et ta version de Minecraft, télécharge le jar." />
 <style>
   :root {
     --bg: #0b0e17;
@@ -194,7 +194,7 @@
   <div class="wrap nav">
     <a class="logo" href="#"><span class="dot">U</span>UtiliKit</a>
     <a class="link" href="#telecharger">Télécharger</a>
-    <a class="link" href="#modules">80 Modules</a>
+    <a class="link" href="#modules">96 Modules</a>
     <span class="spacer"></span>
     <a class="btn" href="#telecharger">⬇ Obtenir le mod</a>
   </div>
@@ -203,17 +203,17 @@
 <div class="hero">
   <div class="wrap">
     <div class="badge">✅ Client-only • Fabric • 100 % gratuit • open-source</div>
-    <h1>Personnalise ton jeu<br /><span class="grad">avec 80 modules</span></h1>
-    <p class="sub">UtiliKit ajoute un menu in-game (touche <b>Shift droit</b>) pour activer et régler plus de 80 modules : HUD, visuels, infos de jeu, presets… compatible avec ton launcher préféré.</p>
+    <h1>Personnalise ton jeu<br /><span class="grad">avec 96 modules</span></h1>
+    <p class="sub">UtiliKit ajoute un menu in-game (touche <b>Shift droit</b>) pour activer et régler plus de 96 modules : HUD, visuels, infos de jeu, presets… compatible avec ton launcher préféré.</p>
     <div class="ctas" style="flex-direction:column;align-items:center">
       <a class="btn mega" href="#telecharger">
         <span class="arrow">⬇️</span>
         <span>Télécharger UtiliKit<small>Gratuit • sans compte • jar direct</small></span>
       </a>
-      <a class="btn ghost" href="#modules">Voir les 80 modules</a>
+      <a class="btn ghost" href="#modules">Voir les 96 modules</a>
     </div>
     <div class="stats">
-      <div class="stat"><b>80</b><span>modules</span></div>
+      <div class="stat"><b>96</b><span>modules</span></div>
       <div class="stat"><b>6</b><span>versions supportées</span></div>
       <div class="stat"><b>5</b><span>launchers</span></div>
       <div class="stat"><b>1</b><span>menu, Shift droit</span></div>
@@ -257,7 +257,7 @@
 
 <section id="modules">
   <div class="wrap">
-    <div class="kicker">80 modules</div>
+    <div class="kicker">96 modules</div>
     <h2>Tout ce que tu peux activer</h2>
     <p class="lead">Chaque module est activable / désactivable et réglable depuis le menu in-game. Tes réglages sont sauvegardés, exportables et importables via des presets.</p>
     <div class="grid" id="modulegrid"></div>
@@ -290,18 +290,21 @@ const MODULES = {
     "XP total", "Armure", "Objet en main", "Durabilité en main", "Météo", "Serveur",
     "Marque du serveur", "Temps de session", "Entités proches", "Heure réelle", "Pseudo",
     "UUID", "Ping HUD", "Keystrokes", "Durabilité",
-    "Phase de lune", "Période", "Résolution écran", "Taille interface", "Ping détaillé", "Bloc sous les pieds"
+    "Phase de lune", "Période", "Résolution écran", "Taille interface", "Ping détaillé", "Bloc sous les pieds",
+    "Position arrondie", "Chunk local", "Jour écoulé", "Main secondaire", "Pièces d'armure", "Empilement max main"
   ],
   "Pratique": [
     "Coordonnées Nether", "Mode de jeu", "Bloc visé", "Entité visée", "Distance de visée",
     "Recharge d'attaque", "Hauteur de chute", "Auto Sprint", "Copier Coordonnées",
     "Boussole", "Difficulté", "Effets actifs", "Vol", "Véhicule", "Accroupi", "Sprint",
     "Sous l'eau", "En feu", "Java", "Système", "Plein écran", "Solo / Multi",
-    "Quantité en main", "Position visée"
+    "Quantité en main", "Position visée",
+    "Durabilité % main", "Face visée", "Vie visée", "Entité visée (pos)", "Dégâts récents",
+    "Distance au 0,0", "Mods chargés", "À propos", "Version Fabric"
   ],
   "Visuel": [
     "FullBright", "Zoom", "No Hurt Cam", "Limite FPS", "FOV personnalisé",
-    "Caméra lisse", "Anti Pluie", "Sensibilité souris", "Luminosité réglage", "Distance de rendu", "Anti Orage"
+    "Caméra lisse", "Anti Pluie", "Sensibilité souris", "Luminosité réglage", "Distance de rendu", "Anti Orage", "Rareté de l'objet"
   ]
 };
 
