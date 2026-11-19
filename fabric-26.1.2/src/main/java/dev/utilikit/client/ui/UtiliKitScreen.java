@@ -55,6 +55,8 @@ public class UtiliKitScreen extends Screen {
     }
 
     private int listScroll = 0;
+    private ModuleCategory activeCategory = null;
+    private final Map<ModuleCategory, Integer> categoryCounts = new java.util.EnumMap<>(ModuleCategory.class);
     private int presetScroll = 0;
     private EditBox presetNameField;
 
@@ -94,6 +96,16 @@ public class UtiliKitScreen extends Screen {
     }
 
     private void addModuleListWidgets() {
+        categoryCounts.clear();
+        for (ModuleCategory category : ModuleCategory.values()) {
+            int count = 0;
+            for (Module module : ModuleManager.all()) {
+                if (module.category == category) {
+                    count++;
+                }
+            }
+            categoryCounts.put(category, count);
+        }
         searchField = new EditBox(this.font, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Component.literal("Recherche\u2026"));
         searchField.setMaxLength(24);
         searchField.setValue(searchFilter);
@@ -104,6 +116,20 @@ public class UtiliKitScreen extends Screen {
             }
         });
         addRenderableWidget(searchField);
+
+        for (int i = 0; i < ModuleCategory.values().length + 1; i++) {
+            ModuleCategory chipCategory = i == 0 ? null : ModuleCategory.values()[i - 1];
+            boolean on = chipCategory == null ? activeCategory == null : chipCategory == activeCategory;
+            int chipX = LIST_X + i * ((LIST_W - 6) / 4 + 2);
+            String label = chipCategory == null ? "Tous" : shortLabel(chipCategory);
+            addRenderableWidget(Button.builder(Component.literal((on ? "\u25CF " : "") + label), b -> {
+                        activeCategory = chipCategory == null || activeCategory == chipCategory ? null : chipCategory;
+                        listScroll = 0;
+                        rebuild();
+                    })
+                    .bounds(chipX, layoutTop() + 22, (LIST_W - 6) / 4, 16)
+                    .build());
+        }
 
         for (Runnable builder : listBuilders()) {
             builder.run();
@@ -125,10 +151,13 @@ public class UtiliKitScreen extends Screen {
     private List<Runnable> listBuilders() {
         List<Runnable> builders = new ArrayList<>();
         rows = new ArrayList<>();
-        int y = layoutTop() + 26;
+        int y = layoutTop() + 44;
         int startY = y;
         String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleManager.categories()) {
+            if (activeCategory != null && activeCategory != category) {
+                continue;
+            }
             boolean hasModule = !needle.isEmpty()
                     ? ModuleManager.all().stream().anyMatch(m -> m.category == category && m.name.toLowerCase().contains(needle))
                     : ModuleManager.all().stream().anyMatch(m -> m.category == category);
@@ -413,23 +442,26 @@ public class UtiliKitScreen extends Screen {
 
         int top = layoutTop();
         int bottom = listBottom();
-        graphics.fill(LIST_X, top, LIST_X + LIST_W, bottom, 0xC0101018);
+        drawPanel(graphics, LIST_X, top, LIST_X + LIST_W, bottom);
         graphics.outline(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
-        graphics.fill(settingsLeft, top, settingsLeft + settingsWidth, bottom, 0xC0101018);
+        drawPanel(graphics, settingsLeft, top, settingsLeft + settingsWidth, bottom);
         graphics.outline(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         if (view != View.PRESETS && !rows.isEmpty()) {
-            int contentTopY = layoutTop() + 26;
+            int contentTopY = layoutTop() + 44;
             for (Row row : rows) {
                 int rowY = row.y - listScroll;
                 if (rowY < contentTopY || rowY + row.h > listBottom()) {
                     continue;
                 }
                 if (row.category != null) {
-                    graphics.text(this.font, row.category.label + " \u2014", LIST_X + 6, rowY + 5, 0xFF9A9AB0, true);
+                    Integer count = categoryCounts.get(row.category);
+                    String headerLabel = row.category.label + " \u2014" + (count == null ? "" : " (" + count + ")");
+                    graphics.fill(LIST_X + 2, rowY + 4, LIST_X + 5, rowY + row.h - 4, categoryColor(row.category));
+                    graphics.text(this.font, headerLabel, LIST_X + 8, rowY + 5, categoryColor(row.category), true);
                 } else if (row.module != null && row.module == selected) {
                     graphics.outline(LIST_X + 2, rowY - 2, LIST_W - 4, row.h, 0xFF61B8FF);
                 }
@@ -508,7 +540,7 @@ public class UtiliKitScreen extends Screen {
                 int rowY = row.y - listScroll;
                 if (event.x() >= LIST_X + 2 && event.x() <= LIST_X + LIST_W - 2
                         && event.y() >= rowY && event.y() < rowY + row.h - 4
-                        && rowY >= layoutTop() + 26 && rowY + row.h - 4 <= listBottom()) {
+                        && rowY >= layoutTop() + 44 && rowY + row.h - 4 <= listBottom()) {
                     selected = row.module;
                     if (button == left) {
                         dev.utilikit.client.modules.ModuleActions.activate(selected);
@@ -575,6 +607,32 @@ public class UtiliKitScreen extends Screen {
             module.onSettingChanged();
             ModuleManager.save();
         }
+    }
+
+    private static int categoryColor(ModuleCategory category) {
+        return switch (category) {
+            case AFFICHAGE -> 0xFF55FFFF;
+            case VISUEL -> 0xFF7CFF6B;
+            case PRATIQUE -> 0xFFFFB14D;
+        };
+    }
+
+    private static String shortLabel(ModuleCategory category) {
+        return switch (category) {
+            case AFFICHAGE -> "Info";
+            case VISUEL -> "Visu";
+            case PRATIQUE -> "Util";
+        };
+    }
+
+    private void drawPanel(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
+        if (dev.utilikit.client.modules.extra.Gradients.active()) {
+            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1, y1, x2, y2)) {
+                graphics.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+            }
+            return;
+        }
+        graphics.fill(x1, y1, x2, y2, 0xC0101018);
     }
 
     private static final class Row {

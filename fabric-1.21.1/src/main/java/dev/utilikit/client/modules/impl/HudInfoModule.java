@@ -70,7 +70,13 @@ public class HudInfoModule extends Module {
     private int line(DrawContext context, MinecraftClient client, String text, int x, int y, int lineHeight) {
         if (background.value) {
             int textWidth = client.textRenderer.getWidth(text);
-            context.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
+            if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2)) {
+                    context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                }
+            } else {
+                context.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
+            }
         }
         context.drawTextWithShadow(client.textRenderer, text, x, y, 0xFFFFFFFF);
         return lineHeight + 2;

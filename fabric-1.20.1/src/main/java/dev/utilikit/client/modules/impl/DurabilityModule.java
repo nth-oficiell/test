@@ -40,7 +40,13 @@ public class DurabilityModule extends Module {
         }
         int x = client.getWindow().getScaledWidth() - client.textRenderer.getWidth(text) - 6;
         if (hud.background.value) {
-            context.fill(x - 3, y - 2, client.getWindow().getScaledWidth() - 3, y + 12, 0x90000000);
+            if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, y - 2, client.getWindow().getScaledWidth() - 3, y + 12)) {
+                    context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                }
+            } else {
+                context.fill(x - 3, y - 2, client.getWindow().getScaledWidth() - 3, y + 12, 0x90000000);
+            }
         }
         context.drawTextWithShadow(client.textRenderer, text, x, y, color);
     }

@@ -44,6 +44,8 @@ public class UtiliKitScreen extends Screen {
     private int presetScroll = 0;
     private int moduleScroll = 0;
     private int moduleMaxScroll = 0;
+    private ModuleCategory activeCategory = null;
+    private final java.util.Map<ModuleCategory, Integer> categoryCounts = new java.util.EnumMap<>(ModuleCategory.class);
 
     public UtiliKitScreen() {
         super(Text.literal("NTH Utils"));
@@ -60,6 +62,9 @@ public class UtiliKitScreen extends Screen {
         int listStartY = y;
         String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleCategory.values()) {
+            if (activeCategory != null && activeCategory != category) {
+                continue;
+            }
             boolean hasModule = !needle.isEmpty()
                     ? ModuleManager.all().stream().anyMatch(m -> m.category == category && m.name.toLowerCase().contains(needle))
                     : ModuleManager.all().stream().anyMatch(m -> m.category == category);
@@ -82,6 +87,18 @@ public class UtiliKitScreen extends Screen {
         }
         moduleMaxScroll = Math.max(0, (y - listStartY) - (listBottom() - listStartY));
         moduleScroll = Math.max(0, Math.min(moduleScroll, moduleMaxScroll));
+        categoryCounts.clear();
+        for (ModuleCategory category : ModuleCategory.values()) {
+            int count = 0;
+            for (Module module : ModuleManager.all()) {
+                if (module.category == category) {
+                    count++;
+                }
+            }
+            if (count > 0) {
+                categoryCounts.put(category, count);
+            }
+        }
 
         if (view == View.MODULES) {
             searchField = new TextFieldWidget(this.textRenderer, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Text.literal("Recherche\u2026"));
@@ -128,7 +145,7 @@ public class UtiliKitScreen extends Screen {
     }
 
     private int listContentTop() {
-        return layoutTop() + (view == View.MODULES ? 26 : 0);
+        return layoutTop() + (view == View.MODULES ? 44 : 0);
     }
 
     private int listBottom() {
@@ -149,27 +166,36 @@ public class UtiliKitScreen extends Screen {
 
         int top = layoutTop();
         int bottom = listBottom();
-        context.fill(LIST_X, top, LIST_X + LIST_W, bottom, 0xC0101018);
+        drawPanel(context, LIST_X, top, LIST_X + LIST_W, bottom);
         context.drawBorder(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
-        context.fill(settingsLeft, top, settingsLeft + settingsWidth, bottom, 0xC0101018);
+        drawPanel(context, settingsLeft, top, settingsLeft + settingsWidth, bottom);
         context.drawBorder(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
+        if (view == View.MODULES) {
+            drawChips(context);
+        }
         for (Row row : rows) {
             int rowY = row.y - moduleScroll;
             if (rowY < top || rowY + row.h > bottom || rowY < listContentTop()) {
                 continue;
             }
             if (row.category != null) {
-                context.drawTextWithShadow(this.textRenderer, row.category.label,
-                        LIST_X + 6, rowY + 5, 0xFF9A9AB0);
+                Integer count = categoryCounts.get(row.category);
+                String headerLabel = row.category.label + (count == null ? "" : " (" + count + ")");
+                context.fill(LIST_X + 2, rowY + 4, LIST_X + 5, rowY + row.h - 4, categoryColor(row.category));
+                context.drawTextWithShadow(this.textRenderer, headerLabel,
+                        LIST_X + 8, rowY + 5, categoryColor(row.category));
             } else if (row.module != null) {
                 boolean hovered = isOverRow(row, rowY, mouseX, mouseY);
                 int bg = row.module == selected ? 0x50FFFFFF : (hovered ? 0x28FFFFFF : 0x00000000);
                 if (bg != 0) {
                     context.fill(LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, bg);
+                }
+                if (row.module == selected) {
+                    context.drawBorder(LIST_X + 1, rowY - 1, LIST_W - 2, row.h + 2, 0xFF61B8FF);
                 }
                 int statusColor = row.module.enabled ? 0xFF55FF55 : 0xFFFF5555;
                 context.fill(LIST_X + 6, rowY + row.h / 2 - 1, LIST_X + 10, rowY + row.h / 2 + 3, statusColor);
@@ -254,6 +280,17 @@ public class UtiliKitScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
+        }
+        if (view == View.MODULES && mouseY >= layoutTop() + 24 && mouseY <= layoutTop() + 41
+                && mouseX >= LIST_X && mouseX <= LIST_X + LIST_W) {
+            int seg = (LIST_W - 6) / 4;
+            int index = (int) ((mouseX - LIST_X) / (seg + 2));
+            if (index >= 0 && index <= 3) {
+                activeCategory = index == 0 ? null : ModuleCategory.values()[index - 1];
+                moduleScroll = 0;
+                rebuild();
+                return true;
+            }
         }
         if (view == View.MODULES) {
             for (Row row : rows) {
@@ -536,6 +573,52 @@ public class UtiliKitScreen extends Screen {
             module.onSettingChanged();
             ModuleManager.save();
         }
+    }
+
+    private static int categoryColor(ModuleCategory category) {
+        return switch (category) {
+            case AFFICHAGE -> 0xFF55FFFF;
+            case VISUEL -> 0xFF7CFF6B;
+            case PRATIQUE -> 0xFFFFB14D;
+        };
+    }
+
+    private static String shortLabel(ModuleCategory category) {
+        return switch (category) {
+            case AFFICHAGE -> "Info";
+            case VISUEL -> "Visu";
+            case PRATIQUE -> "Util";
+        };
+    }
+
+    private void drawChips(DrawContext context) {
+        int seg = (LIST_W - 6) / 4;
+        int chipY = layoutTop() + 24;
+        for (int i = 0; i < ModuleCategory.values().length + 1; i++) {
+            ModuleCategory category = i == 0 ? null : ModuleCategory.values()[i - 1];
+            boolean on = category == null ? activeCategory == null : category == activeCategory;
+            int cx = LIST_X + i * (seg + 2);
+            int accent = category == null ? 0xFF61B8FF : categoryColor(category);
+            context.fill(cx, chipY, cx + seg, chipY + 16, on ? accent : 0x40303A55);
+            if (on) {
+                context.drawBorder(cx, chipY, seg, 16, 0xFFEAEAFF);
+            }
+            String label = category == null ? "Tous" : shortLabel(category);
+            String chipLabel = (on ? "\u25cf " : "") + label;
+            context.drawTextWithShadow(this.textRenderer, chipLabel,
+                    cx + (seg - this.textRenderer.getWidth(chipLabel)) / 2, chipY + 4,
+                    on ? 0xFF0B0B14 : 0xFF99AABB);
+        }
+    }
+
+    private void drawPanel(DrawContext context, int x1, int y1, int x2, int y2) {
+        if (dev.utilikit.client.modules.extra.Gradients.active()) {
+            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1, y1, x2, y2)) {
+                context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+            }
+            return;
+        }
+        context.fill(x1, y1, x2, y2, 0xC0101018);
     }
 
     private static final class Row {

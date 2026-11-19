@@ -87,8 +87,14 @@ public class HudInfoModule extends Module {
 
     private int line(GuiGraphicsExtractor graphics, Minecraft client, String text, int x, int y, int lineHeight) {
         if (background.value) {
-            int textWidth = client.font.width(text);
-            graphics.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
+            int textWidth = client.textRenderer.getWidth(text);
+            if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2)) {
+                    graphics.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                }
+            } else {
+                graphics.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
+            }
         }
         graphics.text(client.font, text, x, y, 0xFFFFFFFF, true);
         return lineHeight + 2;

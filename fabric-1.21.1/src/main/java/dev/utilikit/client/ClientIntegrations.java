@@ -51,6 +51,7 @@ public final class ClientIntegrations {
     public static void register() {
         registerInfoModules();
         ModuleManager.register(new FovLockModule());
+        ModuleManager.register(new FpsOptimizerModule());
         ModuleManager.register(new SmoothCamModule());
         ModuleManager.register(new TickModule("antirain", "Anti Pluie",
                 "Supprime les visuels et sons de pluie en forçant le temps clair en local.",
@@ -924,7 +925,13 @@ public final class ClientIntegrations {
             int width = client.textRenderer.getWidth(text);
             dev.utilikit.client.modules.extra.HudDrag.track(info.id, x, y, width, lineHeight);
             if (info.hasBackground()) {
-                context.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
+                if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                    for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10)) {
+                        context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                    }
+                } else {
+                    context.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
+                }
             }
             context.drawTextWithShadow(client.textRenderer, text, lineX, lineY, textColor);
             y += lineHeight;
@@ -935,7 +942,13 @@ public final class ClientIntegrations {
             int noteY = client.getWindow().getScaledHeight() - 22 - notes.size() * 12;
             for (String note : notes) {
                 int noteWidth = client.textRenderer.getWidth(note);
-                context.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
+                if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                    for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(4, noteY - 2, 10 + noteWidth, noteY + 10)) {
+                        context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                    }
+                } else {
+                    context.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
+                }
                 context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, 6, noteY, 0xFFFFEB55);
                 noteY += 12;
             }

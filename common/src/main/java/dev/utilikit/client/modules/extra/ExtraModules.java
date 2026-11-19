@@ -48,6 +48,7 @@ public final class ExtraModules {
         ModuleManager.register(chatLogModule());
         ModuleManager.register(hungerAlertModule());
         ModuleManager.register(hudColorModule());
+        ModuleManager.register(gradientsModule());
         ModuleManager.register(chronoModule());
         ModuleManager.register(chronoResetModule());
         ModuleManager.register(clicksTotalModule());
@@ -239,6 +240,19 @@ public final class ExtraModules {
                 game -> {
                 });
         module.settings.add(new Setting.Slider("couleur", "Couleur (0 blanc, 1 vert, 2 rouge, 3 bleu, 4 jaune, 5 cyan, 6 magenta, 7 noir)", 0.0D, 7.0D, 0.0D));
+        return module;
+    }
+
+    private static Module gradientsModule() {
+        Module module = new TickModule("degrades", "D\u00e9grad\u00e9s",
+                "Applique un beau d\u00e9grad\u00e9 personnalis\u00e9 aux fonds du HUD et du menu NTH Utils. Clic droit pour choisir tes deux couleurs (hex), la direction et l'opacit\u00e9.",
+                ModuleCategory.VISUEL,
+                game -> {
+                });
+        module.settings.add(new Setting.Text("c1", "Couleur 1 (hex, ex : #7A3CFF)", "#7A3CFF"));
+        module.settings.add(new Setting.Text("c2", "Couleur 2 (hex, ex : #00FFC8)", "#00FFC8"));
+        module.settings.add(new Setting.Slider("dir", "Direction (0 vertical, 1 horizontal, 2 diagonale)", 0.0D, 2.0D, 0.0D));
+        module.settings.add(new Setting.Slider("alpha", "Opacit\u00e9 (%)", 0.0D, 100.0D, 60.0D));
         return module;
     }
 

@@ -31,7 +31,13 @@ public class PingHudModule extends Module {
         int color = latency < 100 ? 0xFF55FF55 : (latency < 250 ? 0xFFFFAA00 : 0xFFFF5555);
         int x = client.getWindow().getGuiScaledWidth() - client.font.width(text) - 6;
         if (hud.background.value) {
-            graphics.fill(x - 3, 4, client.getWindow().getGuiScaledWidth() - 3, 18, 0x90000000);
+            if (dev.utilikit.client.modules.extra.Gradients.active()) {
+                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, 4, client.getWindow().getGuiScaledWidth() - 3, 18)) {
+                    graphics.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+                }
+            } else {
+                graphics.fill(x - 3, 4, client.getWindow().getGuiScaledWidth() - 3, 18, 0x90000000);
+            }
         }
         graphics.text(client.font, text, x, 6, color, true);
     }
