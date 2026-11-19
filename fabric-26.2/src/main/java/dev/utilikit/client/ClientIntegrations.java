@@ -1057,6 +1057,7 @@ public final class ClientIntegrations {
         if (client.options == null || client.player == null || client.level == null) {
             return;
         }
+        dev.utilikit.client.modules.extra.HudDrag.beginFrame();
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int x = 6 + hudOffset[0];
         int y = 6 + hudOffset[1] + hudInfoHeight();
@@ -1077,11 +1078,15 @@ public final class ClientIntegrations {
                 x += columnWidth;
                 y = startY;
             }
+            int[] lineOffset = dev.utilikit.client.modules.extra.HudDrag.lineOffset(info.id);
+            int lineX = x + lineOffset[0];
+            int lineY = y + lineOffset[1];
+            int width = client.font.width(text);
+            dev.utilikit.client.modules.extra.HudDrag.track(info.id, x, y, width, lineHeight);
             if (info.hasBackground()) {
-                int width = client.font.width(text);
-                graphics.fill(x - 3, y - 2, x + width + 3, y + 10, 0x90000000);
+                graphics.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
             }
-            graphics.text(client.font, text, x, y, 0xFFFFFFFF, true);
+            graphics.text(client.font, text, lineX, lineY, 0xFFFFFFFF, true);
             y += lineHeight;
         }
 
@@ -1115,6 +1120,34 @@ public final class ClientIntegrations {
             } else {
                 graphics.fill(cx - crossLen, cy, cx + crossLen, cy + 1, crossColor);
                 graphics.fill(cx, cy - crossLen, cx + 1, cy + crossLen, crossColor);
+            }
+        }
+
+        if (dev.utilikit.client.modules.extra.Vigilance.flashActive()) {
+            int flashW = client.getWindow().getGuiScaledWidth();
+            int flashH = client.getWindow().getGuiScaledHeight();
+            graphics.fill(0, 0, flashW, 3, 0x99FF2222);
+            graphics.fill(0, flashH - 3, flashW, flashH, 0x99FF2222);
+            graphics.fill(0, 0, 3, flashH, 0x99FF2222);
+            graphics.fill(flashW - 3, 0, flashW, flashH, 0x99FF2222);
+        }
+
+        java.util.List<double[]> dots = dev.utilikit.client.modules.extra.ExtraModules.radarDots(client);
+        if (dots != null) {
+            int size = 64;
+            int bx = client.getWindow().getGuiScaledWidth() - size - 8;
+            int by = 8;
+            int half = size / 2;
+            graphics.fill(bx, by, bx + size, by + size, 0x66000000);
+            graphics.fill(bx, by, bx + size, by + 1, 0xB3FFFFFF);
+            graphics.fill(bx, by + size - 1, bx + size, by + size, 0xB3FFFFFF);
+            graphics.fill(bx, by, bx + 1, by + size, 0xB3FFFFFF);
+            graphics.fill(bx + size - 1, by, bx + size, by + size, 0xB3FFFFFF);
+            graphics.fill(bx + half - 1, by + half - 1, bx + half + 1, by + half + 1, 0xFF55FF55);
+            for (double[] dot : dots) {
+                int dotX = bx + half + (int) Math.round(dot[0] * (half - 4));
+                int dotY = by + half + (int) Math.round(dot[1] * (half - 4));
+                graphics.fill(dotX, dotY, dotX + 2, dotY + 2, 0xFFFF5555);
             }
         }
     }

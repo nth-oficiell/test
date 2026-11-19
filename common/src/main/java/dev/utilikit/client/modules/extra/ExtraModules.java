@@ -41,6 +41,9 @@ public final class ExtraModules {
         ModuleManager.register(hudDragModule());
         ModuleManager.register(antiAfkModule());
         ModuleManager.register(chatMentionModule());
+        ModuleManager.register(radarModule());
+        ModuleManager.register(vigilanceModule());
+        ModuleManager.register(mountLifeModule());
         Waypoints.load();
         HudDrag.load();
     }
@@ -52,6 +55,7 @@ public final class ExtraModules {
         HudDrag.tick(game);
         AntiAfk.tick(game);
         ChatMention.tick(game);
+        Vigilance.tick(game);
     }
 
     private static Module crosshairModule() {
@@ -69,11 +73,93 @@ public final class ExtraModules {
 
     private static Module hudDragModule() {
         Module module = new TickModule("hudedit", "Déplacer le HUD (drag)",
-                "Assigne une touche dans les paramètres : maintiens-la et bouge la souris pour déplacer le bloc HUD, relâche pour enregistrer.",
+                "Assigne une touche dans les paramètres : maintiens-la et bouge la souris. "
+                        + "Commence le drag sur une ligne pour la déplacer seule, ailleurs c'est le bloc entier qui suit.",
                 ModuleCategory.VISUEL,
                 game -> {
                 });
         return module;
+    }
+
+    private static Module radarModule() {
+        Module module = new TickModule("radar", "Radar joueurs",
+                "Affiche un mini-radar en haut à droite : tu es au centre (point vert), les joueurs proches sont des points rouges. Nord vers le haut.",
+                ModuleCategory.VISUEL,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("portee", "Portée (blocs)", 16.0D, 128.0D, 64.0D));
+        return module;
+    }
+
+    private static Module vigilanceModule() {
+        Module module = new TickModule("vigilance", "Alerte vie",
+                "Prévient par notification et fait clignoter un contour rouge quand tes points de vie passent sous le seuil réglé.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("seuil", "Seuil de vie", 2.0D, 10.0D, 6.0D));
+        return module;
+    }
+
+    private static InfoModule mountLifeModule() {
+        return new InfoModule("mountlife", "Vie monture",
+                "Affiche les points de vie de la monture sur laquelle tu es assis.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    try {
+                        Object player = game.getClass().getField("player").get(game);
+                        Object vehicle = method(player, "getVehicle");
+                        Double health = vehicle == null ? null : doubleByName(vehicle, "getHealth");
+                        if (vehicle == null || health == null) {
+                            return null;
+                        }
+                        return "Monture : " + String.format(java.util.Locale.ROOT, "%.1f", health) + " \u2764";
+                    } catch (Throwable ignored) {
+                        return null;
+                    }
+                });
+    }
+
+    public static java.util.List<double[]> radarDots(Object game) {
+        Module module = ModuleManager.get("radar");
+        if (module == null || !module.enabled) {
+            return null;
+        }
+        try {
+            Object player = game.getClass().getField("player").get(game);
+            if (player == null) {
+                return null;
+            }
+            Object world = field(game, "world", "level");
+            if (world == null) {
+                return null;
+            }
+            Object players = method(world, "players", "getPlayers");
+            if (!(players instanceof java.util.List<?> list)) {
+                return null;
+            }
+            double myX = ((Number) player.getClass().getMethod("getX").invoke(player)).doubleValue();
+            double myZ = ((Number) player.getClass().getMethod("getZ").invoke(player)).doubleValue();
+            Setting.Slider range = module.slider("portee");
+            double reach = range == null ? 64.0D : Math.max(8.0D, range.value);
+            java.util.List<double[]> dots = new java.util.ArrayList<>();
+            for (Object other : list) {
+                if (other == null || other == player) {
+                    continue;
+                }
+                double ox = ((Number) other.getClass().getMethod("getX").invoke(other)).doubleValue();
+                double oz = ((Number) other.getClass().getMethod("getZ").invoke(other)).doubleValue();
+                double nx = (ox - myX) / reach;
+                double nz = (oz - myZ) / reach;
+                if (Math.abs(nx) > 1.0D || Math.abs(nz) > 1.0D) {
+                    continue;
+                }
+                dots.add(new double[] {nx, nz});
+            }
+            return dots;
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     private static Module antiAfkModule() {

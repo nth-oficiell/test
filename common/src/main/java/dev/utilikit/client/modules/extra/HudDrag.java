@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class HudDrag {
     private static final Logger LOGGER = LoggerFactory.getLogger("utilikit");
@@ -17,12 +20,41 @@ public final class HudDrag {
     private static int dragY;
     private static Double lastX;
     private static Double lastY;
+    private static String dragId;
+    private static final LinkedHashMap<String, int[]> RECTS = new LinkedHashMap<>();
+    private static final Map<String, int[]> LINES = new HashMap<>();
 
     private HudDrag() {
     }
 
     public static int[] offsets() {
         return new int[] {dragX, dragY};
+    }
+
+    public static void beginFrame() {
+        RECTS.clear();
+    }
+
+    public static void track(String id, int x, int y, int w, int h) {
+        if (id != null && id.length() < 64 && RECTS.size() < 256) {
+            RECTS.put(id, new int[] {x, y, w, h});
+        }
+    }
+
+    public static int[] lineOffset(String id) {
+        int[] offset = LINES.get(id);
+        return offset == null ? new int[] {0, 0} : offset;
+    }
+
+    private static String hoveredLine(double mx, double my) {
+        for (Map.Entry<String, int[]> entry : RECTS.entrySet()) {
+            int[] rect = entry.getValue();
+            if (mx >= rect[0] && mx <= rect[0] + rect[2]
+                    && my >= rect[1] && my <= rect[1] + rect[3]) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public static void tick(Object game) {
@@ -33,6 +65,7 @@ public final class HudDrag {
             if (lastX != null) {
                 lastX = null;
                 lastY = null;
+                dragId = null;
                 save();
             }
             return;
@@ -44,12 +77,22 @@ public final class HudDrag {
         if (lastX == null) {
             lastX = mouse[0];
             lastY = mouse[1];
+            dragId = hoveredLine(mouse[0], mouse[1]);
             return;
         }
-        dragX = clamp(dragX + (int) Math.round(mouse[0] - lastX), 0, 600);
-        dragY = clamp(dragY + (int) Math.round(mouse[1] - lastY), 0, 800);
+        int dx = (int) Math.round(mouse[0] - lastX);
+        int dy = (int) Math.round(mouse[1] - lastY);
         lastX = mouse[0];
         lastY = mouse[1];
+        if (dragId == null) {
+            dragX = clamp(dragX + dx, 0, 600);
+            dragY = clamp(dragY + dy, 0, 800);
+        } else {
+            int[] offset = LINES.get(dragId);
+            int ox = offset == null ? 0 : offset[0];
+            int oy = offset == null ? 0 : offset[1];
+            LINES.put(dragId, new int[] {clamp(ox + dx, -600, 600), clamp(oy + dy, -600, 800)});
+        }
     }
 
     private static int clamp(int value, int min, int max) {
@@ -106,6 +149,14 @@ public final class HudDrag {
             JsonObject root = new JsonObject();
             root.addProperty("x", dragX);
             root.addProperty("y", dragY);
+            JsonObject lines = new JsonObject();
+            for (Map.Entry<String, int[]> entry : LINES.entrySet()) {
+                JsonObject offset = new JsonObject();
+                offset.addProperty("x", entry.getValue()[0]);
+                offset.addProperty("y", entry.getValue()[1]);
+                lines.add(entry.getKey(), offset);
+            }
+            root.add("lines", lines);
             Files.writeString(file(), ConfigManager.gson().toJson(root));
         } catch (Exception e) {
             LOGGER.error("Impossible de sauvegarder la position du HUD NTH Utils", e);
@@ -124,6 +175,20 @@ public final class HudDrag {
             }
             dragX = root.has("x") ? clamp(root.get("x").getAsInt(), 0, 600) : 0;
             dragY = root.has("y") ? clamp(root.get("y").getAsInt(), 0, 800) : 0;
+            if (root.has("lines") && root.get("lines").isJsonObject()) {
+                JsonObject lines = root.getAsJsonObject("lines");
+                LINES.clear();
+                for (String key : lines.keySet()) {
+                    if (!lines.get(key).isJsonObject()) {
+                        continue;
+                    }
+                    JsonObject offset = lines.getAsJsonObject(key);
+                    LINES.put(key, new int[] {
+                            clamp(offset.get("x").getAsInt(), -600, 600),
+                            clamp(offset.get("y").getAsInt(), -600, 800),
+                    });
+                }
+            }
         } catch (Exception e) {
             LOGGER.error("Impossible de charger la position du HUD NTH Utils", e);
         }

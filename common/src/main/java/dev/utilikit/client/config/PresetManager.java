@@ -116,16 +116,34 @@ public final class PresetManager {
 
     public static String exportCurrent() {
         try {
-            return ConfigManager.gson().toJson(ConfigManager.toJson(ModuleManager.all()));
+            String json = ConfigManager.gson().toJson(ConfigManager.toJson(ModuleManager.all()));
+            return "NTHU:" + java.util.Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception e) {
             LOGGER.error("Export impossible", e);
             return null;
         }
     }
 
+    public static String decodeShare(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim();
+        if (value.startsWith("NTHU:")) {
+            try {
+                return new String(java.util.Base64.getUrlDecoder().decode(value.substring(5)),
+                        java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return value;
+    }
+
     public static boolean importJson(String name, String json) {
         try {
-            JsonObject root = ConfigManager.gson().fromJson(json, JsonObject.class);
+            JsonObject root = ConfigManager.gson().fromJson(decodeShare(json), JsonObject.class);
             if (root == null || !root.has("modules")) {
                 return false;
             }
