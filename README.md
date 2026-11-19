@@ -17,17 +17,17 @@
 
 ### 🔓 La solution 26.x
 
-Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms de classes officiels de Mojang et Yarn n'est plus maintenu au-delà de 1.21.11. Les sous-projets 26.x compilent donc **sans aucune mappings** avec le nouveau plugin Loom non-remap (`net.fabricmc.fabric-loom`), en ciblant les **noms officiels Mojang** (`Minecraft`, `LocalPlayer`, `GuiGraphicsExtractor`, `HudElementRegistry`…). Résultat : les 6 versions sont supportées en parallèle, avec les mêmes 55 modules. |
+Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms de classes officiels de Mojang et Yarn n'est plus maintenu au-delà de 1.21.11. Les sous-projets 26.x compilent donc **sans aucune mappings** avec le nouveau plugin Loom non-remap (`net.fabricmc.fabric-loom`), en ciblant les **noms officiels Mojang** (`Minecraft`, `LocalPlayer`, `GuiGraphicsExtractor`, `HudElementRegistry`…). Résultat : les 6 versions sont supportées en parallèle, avec les mêmes 80 modules. |
 
 > Les jars exacts et leur dernière version sont listés sur le site (ils sont générés par les builds GitHub Actions de ce dépôt).
 
-## 🧩 Modules (55)
+## 🧩 Modules (80)
 
 | Catégorie | Exemples |
 |---|---|
-| **Affichage (39)** | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité |
-| **Pratique (9)** | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées |
-| **Visuel (7)** | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie |
+| **Affichage (45)** | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité, Phase de lune, Période, Résolution écran, Taille interface, Ping détaillé, Bloc sous les pieds |
+| **Pratique (24)** | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées, Boussole, Difficulté, Effets actifs, Vol, Véhicule, Accroupi, Sprint, Sous l'eau, En feu, Java, Système, Plein écran, Solo / Multi, Quantité en main, Position visée |
+| **Visuel (11)** | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie, Sensibilité souris, Luminosité réglage, Distance de rendu, Anti Orage |
 
 Chaque module a ses réglages (toggles, sliders) dans le menu in-game, sauvegardés automatiquement et exportables via presets.
 

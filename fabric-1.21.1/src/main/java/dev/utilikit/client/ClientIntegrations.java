@@ -57,6 +57,16 @@ public final class ClientIntegrations {
                         client.world.setRainGradient(0.0F);
                     }
                 }));
+        ModuleManager.register(new TickModule("antistorm", "Anti Orage",
+                "Supprime les \u00e9clairs et le tonnerre en for\u00e7ant l'orage \u00e0 z\u00e9ro en local.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world != null) {
+                        client.world.setThunderGradient(0.0F);
+                    }
+                }));
+
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientIntegrations::tick);
         HudRenderCallback.EVENT.register((context, tick) -> ClientIntegrations.renderOverlay(context));
@@ -405,6 +415,193 @@ public final class ClientIntegrations {
                 game -> {
                     double fall = player(game).fallDistance;
                     return fall > 0.5D ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
+
+        ModuleManager.register(new InfoModule("moon", "Phase de lune",
+                "Affiche la phase actuelle de la lune.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world == null) {
+                        return null;
+                    }
+                    String[] phases = {"Pleine", "Gibbeuse d\u00e9croissante", "Dernier quartier", "Croissant d\u00e9croissant",
+                            "Nouvelle", "Croissant croissant", "Premier quartier", "Gibbeuse croissante"};
+                    return "Lune : " + phases[Math.floorMod(client.world.getMoonPhase(), 8)];
+                }));
+
+        ModuleManager.register(new InfoModule("daynight", "P\u00e9riode",
+                "Indique si c'est le jour, la nuit, l'aube ou le cr\u00e9puscule.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world == null) {
+                        return null;
+                    }
+                    long ticks = client.world.getTime() % 24000L;
+                    String period = ticks < 12000L ? "Jour" : (ticks < 13000L ? "Cr\u00e9puscule" : (ticks < 23000L ? "Nuit" : "Aube"));
+                    return "P\u00e9riode : " + period;
+                }));
+
+        ModuleManager.register(new InfoModule("compass", "Boussole",
+                "Affiche ton orientation pr\u00e9cise (Nord, Nord-Est...).",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    ClientPlayerEntity player = player(game);
+                    String[] points = {"Sud", "Sud-Ouest", "Ouest", "Nord-Ouest", "Nord", "Nord-Est", "Est", "Sud-Est"};
+                    int idx = (int) Math.floor((Math.floorMod(Math.round(player.getYaw()), 360) + 22) / 45.0D) % 8;
+                    return "Boussole : " + points[idx];
+                }));
+
+        ModuleManager.register(new InfoModule("window", "R\u00e9solution \u00e9cran",
+                "Affiche la r\u00e9solution de ta fen\u00eatre de jeu.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    return "R\u00e9solution : " + client.getWindow().getScreenWidth()
+                            + "x" + client.getWindow().getScreenHeight();
+                }));
+
+        ModuleManager.register(new InfoModule("guisize", "Taille interface",
+                "Affiche la taille en pixels de ton interface.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    return "Interface : " + client.getWindow().getScaledWidth()
+                            + "x" + client.getWindow().getScaledHeight();
+                }));
+
+        ModuleManager.register(new InfoModule("pinginfo", "Ping d\u00e9taill\u00e9",
+                "Affiche ton ping (latence) vers le serveur.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.getNetworkHandler() == null || client.player == null) {
+                        return null;
+                    }
+                    var entry = client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
+                    return entry == null ? null : "Ping : " + entry.getLatency() + " ms";
+                }));
+
+        ModuleManager.register(new InfoModule("difficulty", "Difficult\u00e9",
+                "Affiche la difficult\u00e9 du monde en cours.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world == null) {
+                        return null;
+                    }
+                    return "Difficult\u00e9 : " + prettify(String.valueOf(client.world.getDifficulty())
+                            .toLowerCase(Locale.ROOT));
+                }));
+
+        ModuleManager.register(new InfoModule("effects", "Effets actifs",
+                "Compte tes effets de potion actifs.",
+                ModuleCategory.PRATIQUE,
+                game -> "Effets : " + player(game).getStatusEffects().size()));
+
+        ModuleManager.register(new InfoModule("flying", "Vol",
+                "Indique si tu es en train de voler.",
+                ModuleCategory.PRATIQUE,
+                game -> "Vol : " + (player(game).getAbilities().flying ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("vehicle", "V\u00e9hicule",
+                "Indique si tu chevauches une entit\u00e9.",
+                ModuleCategory.PRATIQUE,
+                game -> "V\u00e9hicule : " + (player(game).hasVehicle() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("sneak", "Accroupi",
+                "Indique si tu es accroupi.",
+                ModuleCategory.PRATIQUE,
+                game -> "Accroupi : " + (player(game).isSneaking() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("sprint", "Sprint",
+                "Indique si tu sprintes.",
+                ModuleCategory.PRATIQUE,
+                game -> "Sprint : " + (player(game).isSprinting() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("underwater", "Sous l'eau",
+                "Indique si ta t\u00eate est sous l'eau.",
+                ModuleCategory.PRATIQUE,
+                game -> "Sous l'eau : " + (player(game).isSubmergedInWater() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("onfire", "En feu",
+                "Indique si tu es en feu.",
+                ModuleCategory.PRATIQUE,
+                game -> "En feu : " + (player(game).isOnFire() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("java", "Version Java",
+                "Affiche la version de Java utilis\u00e9e par le jeu.",
+                ModuleCategory.PRATIQUE,
+                game -> "Java : " + System.getProperty("java.version")));
+
+        ModuleManager.register(new InfoModule("os", "Syst\u00e8me",
+                "Affiche ton syst\u00e8me d'exploitation et ton architecture.",
+                ModuleCategory.PRATIQUE,
+                game -> "OS : " + System.getProperty("os.name")
+                        + " (" + String.valueOf(System.getProperty("os.arch")).replace("amd64", "x64") + ")"));
+
+        ModuleManager.register(new InfoModule("fullscreen", "Plein \u00e9cran",
+                "Indique si le jeu est en plein \u00e9cran.",
+                ModuleCategory.PRATIQUE,
+                game -> "Plein \u00e9cran : " + (player(game).getWorld().getClient().getWindow().isFullscreen() ? "Oui" : "Non")));
+
+        ModuleManager.register(new InfoModule("singleplayer", "Solo / Multi",
+                "Indique si tu joues en solo ou en ligne.",
+                ModuleCategory.PRATIQUE,
+                game -> "Mode : " + (MinecraftClient.getInstance().isInSingleplayer() ? "Solo" : "En ligne")));
+
+        ModuleManager.register(new InfoModule("heldcount", "Quantit\u00e9 en main",
+                "Affiche le nombre d'objets empil\u00e9s dans ta main.",
+                ModuleCategory.PRATIQUE,
+                game -> "Qt\u00e9 en main : " + player(game).getMainHandStack().getCount()));
+
+        ModuleManager.register(new InfoModule("blockunder", "Bloc sous les pieds",
+                "Affiche le bloc sur lequel tu te tiens.",
+                ModuleCategory.AFFICHAGE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (client.world == null) {
+                        return null;
+                    }
+                    return "Bloc dessous : " + client.world.getBlockState(player(game).getBlockPos().down())
+                            .getBlock().getName().getString();
+                }));
+
+        ModuleManager.register(new InfoModule("targetpos", "Position vis\u00e9e",
+                "Affiche les coordonn\u00e9es du bloc que tu vises.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    if (!(client.crosshairTarget instanceof BlockHitResult hit) || client.world == null) {
+                        return null;
+                    }
+                    return "Position vis\u00e9e : " + hit.getBlockPos().toShortString();
+                }));
+
+        ModuleManager.register(new InfoModule("mouse", "Sensibilit\u00e9 souris",
+                "Affiche ta sensibilit\u00e9 de souris en pourcentage.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    double sens = client.options.getMouseSensitivity().getValue();
+                    return "Souris : " + (int) Math.round(sens * 100.0D) + " %";
+                }));
+
+        ModuleManager.register(new InfoModule("bright", "Luminosit\u00e9 r\u00e9glage",
+                "Affiche la valeur de ton r\u00e9glage de luminosit\u00e9.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    double gamma = client.options.getGamma().getValue();
+                    return "Luminosit\u00e9 : " + (int) Math.round(gamma * 100.0D) + " %";
+                }));
+
+        ModuleManager.register(new InfoModule("renderdist", "Distance de rendu",
+                "Affiche ta distance de rendu en chunks.",
+                ModuleCategory.VISUEL,
+                game -> {
+                    MinecraftClient client = (MinecraftClient) game;
+                    return "Rendu : " + client.options.getViewDistance().getValue() + " chunks";
                 }));
     }
 
