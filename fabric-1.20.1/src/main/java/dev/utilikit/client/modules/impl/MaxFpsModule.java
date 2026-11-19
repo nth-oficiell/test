@@ -36,7 +36,7 @@ public class MaxFpsModule extends Module {
         if (client == null || client.options == null) {
             return;
         }
-        client.options.maxFps.setValue((int) Math.round(limit.value));
+        client.options.getMaxFps().setValue((int) Math.round(limit.value));
     }
 
     private void restore() {
@@ -44,6 +44,6 @@ public class MaxFpsModule extends Module {
         if (client == null || client.options == null) {
             return;
         }
-        client.options.maxFps.setValue(120);
+        client.options.getMaxFps().setValue(120);
     }
 }
