@@ -446,7 +446,8 @@ public final class ClientIntegrations {
                     }
                     String[] phases = {"Pleine", "Gibbeuse d\u00e9croissante", "Dernier quartier", "Croissant d\u00e9croissant",
                             "Nouvelle", "Croissant croissant", "Premier quartier", "Gibbeuse croissante"};
-                    return "Lune : " + phases[Math.floorMod(client.level.getMoonPhase(), 8)];
+                    int phase = (int) Math.floorMod(client.level.getOverworldClockTime() / 24000L, 8L);
+                    return "Lune : " + phases[phase];
                 }));
 
         ModuleManager.register(new InfoModule("daynight", "P\u00e9riode",
@@ -527,7 +528,7 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("vehicle", "V\u00e9hicule",
                 "Indique si tu chevauches une entit\u00e9.",
                 ModuleCategory.PRATIQUE,
-                game -> "V\u00e9hicule : " + (player(game).hasVehicle() ? "Oui" : "Non")));
+                game -> "V\u00e9hicule : " + (player(game).isPassenger() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("sneak", "Accroupi",
                 "Indique si tu es accroupi.",
@@ -563,12 +564,12 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("fullscreen", "Plein \u00e9cran",
                 "Indique si le jeu est en plein \u00e9cran.",
                 ModuleCategory.PRATIQUE,
-                game -> "Plein \u00e9cran : " + (Minecraft.getInstance().getWindow().isFullscreen() ? "Oui" : "Non")));
+                game -> "Plein \u00e9cran : " + (isFullscreen(Minecraft.getInstance()) ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("singleplayer", "Solo / Multi",
                 "Indique si tu joues en solo ou en ligne.",
                 ModuleCategory.PRATIQUE,
-                game -> "Mode : " + (Minecraft.getInstance().isSingleplayer() ? "Solo" : "En ligne")));
+                game -> "Mode : " + (isSingleplayer(Minecraft.getInstance()) ? "Solo" : "En ligne")));
 
         ModuleManager.register(new InfoModule("heldcount", "Quantit\u00e9 en main",
                 "Affiche le nombre d'objets empil\u00e9s dans ta main.",
@@ -632,6 +633,39 @@ public final class ClientIntegrations {
             throw new IllegalStateException("no player");
         }
         return client.player;
+    }
+
+    private static boolean isFullscreen(Minecraft client) {
+        if (client == null || client.getWindow() == null) {
+            return false;
+        }
+        try {
+            for (var method : client.getWindow().getClass().getMethods()) {
+                String name = method.getName().toLowerCase(Locale.ROOT);
+                if (name.contains("fullscreen") && method.getParameterCount() == 0
+                        && method.getReturnType() == boolean.class) {
+                    return (Boolean) method.invoke(client.getWindow());
+                }
+            }
+            for (var field : client.getWindow().getClass().getFields()) {
+                if (field.getType() == boolean.class
+                        && field.getName().toLowerCase(Locale.ROOT).contains("fullscreen")) {
+                    return field.getBoolean(client.getWindow());
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return false;
+        }
+        return false;
+    }
+
+    private static boolean isSingleplayer(Minecraft client) {
+        try {
+            Object server = client.getSingleplayerServer();
+            return server != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static String serverBrand(Object connection) {

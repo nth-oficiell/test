@@ -427,7 +427,8 @@ public final class ClientIntegrations {
                     }
                     String[] phases = {"Pleine", "Gibbeuse d\u00e9croissante", "Dernier quartier", "Croissant d\u00e9croissant",
                             "Nouvelle", "Croissant croissant", "Premier quartier", "Gibbeuse croissante"};
-                    return "Lune : " + phases[Math.floorMod(client.world.getMoonPhase(), 8)];
+                    int phase = (int) Math.floorMod(client.world.getTime() / 24000L, 8L);
+                    return "Lune : " + phases[phase];
                 }));
 
         ModuleManager.register(new InfoModule("daynight", "P\u00e9riode",
@@ -458,8 +459,8 @@ public final class ClientIntegrations {
                 ModuleCategory.AFFICHAGE,
                 game -> {
                     MinecraftClient client = (MinecraftClient) game;
-                    return "R\u00e9solution : " + client.getWindow().getScreenWidth()
-                            + "x" + client.getWindow().getScreenHeight();
+                    return "R\u00e9solution : " + client.getWindow().getWidth()
+                            + "x" + client.getWindow().getHeight();
                 }));
 
         ModuleManager.register(new InfoModule("guisize", "Taille interface",
@@ -544,7 +545,7 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("fullscreen", "Plein \u00e9cran",
                 "Indique si le jeu est en plein \u00e9cran.",
                 ModuleCategory.PRATIQUE,
-                game -> "Plein \u00e9cran : " + (player(game).getWorld().getClient().getWindow().isFullscreen() ? "Oui" : "Non")));
+                game -> "Plein \u00e9cran : " + (MinecraftClient.getInstance().getWindow().isFullscreen() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("singleplayer", "Solo / Multi",
                 "Indique si tu joues en solo ou en ligne.",
