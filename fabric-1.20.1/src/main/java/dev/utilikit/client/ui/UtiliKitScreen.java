@@ -59,7 +59,7 @@ public class UtiliKitScreen extends Screen {
             }
             rows.add(new Row(null, category, y, HEADER_H));
             y += HEADER_H + 2;
-            for (Module module : ModuleManager.all()) {
+            for (Module module : ModuleManager.ordered()) {
                 if (module.category != category) {
                     continue;
                 }
@@ -313,6 +313,33 @@ public class UtiliKitScreen extends Screen {
                     })
                     .dimensions(x, y + 6, w, 18)
                     .build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("\u2605 Favori : " + (selected.favorite ? "OUI" : "NON")), b -> {
+                    selected.favorite = !selected.favorite;
+                    ModuleManager.save();
+                    rebuild();
+                })
+                .dimensions(x, y + 34, w, 18)
+                .build());
+            if ("waypoints".equals(selected.id)) {
+        addDrawableChild(ButtonWidget.builder(Text.literal("Ajouter un waypoint ici"), b -> {
+                    dev.utilikit.client.modules.extra.Waypoints.addHere(client);
+                    rebuild();
+                })
+                .dimensions(x, y + 74, w, 18)
+                .build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("Retirer le dernier waypoint"), b -> {
+                    dev.utilikit.client.modules.extra.Waypoints.removeLast();
+                    rebuild();
+                })
+                .dimensions(x, y + 96, w, 18)
+                .build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("Tout effacer les waypoints"), b -> {
+                    dev.utilikit.client.modules.extra.Waypoints.clear();
+                    rebuild();
+                })
+                .dimensions(x, y + 118, w, 18)
+                .build());
+            }
         }
     }
 
@@ -367,6 +394,15 @@ public class UtiliKitScreen extends Screen {
                 })
                 .dimensions(x, y, w, 18)
                 .build());
+        y += 22;
+        addDrawableChild(ButtonWidget.builder(Text.literal("Tout désactiver"), b -> {
+                    ModuleManager.disableAll();
+                    ModuleManager.save();
+                    rebuild();
+                })
+                .dimensions(x, y, w, 18)
+                .build());
+
 
         int listY = contentTop();
         List<String> names = PresetManager.names();

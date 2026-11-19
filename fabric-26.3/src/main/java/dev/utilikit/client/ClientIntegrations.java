@@ -74,6 +74,8 @@ public final class ClientIntegrations {
                 }));
 
 
+        dev.utilikit.client.modules.extra.ExtraModules.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(ClientIntegrations::tick);
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
@@ -96,6 +98,7 @@ public final class ClientIntegrations {
             }
         }
         updateStats(client);
+        dev.utilikit.client.modules.extra.ExtraModules.tick(client);
     }
 
     private static java.lang.reflect.Method keyDownMethod;
@@ -1079,6 +1082,17 @@ public final class ClientIntegrations {
             }
             graphics.text(client.font, text, x, y, 0xFFFFFFFF, true);
             y += lineHeight;
+        }
+
+        java.util.List<String> notes = dev.utilikit.client.modules.extra.Notifier.active();
+        if (!notes.isEmpty()) {
+            int noteY = client.getWindow().getGuiScaledHeight() - 22 - notes.size() * 12;
+            for (String note : notes) {
+                int noteWidth = client.font.width(note);
+                graphics.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
+                graphics.text(client.font, "\u26a1 " + note, 6, noteY, 0xFFFFEB55, true);
+                noteY += 12;
+            }
         }
     }
 

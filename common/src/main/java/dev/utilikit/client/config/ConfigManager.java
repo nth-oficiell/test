@@ -35,6 +35,7 @@ public final class ConfigManager {
         for (Module module : modules) {
             JsonObject moduleJson = new JsonObject();
             moduleJson.addProperty("enabled", module.enabled);
+            moduleJson.addProperty("fav", module.favorite);
             moduleJson.addProperty("key", module.keyCode);
             JsonObject settingsJson = new JsonObject();
             for (Setting setting : module.settings) {
@@ -66,6 +67,9 @@ public final class ConfigManager {
             }
             boolean enabled = moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean();
             module.enabled = enabled;
+            if (moduleJson.has("fav") && moduleJson.get("fav").isJsonPrimitive()) {
+                module.favorite = moduleJson.get("fav").getAsBoolean();
+            }
             if (moduleJson.has("key") && moduleJson.get("key").isJsonPrimitive()) {
                 module.keyCode = moduleJson.get("key").getAsInt();
             }

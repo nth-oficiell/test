@@ -26,6 +26,7 @@ import org.lwjgl.glfw.GLFW;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.List;
 
 public final class ClientIntegrations {
     private static final DateTimeFormatter IRL_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -71,6 +72,8 @@ public final class ClientIntegrations {
                 }));
 
 
+        dev.utilikit.client.modules.extra.ExtraModules.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(ClientIntegrations::tick);
         HudRenderCallback.EVENT.register((context, tick) -> ClientIntegrations.renderOverlay(context));
     }
@@ -84,6 +87,7 @@ public final class ClientIntegrations {
             }
         }
         updateStats(client);
+        dev.utilikit.client.modules.extra.ExtraModules.tick(client);
     }
 
     public static void pollKeybinds(MinecraftClient client, boolean screenOpen) {
@@ -913,6 +917,17 @@ public final class ClientIntegrations {
             }
             context.drawTextWithShadow(client.textRenderer, text, x, y, 0xFFFFFF);
             y += lineHeight;
+        }
+
+        List<String> notes = dev.utilikit.client.modules.extra.Notifier.active();
+        if (!notes.isEmpty()) {
+            int noteY = client.getWindow().getScaledHeight() - 22 - notes.size() * 12;
+            for (String note : notes) {
+                int noteWidth = client.textRenderer.getWidth(note);
+                context.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
+                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, 6, noteY, 0xFFEB55);
+                noteY += 12;
+            }
         }
     }
 

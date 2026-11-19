@@ -4,6 +4,7 @@ import dev.utilikit.client.config.ConfigManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,12 @@ public final class ModuleManager {
 
     public static Collection<Module> all() {
         return MODULES.values();
+    }
+
+    public static List<Module> ordered() {
+        List<Module> list = new ArrayList<>(MODULES.values());
+        list.sort(Comparator.comparingInt((Module m) -> m.favorite ? 0 : 1));
+        return list;
     }
 
     public static List<ModuleCategory> categories() {

@@ -10,6 +10,7 @@ public abstract class Module {
     public final ModuleCategory category;
 
     public boolean enabled;
+    public boolean favorite;
     public int keyCode = -1;
     public final List<Setting> settings = new ArrayList<>();
 
@@ -30,6 +31,7 @@ public abstract class Module {
         } else {
             onDisable();
         }
+        dev.utilikit.client.modules.extra.Notifier.push(name + (value ? " : activé ✓" : " : désactivé"));
         ModuleManager.save();
     }
 
