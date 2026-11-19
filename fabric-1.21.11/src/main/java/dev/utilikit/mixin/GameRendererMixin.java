@@ -17,7 +17,7 @@ public abstract class GameRendererMixin {
     @Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
     private void utilikit$applyZoom(Camera camera, float tickProgress, boolean changingFov, CallbackInfoReturnable<Float> cir) {
         if (ZoomModule.shouldZoom()) {
-            cir.setReturnValue(ZoomModule.applyZoom((double) cir.getReturnValueF()));
+            cir.setReturnValue(ZoomModule.applyZoom(cir.getReturnValueF()));
         }
     }
 

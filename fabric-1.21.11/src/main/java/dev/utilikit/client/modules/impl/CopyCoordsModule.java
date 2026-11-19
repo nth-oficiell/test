@@ -48,8 +48,8 @@ public class CopyCoordsModule extends Module {
         Text clickable = Text.literal(coords)
                 .styled(style -> style
                         .withColor(Formatting.AQUA)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, coords))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        .withClickEvent(new ClickEvent.CopyToClipboard(coords))
+                        .withHoverEvent(new HoverEvent.ShowText(
                                 Text.literal("Clique pour copier"))));
         Text dimensionLabel = Text.literal("[" + dimension + "] ").formatted(Formatting.GRAY);
         client.inGameHud.getChatHud().addMessage(

@@ -5,6 +5,7 @@ import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
 import dev.utilikit.client.modules.Setting;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -116,12 +117,12 @@ public class UtiliKitScreen extends Screen {
         int top = layoutTop();
         int bottom = listBottom();
         context.fill(LIST_X, top, LIST_X + LIST_W, bottom, 0xC0101018);
-        context.drawBorder(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
+        context.drawStrokedRectangle(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
         context.fill(settingsLeft, top, settingsLeft + settingsWidth, bottom, 0xC0101018);
-        context.drawBorder(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
+        context.drawStrokedRectangle(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         for (Row row : rows) {
             if (row.category != null) {
@@ -206,12 +207,12 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(MouseInput input, boolean doubled) {
-        return mouseClickedInternal(lastMouseX, lastMouseY, input.button());
+    public boolean mouseClicked(Click click, boolean doubled) {
+        return mouseClickedInternal(click.x(), click.y(), click.button());
     }
 
     private boolean mouseClickedInternal(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(new MouseInput(button, 0), false)) {
+        if (super.mouseClicked(new Click(lastMouseX, lastMouseY, new MouseInput(button, 0)), false)) {
             return true;
         }
         if (button == 0 && view == View.MODULES) {

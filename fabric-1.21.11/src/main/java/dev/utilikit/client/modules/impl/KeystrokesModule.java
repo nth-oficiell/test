@@ -36,7 +36,7 @@ public class KeystrokesModule extends Module {
     private static void drawKeyBox(DrawContext context, MinecraftClient client,
                                    int x, int y, int w, int h, boolean pressed, String label) {
         context.fill(x, y, x + w, y + h, boxColor(pressed));
-        context.drawBorder(x, y, w, h, 0xFF50506A);
+        context.drawStrokedRectangle(x, y, w, h, 0xFF50506A);
         int textWidth = client.textRenderer.getWidth(label);
         context.drawTextWithShadow(client.textRenderer, label, x + (w - textWidth) / 2, y + (h - 8) / 2, textColor(pressed));
     }

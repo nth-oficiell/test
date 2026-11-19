@@ -2,5 +2,6 @@
   "key.categories.utilikit": "UtiliKit",
   "key.utilikit.menu": "Open UtiliKit Menu",
   "key.utilikit.zoom": "Zoom",
-  "key.utilikit.copycoords": "Copy coordinates"
+  "key.utilikit.copycoords": "Copy coordinates",
+  "key.categories.utilikit.main": "UtiliKit"
 }

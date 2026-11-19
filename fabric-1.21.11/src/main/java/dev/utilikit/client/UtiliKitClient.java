@@ -20,12 +20,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UtiliKitClient implements ClientModInitializer {
-    public static final String KEY_CATEGORY = "key.categories.utilikit";
+    public static final KeyBinding.Category KEY_CATEGORY =
+            KeyBinding.Category.create(Identifier.of("utilikit", "main"));
     private static final Logger LOGGER = LoggerFactory.getLogger("utilikit");
 
     private static KeyBinding menuKey;
