@@ -164,14 +164,14 @@ public final class ClientIntegrations {
                 game -> {
                     Minecraft client = (Minecraft) game;
                     return "Biome : " + prettify(client.level.getBiome(player(game).blockPosition())
-                            .unwrapKey().map(key -> key.location().getPath()).orElse("inconnu"));
+                            .unwrapKey().map(key -> key.identifier().getPath()).orElse("inconnu"));
                 }));
         ModuleManager.register(new InfoModule("dimension", "Dimension",
                 "Affiche la dimension dans laquelle tu joues.",
                 ModuleCategory.AFFICHAGE,
                 game -> {
                     Minecraft client = (Minecraft) game;
-                    return "Dimension : " + prettify(client.level.dimension().location().getPath());
+                    return "Dimension : " + prettify(client.level.dimension().identifier().getPath());
                 }));
         ModuleManager.register(new InfoModule("light", "Lumière",
                 "Affiche le niveau de lumière au bloc et au ciel.",
@@ -188,7 +188,7 @@ public final class ClientIntegrations {
                 ModuleCategory.AFFICHAGE,
                 game -> {
                     Minecraft client = (Minecraft) game;
-                    long ticks = client.level.getDayTime() % 24000L;
+                    long ticks = client.level.getOverworldClockTime() % 24000L;
                     int hours = (int) ((ticks / 1000L + 6L) % 24L);
                     int minutes = (int) (ticks % 1000L * 60L / 1000L);
                     return "Heure du monde : " + String.format("%02d:%02d", hours, minutes);
@@ -320,7 +320,8 @@ public final class ClientIntegrations {
                     if (client.getConnection() == null) {
                         return null;
                     }
-                    return "Plateforme : " + client.getConnection().getBrand();
+                    String brand = serverBrand(client.getConnection());
+                    return brand == null ? null : "Plateforme : " + brand;
                 }));
         ModuleManager.register(new InfoModule("session", "Temps de session",
                 "Compte le temps de jeu depuis ton arrivée dans un monde.",
@@ -343,7 +344,7 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("playername", "Pseudo",
                 "Affiche ton pseudo.",
                 ModuleCategory.AFFICHAGE,
-                game -> "Pseudo : " + player(game).getGameProfile().getName()));
+                game -> "Pseudo : " + String.valueOf(player(game).getName())));
         ModuleManager.register(new InfoModule("uuid", "UUID",
                 "Affiche ton UUID.",
                 ModuleCategory.AFFICHAGE,
@@ -354,7 +355,7 @@ public final class ClientIntegrations {
                 game -> {
                     Minecraft client = (Minecraft) game;
                     BlockPos pos = player(game).blockPosition();
-                    String dimension = client.level.dimension().location().getPath();
+                    String dimension = client.level.dimension().identifier().getPath();
                     if (dimension.contains("nether")) {
                         return "Overworld ↔ : X " + (pos.getX() * 8) + "  Z " + (pos.getZ() * 8);
                     }
@@ -421,8 +422,8 @@ public final class ClientIntegrations {
                 "Affiche la hauteur de chute en cours.",
                 ModuleCategory.PRATIQUE,
                 game -> {
-                    float fall = player(game).fallDistance;
-                    return fall > 0.5F ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
+                    double fall = player(game).fallDistance;
+                    return fall > 0.5D ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
                 }));
     }
 
@@ -432,6 +433,48 @@ public final class ClientIntegrations {
             throw new IllegalStateException("no player");
         }
         return client.player;
+    }
+
+    private static String serverBrand(Object connection) {
+        try {
+            for (java.lang.reflect.Method method : connection.getClass().getMethods()) {
+                if (method.getReturnType() == String.class && method.getParameterCount() == 0) {
+                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    if (name.contains("brand")) {
+                        Object result = method.invoke(connection);
+                        return result == null ? null : result.toString();
+                    }
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return null;
+        }
+        return null;
+    }
+
+    private static void setSmoothCamera(Minecraft client, boolean value) {
+        if (client == null || client.options == null) {
+            return;
+        }
+        try {
+            for (var method : client.options.getClass().getMethods()) {
+                String name = method.getName().toLowerCase(Locale.ROOT);
+                if (name.contains("smooth") && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0] == boolean.class) {
+                    method.invoke(client.options, value);
+                    return;
+                }
+            }
+            for (var field : client.options.getClass().getFields()) {
+                if (field.getType() == boolean.class
+                        && field.getName().toLowerCase(Locale.ROOT).contains("smooth")) {
+                    field.setBoolean(client.options, value);
+                    return;
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return;
+        }
     }
 
     private static String prettify(String path) {
@@ -537,7 +580,7 @@ public final class ClientIntegrations {
         protected void onEnable() {
             Minecraft client = Minecraft.getInstance();
             if (client != null && client.options != null) {
-                previous = client.options.fov().get();
+                previous = client.options.fov().get().doubleValue();
             }
         }
 
@@ -545,7 +588,7 @@ public final class ClientIntegrations {
         protected void onDisable() {
             Minecraft client = Minecraft.getInstance();
             if (previous != null && client != null && client.options != null) {
-                client.options.fov().set(Math.min(previous.doubleValue(), 110.0D));
+                client.options.fov().set((int) Math.min(previous.doubleValue(), 110.0D));
             }
             previous = null;
         }
@@ -564,18 +607,14 @@ public final class ClientIntegrations {
                     "Active le mouvement de caméra cinéma (comme la touche F8) en continu.",
                     ModuleCategory.VISUEL, game -> {
                         Minecraft client = (Minecraft) game;
-                        if (client.options != null) {
-                            client.options.smoothCameraEnabled = true;
-                        }
+                        setSmoothCamera(client, true);
                     });
         }
 
         @Override
         protected void onDisable() {
             Minecraft client = Minecraft.getInstance();
-            if (client != null && client.options != null) {
-                client.options.smoothCameraEnabled = false;
-            }
+            setSmoothCamera(client, false);
         }
     }
 }

@@ -3,6 +3,7 @@ package dev.utilikit.client.modules.impl;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import dev.utilikit.client.UtiliKitClient;
+import org.lwjgl.glfw.GLFW;
 import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -10,7 +11,6 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
 public class CopyCoordsModule extends Module {
     private final KeyMapping copyKey;
@@ -22,7 +22,7 @@ public class CopyCoordsModule extends Module {
 
     public static KeyMapping registerKey() {
         return KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.utilikit.copycoords", InputConstants.Type.KEYBOARD, GLFW.GLFW_KEY_O, UtiliKitClient.KEY_CATEGORY));
+                "key.utilikit.copycoords", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, UtiliKitClient.KEY_CATEGORY));
     }
 
     public void registerTick() {
@@ -40,12 +40,12 @@ public class CopyCoordsModule extends Module {
             return;
         }
         var pos = client.player.blockPosition();
-        String dimension = client.level.dimension().location().getPath();
+        String dimension = client.level.dimension().identifier().getPath();
         String coords = pos.getX() + " " + pos.getY() + " " + pos.getZ();
         client.keyboardHandler.setClipboard(coords);
-        client.gui.getChat().addMessage(Component.literal("[UtiliKit] [" + dimension + "] ")
+        client.player.sendSystemMessage(Component.literal("[UtiliKit] [" + dimension + "] ")
                 .withStyle(style -> style.withColor(0x55FFAA))
-                .append(Component.literal("Coordonnées copiées : " + coords)));
+                .append(Component.literal("Coordonnées copiées : " + coords)), false);
     }
 
     @Override

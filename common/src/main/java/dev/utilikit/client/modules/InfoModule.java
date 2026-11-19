@@ -43,7 +43,7 @@ public class InfoModule extends Module {
 
     public boolean hasBackground() {
         Setting background = toggle("bg");
-        return background == null || background.value;
+        return background == null || ((Setting.Toggle) background).value;
     }
 
     @Override

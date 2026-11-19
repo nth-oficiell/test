@@ -39,10 +39,10 @@ public class UtiliKitClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.utilikit.menu", InputConstants.Type.KEYBOARD, GLFW.GLFW_KEY_RIGHT_SHIFT, KEY_CATEGORY));
+                "key.utilikit.menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, KEY_CATEGORY));
 
         KeyMapping zoomKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.utilikit.zoom", InputConstants.Type.KEYBOARD, GLFW.GLFW_KEY_C, KEY_CATEGORY));
+                "key.utilikit.zoom", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, KEY_CATEGORY));
 
         ZoomModule zoom = new ZoomModule(zoomKey);
         CopyCoordsModule copyCoords = new CopyCoordsModule(CopyCoordsModule.registerKey());

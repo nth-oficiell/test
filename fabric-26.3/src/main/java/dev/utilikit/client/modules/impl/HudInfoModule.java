@@ -105,7 +105,7 @@ public class HudInfoModule extends Module {
     }
 
     private static String worldClock(Minecraft client) {
-        long ticks = client.level.getDayTime() % 24000L;
+        long ticks = client.level.getOverworldClockTime() % 24000L;
         int hours = (int) ((ticks / 1000L + 6L) % 24L);
         int minutes = (int) (ticks % 1000L * 60L / 1000L);
         return String.format("%02d:%02d", hours, minutes);

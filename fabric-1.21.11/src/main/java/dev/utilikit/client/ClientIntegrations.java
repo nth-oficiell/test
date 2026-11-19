@@ -59,7 +59,7 @@ public final class ClientIntegrations {
                 }));
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientIntegrations::tick);
-        HudRenderCallback.EVENT.register(ClientIntegrations::renderOverlay);
+        HudRenderCallback.EVENT.register((context, tick) -> ClientIntegrations.renderOverlay(context));
     }
 
     public static void tick(MinecraftClient client) {
@@ -89,7 +89,7 @@ public final class ClientIntegrations {
             double dz = z - lastZ;
             horizontalSpeed = Math.sqrt(dx * dx + dz * dz) * 20.0D;
             verticalSpeed = dy * 20.0D;
-            if (client.player.onGround && dx * dx + dz * dz < 2.5D) {
+            if (client.player.isOnGround() && dx * dx + dz * dz < 2.5D) {
                 travelled += Math.sqrt(dx * dx + dz * dz);
                 steps += (int) (Math.sqrt(dx * dx + dz * dz) / 0.8D);
             }
@@ -306,7 +306,8 @@ public final class ClientIntegrations {
                     if (client.getNetworkHandler() == null) {
                         return null;
                     }
-                    return "Plateforme : " + client.getNetworkHandler().getBrand();
+                    String brand = serverBrand(client.getNetworkHandler());
+                    return brand == null ? null : "Plateforme : " + brand;
                 }));
         ModuleManager.register(new InfoModule("session", "Temps de session",
                 "Compte le temps de jeu depuis ton arrivée dans un monde.",
@@ -329,7 +330,7 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("playername", "Pseudo",
                 "Affiche ton pseudo.",
                 ModuleCategory.AFFICHAGE,
-                game -> "Pseudo : " + player(game).getGameProfile().getName()));
+                game -> "Pseudo : " + String.valueOf(player(game).getName())));
         ModuleManager.register(new InfoModule("uuid", "UUID",
                 "Affiche ton UUID.",
                 ModuleCategory.AFFICHAGE,
@@ -354,7 +355,8 @@ public final class ClientIntegrations {
                 ModuleCategory.PRATIQUE,
                 game -> {
                     MinecraftClient client = (MinecraftClient) game;
-                    return "Mode : " + client.interactionManager.getCurrentGameMode().getName();
+                    return "Mode : " + prettify(String.valueOf(client.interactionManager.getCurrentGameMode())
+                            .toLowerCase(Locale.ROOT));
                 }));
         ModuleManager.register(new InfoModule("targetblock", "Bloc visé",
                 "Affiche le nom du bloc que tu vises.",
@@ -401,8 +403,8 @@ public final class ClientIntegrations {
                 "Affiche la hauteur de chute en cours.",
                 ModuleCategory.PRATIQUE,
                 game -> {
-                    float fall = player(game).fallDistance;
-                    return fall > 0.5F ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
+                    double fall = player(game).fallDistance;
+                    return fall > 0.5D ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
                 }));
     }
 
@@ -413,6 +415,24 @@ public final class ClientIntegrations {
         }
         return client.player;
     }
+
+    private static String serverBrand(Object connection) {
+        try {
+            for (java.lang.reflect.Method method : connection.getClass().getMethods()) {
+                if (method.getReturnType() == String.class && method.getParameterCount() == 0) {
+                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    if (name.contains("brand")) {
+                        Object result = method.invoke(connection);
+                        return result == null ? null : result.toString();
+                    }
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return null;
+        }
+        return null;
+    }
+
 
     private static String prettify(String path) {
         if (path == null || path.isEmpty()) {
@@ -443,7 +463,8 @@ public final class ClientIntegrations {
         };
     }
 
-    public static void renderOverlay(DrawContext context, MinecraftClient client) {
+    public static void renderOverlay(DrawContext context) {
+        MinecraftClient client = MinecraftClient.getInstance();
         if (client.options == null || client.player == null || client.world == null) {
             return;
         }
