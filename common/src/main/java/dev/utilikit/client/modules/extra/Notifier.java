@@ -48,7 +48,7 @@ public final class Notifier {
 
     private static final class Note {
         final String text;
-        final long expires;
+        long expires;
 
         Note(String text, long expires) {
             this.text = text;
