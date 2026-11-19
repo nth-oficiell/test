@@ -72,7 +72,7 @@ public class HudInfoModule extends Module {
             int textWidth = client.textRenderer.getWidth(text);
             context.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
         }
-        context.drawTextWithShadow(client.textRenderer, text, x, y, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, text, x, y, 0xFFFFFFFF);
         return lineHeight + 2;
     }
 

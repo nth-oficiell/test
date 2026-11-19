@@ -96,6 +96,9 @@ public final class ClientIntegrations {
         }
         long handle = client.getWindow().getHandle();
         for (Module module : ModuleManager.all()) {
+            if (module.keyCode <= 0) {
+                continue;
+            }
             KeybindEngine.poll(module, GLFW.glfwGetKey(handle, module.keyCode) == GLFW.GLFW_PRESS);
         }
     }
@@ -893,7 +896,7 @@ public final class ClientIntegrations {
             return;
         }
         dev.utilikit.client.modules.extra.HudDrag.beginFrame();
-        int[] hudColors = {0xFFFFFF, 0x55FF55, 0xFF5555, 0x5555FF, 0xFFFF55, 0x55FFFF, 0xFF55FF, 0x141420};
+        int[] hudColors = {0xFFFFFFFF, 0xFF55FF55, 0xFFFF5555, 0xFF5555FF, 0xFFFFFF55, 0xFF55FFFF, 0xFFFF55FF, 0xFF141420};
         int textColor = hudColors[dev.utilikit.client.modules.extra.ExtraModules.hudColorIndex()];
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int x = 6 + hudOffset[0];
@@ -907,7 +910,7 @@ public final class ClientIntegrations {
             if (!(module instanceof InfoModule info) || !info.enabled) {
                 continue;
             }
-            String text = info.line(client);
+            String text = info.lineCached(client);
             if (text == null) {
                 continue;
             }
@@ -933,7 +936,7 @@ public final class ClientIntegrations {
             for (String note : notes) {
                 int noteWidth = client.textRenderer.getWidth(note);
                 context.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
-                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, 6, noteY, 0xFFEB55);
+                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, 6, noteY, 0xFFFFEB55);
                 noteY += 12;
             }
         }

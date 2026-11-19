@@ -135,7 +135,7 @@ public class UtiliKitScreen extends Screen {
 
     private void renderCustom(DrawContext context, int mouseX, int mouseY) {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title,
-                this.width / 2, 12, 0x55FFFF);
+                this.width / 2, 12, 0xFF55FFFF);
 
         int top = layoutTop();
         int bottom = listBottom();
@@ -150,7 +150,7 @@ public class UtiliKitScreen extends Screen {
         for (Row row : rows) {
             if (row.category != null) {
                 context.drawTextWithShadow(this.textRenderer, row.category.label,
-                        LIST_X + 6, row.y + 5, 0x9A9AB0);
+                        LIST_X + 6, row.y + 5, 0xFF9A9AB0);
             } else if (row.module != null) {
                 boolean hovered = isOverRow(row, mouseX, mouseY);
                 int bg = row.module == selected ? 0x50FFFFFF : (hovered ? 0x28FFFFFF : 0x00000000);
@@ -159,7 +159,7 @@ public class UtiliKitScreen extends Screen {
                 }
                 int statusColor = row.module.enabled ? 0xFF55FF55 : 0xFFFF5555;
                 context.fill(LIST_X + 6, row.y + row.h / 2 - 1, LIST_X + 10, row.y + row.h / 2 + 3, statusColor);
-                int textColor = row.module.enabled ? 0xFFFFFF : 0xAAAAAA;
+                int textColor = row.module.enabled ? 0xFFFFFFFF : 0xFFAAAAAA;
                 context.drawTextWithShadow(this.textRenderer, row.module.name,
                         LIST_X + 16, row.y + 7, textColor);
             }
@@ -167,18 +167,18 @@ public class UtiliKitScreen extends Screen {
 
         if (view != View.PRESETS && selected != null) {
             context.drawTextWithShadow(this.textRenderer, "§l" + selected.name,
-                    settingsLeft + 8, top + 6, 0xFFFFFF);
+                    settingsLeft + 8, top + 6, 0xFFFFFFFF);
             int descY = top + 18;
             for (String descLine : wrap(selected.description, settingsWidth - 16)) {
-                context.drawTextWithShadow(this.textRenderer, descLine, settingsLeft + 8, descY, 0x8A8A9E);
+                context.drawTextWithShadow(this.textRenderer, descLine, settingsLeft + 8, descY, 0xFF8A8A9E);
                 descY += 11;
             }
         } else if (view == View.PRESETS) {
             context.drawTextWithShadow(this.textRenderer, "§lGestion des presets",
-                    settingsLeft + 8, top + 6, 0xFFFFFF);
+                    settingsLeft + 8, top + 6, 0xFFFFFFFF);
             if (status != null) {
                 context.drawTextWithShadow(this.textRenderer, status,
-                        settingsLeft + 8, top + 18, 0x55FFAA);
+                        settingsLeft + 8, top + 18, 0xFF55FFAA);
             }
             for (PresetRow row : presetRows) {
                 if (!row.visible) {
@@ -186,12 +186,12 @@ public class UtiliKitScreen extends Screen {
                 }
                 String name = this.textRenderer.trimToWidth(row.name, settingsWidth - 110);
                 context.drawTextWithShadow(this.textRenderer, name,
-                        settingsLeft + 8, row.y + 6, 0xDDDDDD);
+                        settingsLeft + 8, row.y + 6, 0xFFDDDDDD);
             }
         }
         context.drawTextWithShadow(this.textRenderer,
                 "\u00a77Clic gauche : activer \u00b7 Clic droit : param\u00e8tres + touche",
-                LIST_X, this.height - 44, 0x777788);
+                LIST_X, this.height - 44, 0xFF777788);
     }
 
     private List<String> wrap(String text, int maxWidth) {

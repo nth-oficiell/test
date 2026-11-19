@@ -30,7 +30,7 @@ public class KeystrokesModule extends Module {
     }
 
     private static int textColor(boolean pressed) {
-        return pressed ? 0xFFFFFF : 0xBBBBBB;
+        return pressed ? 0xFFFFFFFF : 0xFFBBBBBB;
     }
 
     private static void drawKeyBox(DrawContext context, MinecraftClient client,

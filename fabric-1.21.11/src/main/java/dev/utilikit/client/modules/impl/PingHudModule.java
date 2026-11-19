@@ -28,7 +28,7 @@ public class PingHudModule extends Module {
         PlayerListEntry entry = client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
         int latency = entry != null ? entry.getLatency() : 0;
         String text = "Ping : " + latency + " ms";
-        int color = latency < 100 ? 0x55FF55 : (latency < 250 ? 0xFFAA00 : 0xFF5555);
+        int color = latency < 100 ? 0xFF55FF55 : (latency < 250 ? 0xFFFFAA00 : 0xFFFF5555);
         int x = client.getWindow().getScaledWidth() - client.textRenderer.getWidth(text) - 6;
         if (hud.background.value) {
             context.fill(x - 3, 4, client.getWindow().getScaledWidth() - 3, 18, 0x90000000);

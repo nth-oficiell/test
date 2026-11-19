@@ -31,7 +31,7 @@ public class DurabilityModule extends Module {
         }
         int remaining = stack.getMaxDamage() - stack.getDamage();
         double ratio = (double) remaining / (double) stack.getMaxDamage();
-        int color = ratio > 0.5D ? 0x55FF55 : (ratio > 0.2D ? 0xFFAA00 : 0xFF5555);
+        int color = ratio > 0.5D ? 0xFF55FF55 : (ratio > 0.2D ? 0xFFFFAA00 : 0xFFFF5555);
         String text = "Durabilité : " + remaining + " / " + stack.getMaxDamage();
         int y = 6;
         Module pingBase = ModuleManager.get("ping");

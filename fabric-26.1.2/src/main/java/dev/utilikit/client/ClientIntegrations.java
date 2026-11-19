@@ -115,6 +115,9 @@ public final class ClientIntegrations {
             return;
         }
         for (Module module : ModuleManager.all()) {
+            if (module.keyCode <= 0) {
+                continue;
+            }
             KeybindEngine.poll(module, isKeyDown(handle, module.keyCode));
         }
     }
@@ -1072,7 +1075,7 @@ public final class ClientIntegrations {
             if (!(module instanceof InfoModule info) || !info.enabled) {
                 continue;
             }
-            String text = info.line(client);
+            String text = info.lineCached(client);
             if (text == null) {
                 continue;
             }

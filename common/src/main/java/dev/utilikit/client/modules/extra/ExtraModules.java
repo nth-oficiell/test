@@ -131,10 +131,18 @@ public final class ExtraModules {
                 });
     }
 
+    private static java.util.List<double[]> radarCache;
+    private static long radarCacheAt;
+
     public static java.util.List<double[]> radarDots(Object game) {
         Module module = ModuleManager.get("radar");
         if (module == null || !module.enabled) {
+            radarCache = null;
             return null;
+        }
+        long now = System.currentTimeMillis();
+        if (radarCache != null && now - radarCacheAt < 120L) {
+            return radarCache;
         }
         try {
             Object player = game.getClass().getField("player").get(game);
@@ -167,6 +175,8 @@ public final class ExtraModules {
                 }
                 dots.add(new double[] {nx, nz});
             }
+            radarCache = dots;
+            radarCacheAt = now;
             return dots;
         } catch (Throwable ignored) {
             return null;
