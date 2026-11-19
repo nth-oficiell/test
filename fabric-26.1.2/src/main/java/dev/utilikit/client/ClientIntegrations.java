@@ -1057,8 +1057,9 @@ public final class ClientIntegrations {
         if (client.options == null || client.player == null || client.level == null) {
             return;
         }
-        int x = 6;
-        int y = 6 + hudInfoHeight();
+        int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
+        int x = 6 + hudOffset[0];
+        int y = 6 + hudOffset[1] + hudInfoHeight();
         int startY = y;
         int lineHeight = 12;
         int columnWidth = 170;

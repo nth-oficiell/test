@@ -38,6 +38,9 @@ public class UtiliKitScreen extends Screen {
     private final List<Row> rows = new ArrayList<>();
     private final List<PresetRow> presetRows = new ArrayList<>();
     private Module selected;
+    private TextFieldWidget searchField;
+    private String searchFilter = "";
+
     private View view = View.MODULES;
     private String status = null;
     private int presetScroll = 0;
@@ -56,9 +59,12 @@ public class UtiliKitScreen extends Screen {
     protected void init() {
         rows.clear();
         presetRows.clear();
-        int y = layoutTop();
+        int y = layoutTop() + (view == View.MODULES ? 26 : 0);
+        String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleCategory.values()) {
-            boolean hasModule = ModuleManager.all().stream().anyMatch(m -> m.category == category);
+            boolean hasModule = !needle.isEmpty()
+                    ? ModuleManager.all().stream().anyMatch(m -> m.category == category && m.name.toLowerCase().contains(needle))
+                    : ModuleManager.all().stream().anyMatch(m -> m.category == category);
             if (!hasModule) {
                 continue;
             }
@@ -68,12 +74,29 @@ public class UtiliKitScreen extends Screen {
                 if (module.category != category) {
                     continue;
                 }
+                if (!needle.isEmpty() && !module.name.toLowerCase().contains(needle)) {
+                    continue;
+                }
                 rows.add(new Row(module, null, y, ROW_H));
                 y += ROW_H + 2;
             }
             y += GAP;
         }
 
+        if (view == View.MODULES) {
+            searchField = new TextFieldWidget(this.textRenderer, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Text.literal("Recherche\u2026"));
+            searchField.setMaxLength(24);
+            searchField.setText(searchFilter);
+            searchField.setChangedListener(v -> {
+                if (!v.equals(searchFilter)) {
+                    searchFilter = v;
+                    rebuild();
+                }
+            });
+            addDrawableChild(searchField);
+            setFocused(searchField);
+            searchField.setFocused(true);
+        }
         addDrawable((context, mouseX, mouseY, delta) -> renderCustom(context, mouseX, mouseY));
         if (view == View.PRESETS) {
             addPresetWidgets();
@@ -232,7 +255,7 @@ public class UtiliKitScreen extends Screen {
                 if (isOverRow(row, (int) mouseX, (int) mouseY)) {
                     selected = row.module;
                     if (button == 0) {
-                        row.module.setEnabled(!row.module.enabled);
+                        dev.utilikit.client.modules.ModuleActions.activate(row.module);
                     } else if (button == 1) {
                         bindingTarget = null;
                         view = View.PARAMS;
@@ -303,6 +326,19 @@ public class UtiliKitScreen extends Screen {
                 y += 22;
             } else if (setting instanceof Setting.Slider slider) {
                 addDrawableChild(new ModuleSliderWidget(x, y, w, 18, selected, slider));
+                y += 26;
+            } else if (setting instanceof Setting.Text textSetting) {
+                final Setting.Text textF = textSetting;
+                TextFieldWidget field = new TextFieldWidget(this.textRenderer, x, y, w, 18, Text.literal(textF.label));
+                field.setMaxLength(100);
+                field.setText(textF.value);
+                field.setChangedListener(v -> {
+                    if (!v.equals(textF.value)) {
+                        textF.value = v;
+                        ModuleManager.save();
+                    }
+                });
+                addDrawableChild(field);
                 y += 26;
             }
         }

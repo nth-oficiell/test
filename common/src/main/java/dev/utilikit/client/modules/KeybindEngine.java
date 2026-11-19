@@ -47,7 +47,11 @@ public final class KeybindEngine {
         }
         Boolean previous = PRESSED.put(module.id, pressed);
         if (pressed && !Boolean.TRUE.equals(previous)) {
-            module.setEnabled(!module.enabled);
+            if (module instanceof ActionModule action) {
+                action.execute();
+            } else {
+                module.setEnabled(!module.enabled);
+            }
         }
     }
 

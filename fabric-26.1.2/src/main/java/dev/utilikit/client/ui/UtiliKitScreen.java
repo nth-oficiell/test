@@ -36,6 +36,9 @@ public class UtiliKitScreen extends Screen {
 
     private final List<Runnable> rowBuilders = new ArrayList<>();
     private Module selected;
+    private EditBox searchField;
+    private String searchFilter = "";
+
     private View view = View.MODULES;
     private String status = null;
     private static final int MOUSE_BUTTON_LEFT;
@@ -90,6 +93,17 @@ public class UtiliKitScreen extends Screen {
     }
 
     private void addModuleListWidgets() {
+        searchField = new EditBox(this.font, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Component.literal("Recherche\u2026"));
+        searchField.setMaxLength(24);
+        searchField.setValue(searchFilter);
+        searchField.setResponder(v -> {
+            if (!v.equals(searchFilter)) {
+                searchFilter = v;
+                rebuild();
+            }
+        });
+        addRenderableWidget(searchField);
+
         for (Runnable builder : listBuilders()) {
             builder.run();
         }
@@ -110,10 +124,13 @@ public class UtiliKitScreen extends Screen {
     private List<Runnable> listBuilders() {
         List<Runnable> builders = new ArrayList<>();
         rows = new ArrayList<>();
-        int y = layoutTop();
+        int y = layoutTop() + (view == View.MODULES ? 26 : 0);
         int visibleIndex = 0;
+        String needle = searchFilter.trim().toLowerCase();
         for (ModuleCategory category : ModuleManager.categories()) {
-            boolean hasModule = ModuleManager.all().stream().anyMatch(m -> m.category == category);
+            boolean hasModule = !needle.isEmpty()
+                    ? ModuleManager.all().stream().anyMatch(m -> m.category == category && m.name.toLowerCase().contains(needle))
+                    : ModuleManager.all().stream().anyMatch(m -> m.category == category);
             if (!hasModule) {
                 continue;
             }
@@ -123,12 +140,16 @@ public class UtiliKitScreen extends Screen {
                 if (module.category != category) {
                     continue;
                 }
+                if (!needle.isEmpty() && !module.name.toLowerCase().contains(needle)) {
+                    continue;
+                }
                 if (visibleIndex >= listScroll && y + ROW_H <= listBottom()) {
                     Module moduleF = module;
                     int rowY = y;
+                    rows.add(new Row(module, null, y, ROW_H, null));
                     builders.add(() -> {
                         Button b = Button.builder(Component.literal(moduleF.name + (moduleF.enabled ? "  \u2713" : "")),
-                                        btn -> UtiliKitScreen.this.select(moduleF))
+                                        btn -> UtiliKitScreen.this.handleRowClick(moduleF))
                                 .bounds(LIST_X + 2, rowY, LIST_W - 4, ROW_H - 4)
                                 .build();
                         addRenderableWidget(b);
@@ -144,6 +165,12 @@ public class UtiliKitScreen extends Screen {
 
     private void select(Module module) {
         selected = module;
+        rebuild();
+    }
+
+    private void handleRowClick(Module module) {
+        selected = module;
+        dev.utilikit.client.modules.ModuleActions.activate(module);
         rebuild();
     }
 
@@ -170,6 +197,19 @@ public class UtiliKitScreen extends Screen {
                 y += 22;
             } else if (setting instanceof Setting.Slider slider) {
                 addRenderableWidget(new ModuleSliderWidget(x, y, w, 18, selected, slider));
+                y += 26;
+            } else if (setting instanceof Setting.Text textSetting) {
+                final Setting.Text textF = textSetting;
+                EditBox field = new EditBox(this.font, x, y, w, 18, Component.literal(textF.label));
+                field.setMaxLength(100);
+                field.setValue(textF.value);
+                field.setResponder(v -> {
+                    if (!v.equals(textF.value)) {
+                        textF.value = v;
+                        ModuleManager.save();
+                    }
+                });
+                addRenderableWidget(field);
                 y += 26;
             }
         }
@@ -231,7 +271,7 @@ public class UtiliKitScreen extends Screen {
         addRenderableWidget(Button.builder(
                         Component.literal((selected.enabled ? "Désactiver" : "Activer") + " : " + selected.name),
                         b -> {
-                            selected.setEnabled(!selected.enabled);
+                            dev.utilikit.client.modules.ModuleActions.activate(selected);
                             rebuild();
                         })
                 .bounds(x, y + 6, w, 20)
@@ -456,7 +496,7 @@ public class UtiliKitScreen extends Screen {
                         && event.y() >= row.y && event.y() < row.y + row.h - 4) {
                     selected = row.module;
                     if (button == left) {
-                        selected.setEnabled(!selected.enabled);
+                        dev.utilikit.client.modules.ModuleActions.activate(selected);
                     } else {
                         KeybindEngine.cancelCapture();
                         view = View.PARAMS;

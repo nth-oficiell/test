@@ -9,6 +9,15 @@ public abstract class Setting {
         this.label = label;
     }
 
+    public static class Text extends Setting {
+        public String value;
+
+        public Text(String id, String label, String defaultValue) {
+            super(id, label);
+            this.value = defaultValue;
+        }
+    }
+
     public static class Toggle extends Setting {
         public boolean value;
 

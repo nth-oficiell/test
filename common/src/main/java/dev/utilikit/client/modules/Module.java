@@ -53,6 +53,15 @@ public abstract class Module {
         return null;
     }
 
+    public Setting.Text text(String id) {
+        for (Setting setting : settings) {
+            if (setting.id.equals(id) && setting instanceof Setting.Text text) {
+                return text;
+            }
+        }
+        return null;
+    }
+
     public void onSettingChanged() {
     }
 

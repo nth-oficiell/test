@@ -43,6 +43,8 @@ public final class ConfigManager {
                     settingsJson.addProperty(setting.id, toggle.value);
                 } else if (setting instanceof Setting.Slider slider) {
                     settingsJson.addProperty(setting.id, slider.value);
+                } else if (setting instanceof Setting.Text text) {
+                    settingsJson.addProperty(setting.id, text.value);
                 }
             }
             moduleJson.add("settings", settingsJson);
@@ -86,6 +88,8 @@ public final class ConfigManager {
                     toggle.value = element.getAsBoolean();
                 } else if (setting instanceof Setting.Slider slider && element.isJsonPrimitive()) {
                     slider.value = Math.max(slider.min, Math.min(slider.max, element.getAsDouble()));
+                } else if (setting instanceof Setting.Text text && element.isJsonPrimitive()) {
+                    text.value = element.getAsString();
                 }
             }
         }
