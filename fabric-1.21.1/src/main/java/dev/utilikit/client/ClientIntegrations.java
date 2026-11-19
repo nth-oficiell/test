@@ -930,6 +930,28 @@ public final class ClientIntegrations {
                 noteY += 12;
             }
         }
+
+
+        int[] crosshair = dev.utilikit.client.modules.extra.ExtraModules.crosshairSpec();
+        if (crosshair != null) {
+            int cx = client.getWindow().getScaledWidth() / 2;
+            int cy = client.getWindow().getScaledHeight() / 2;
+            int crossLen = Math.max(2, crosshair[1]);
+            int crossTh = Math.max(1, crosshair[2]);
+            int crossColor = crosshair[3];
+            if (crosshair[0] == 2) {
+                context.fill(cx - crossTh, cy - crossTh, cx + crossTh + 1, cy + crossTh + 1, crossColor);
+            } else if (crosshair[0] == 1) {
+                context.fill(cx - crossLen - crossTh, cy, cx - crossLen, cy + 1, crossColor);
+                context.fill(cx + crossLen, cy, cx + crossLen + crossTh, cy + 1, crossColor);
+                context.fill(cx, cy - crossLen - crossTh, cx + 1, cy - crossLen, crossColor);
+                context.fill(cx, cy + crossLen, cx + 1, cy + crossLen + crossTh, crossColor);
+                context.fill(cx - crossTh, cy - crossTh, cx + crossTh + 1, cy + crossTh + 1, crossColor);
+            } else {
+                context.fill(cx - crossLen, cy, cx + crossLen, cy + 1, crossColor);
+                context.fill(cx, cy - crossLen, cx + 1, cy + crossLen, crossColor);
+            }
+        }
     }
 
     private static int hudInfoHeight() {

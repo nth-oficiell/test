@@ -37,13 +37,229 @@ public final class ExtraModules {
         ModuleManager.register(autoMessageModule());
         ModuleManager.register(autoReconnectModule());
         ModuleManager.register(hudPositionModule());
+        ModuleManager.register(crosshairModule());
+        ModuleManager.register(hudDragModule());
+        ModuleManager.register(antiAfkModule());
+        ModuleManager.register(chatMentionModule());
         Waypoints.load();
+        HudDrag.load();
     }
 
     public static void tick(Object game) {
         CPS.tick(game);
         Speed.tick(game);
         AutoReconnect.tick(game);
+        HudDrag.tick(game);
+        AntiAfk.tick(game);
+        ChatMention.tick(game);
+    }
+
+    private static Module crosshairModule() {
+        Module module = new TickModule("crosshair", "Viseur personnalisé",
+                "Dessine un viseur personnalisable (croix, croix écartée ou point) au centre de l'écran, par-dessus le vanilla.",
+                ModuleCategory.VISUEL,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("style", "Style (0 croix, 1 écartée, 2 point)", 0.0D, 2.0D, 0.0D));
+        module.settings.add(new Setting.Slider("taille", "Longueur", 4.0D, 16.0D, 8.0D));
+        module.settings.add(new Setting.Slider("ep", "Épaisseur", 1.0D, 4.0D, 2.0D));
+        module.settings.add(new Setting.Slider("couleur", "Couleur (0 blanc, 1 vert, 2 rouge, 3 bleu, 4 jaune, 5 cyan, 6 magenta, 7 noir)", 0.0D, 7.0D, 0.0D));
+        return module;
+    }
+
+    private static Module hudDragModule() {
+        Module module = new TickModule("hudedit", "Déplacer le HUD (drag)",
+                "Assigne une touche dans les paramètres : maintiens-la et bouge la souris pour déplacer le bloc HUD, relâche pour enregistrer.",
+                ModuleCategory.VISUEL,
+                game -> {
+                });
+        return module;
+    }
+
+    private static Module antiAfkModule() {
+        Module module = new TickModule("antiafk", "Anti AFK",
+                "Fait osciller ta vue de 0,05° à intervalle régulier pour ne pas être kické pour inactivité.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        module.settings.add(new Setting.Slider("interval", "Intervalle (secondes)", 5.0D, 30.0D, 20.0D));
+        return module;
+    }
+
+    private static Module chatMentionModule() {
+        Module module = new TickModule("chatmention", "Mention chat",
+                "Surveille le chat et t'envoie une notification quand un des mots-clés (séparés par des virgules) apparaît.",
+                ModuleCategory.PRATIQUE,
+                game -> {
+                });
+        module.settings.add(new Setting.Text("words", "Mots-clés (virgules)", "nth, admin"));
+        return module;
+    }
+
+    public static int[] crosshairSpec() {
+        Module module = ModuleManager.get("crosshair");
+        if (module == null || !module.enabled) {
+            return null;
+        }
+        Setting.Slider style = module.slider("style");
+        Setting.Slider length = module.slider("taille");
+        Setting.Slider thickness = module.slider("ep");
+        Setting.Slider color = module.slider("couleur");
+        int[] colors = {0xFFFFFFFF, 0xFF55FF55, 0xFFFF5555, 0xFF5555FF, 0xFFFFFF55, 0xFF55FFFF, 0xFFFF55FF, 0xFF141420};
+        int colorIndex = color == null ? 0 : (int) Math.max(0, Math.min(7, Math.round(color.value)));
+        return new int[] {
+                style == null ? 0 : (int) Math.round(style.value),
+                length == null ? 8 : (int) Math.round(length.value),
+                thickness == null ? 2 : Math.max(1, (int) Math.round(thickness.value)),
+                colors[colorIndex],
+        };
+    }
+
+    private static final class AntiAfk {
+        private static long lastNudge;
+        private static double direction = 1.0D;
+
+        static void tick(Object game) {
+            Module module = ModuleManager.get("antiafk");
+            if (module == null || !module.enabled) {
+                return;
+            }
+            try {
+                Object player = game.getClass().getField("player").get(game);
+                if (player == null) {
+                    return;
+                }
+                long now = System.currentTimeMillis();
+                Setting.Slider interval = module.slider("interval");
+                long ms = (long) (interval == null ? 20.0D : Math.max(interval.min, Math.min(interval.max, interval.value))) * 1000L;
+                if (now - lastNudge < ms) {
+                    return;
+                }
+                Double yaw = doubleByName(player, "getYaw", "getYRot");
+                if (yaw == null) {
+                    return;
+                }
+                lastNudge = now;
+                direction = -direction;
+                for (String methodName : new String[] {"setYaw", "setYRot"}) {
+                    try {
+                        player.getClass().getMethod(methodName, float.class).invoke(player, (float) (yaw + 0.05D * direction));
+                        return;
+                    } catch (Exception ignored) {
+                    }
+                }
+                lastNudge = 0L;
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private static final class ChatMention {
+        private static final java.util.Set<String> SEEN = new java.util.HashSet<>();
+        private static int counter;
+
+        static void tick(Object game) {
+            Module module = ModuleManager.get("chatmention");
+            if (module == null || !module.enabled) {
+                return;
+            }
+            counter++;
+            if (counter % 10 != 0) {
+                return;
+            }
+            try {
+                Setting.Text words = module.text("words");
+                if (words == null || words.value.isBlank()) {
+                    return;
+                }
+                String[] keywords = words.value.toLowerCase().split(",");
+                Object hud = field(game, "inGameHud", "gui");
+                if (hud == null) {
+                    return;
+                }
+                Object chat = method(hud, "getChatHud");
+                if (chat == null) {
+                    chat = field(hud, "chat");
+                }
+                if (chat == null) {
+                    return;
+                }
+                Object messages = field(chat, "messages");
+                if (!(messages instanceof java.util.List<?> list) || list.isEmpty()) {
+                    return;
+                }
+                for (Object element : list) {
+                    String line = stringOf(element);
+                    if (line == null || line.isEmpty() || SEEN.contains(line)) {
+                        continue;
+                    }
+                    String lower = line.toLowerCase();
+                    for (String keyword : keywords) {
+                        String needle = keyword.trim();
+                        if (!needle.isEmpty() && lower.contains(needle)) {
+                            SEEN.add(line);
+                            Notifier.push("\ud83d\udcac Chat : " + trim(line));
+                            break;
+                        }
+                    }
+                }
+                if (SEEN.size() > 200) {
+                    SEEN.clear();
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        private static String trim(String line) {
+            return line.length() > 60 ? line.substring(0, 57) + "..." : line;
+        }
+    }
+
+    private static Object field(Object owner, String... fieldNames) {
+        for (String fieldName : fieldNames) {
+            try {
+                Object value = owner.getClass().getField(fieldName).get(owner);
+                if (value != null) {
+                    return value;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private static Object method(Object owner, String... methodNames) {
+        for (String methodName : methodNames) {
+            try {
+                Object value = owner.getClass().getMethod(methodName).invoke(owner);
+                if (value != null) {
+                    return value;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private static Double doubleByName(Object owner, String... methodNames) {
+        for (String methodName : methodNames) {
+            try {
+                return ((Number) owner.getClass().getMethod(methodName).invoke(owner)).doubleValue();
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private static String stringOf(Object element) {
+        Object value = method(element, "getString", "getText", "text", "content");
+        if (value instanceof String string) {
+            return string;
+        }
+        if (value != null) {
+            return value.toString();
+        }
+        return null;
     }
 
     private static ActionModule autoMessageModule() {
@@ -91,15 +307,16 @@ public final class ExtraModules {
 
     public static int[] hudOffset() {
         Module module = ModuleManager.get("hudpos");
-        if (module == null || !module.enabled) {
-            return new int[] {0, 0};
+        int x = 0;
+        int y = 0;
+        if (module != null && module.enabled) {
+            Setting.Slider sx = module.slider("x");
+            Setting.Slider sy = module.slider("y");
+            x = sx == null ? 0 : (int) Math.round(sx.value);
+            y = sy == null ? 0 : (int) Math.round(sy.value);
         }
-        Setting.Slider sx = module.slider("x");
-        Setting.Slider sy = module.slider("y");
-        return new int[] {
-                sx == null ? 0 : (int) Math.round(sx.value),
-                sy == null ? 0 : (int) Math.round(sy.value),
-        };
+        int[] drag = HudDrag.offsets();
+        return new int[] {x + drag[0], y + drag[1]};
     }
 
     static Object clientInstance() throws Exception {
