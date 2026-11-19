@@ -63,6 +63,7 @@ public class UtiliKitClient implements ClientModInitializer {
             }
             zoom.tick();
             ClientIntegrations.tick(client);
+            ClientIntegrations.pollKeybinds(client, client.currentScreen != null);
             AutoSprintModule.tick();
             while (menuKey.wasPressed()) {
                 client.setScreen(new UtiliKitScreen());

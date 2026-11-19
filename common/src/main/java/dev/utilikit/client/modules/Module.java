@@ -10,6 +10,7 @@ public abstract class Module {
     public final ModuleCategory category;
 
     public boolean enabled;
+    public int keyCode = -1;
     public final List<Setting> settings = new ArrayList<>();
 
     protected Module(String id, String name, String description, ModuleCategory category) {

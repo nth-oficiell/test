@@ -1,6 +1,7 @@
 package dev.utilikit.client;
 
 import dev.utilikit.client.modules.InfoModule;
+import dev.utilikit.client.modules.KeybindEngine;
 import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
@@ -95,6 +96,67 @@ public final class ClientIntegrations {
             }
         }
         updateStats(client);
+    }
+
+    private static java.lang.reflect.Method keyDownMethod;
+
+    public static void pollKeybinds(Minecraft client, boolean screenOpen) {
+        if (screenOpen) {
+            return;
+        }
+        long handle = windowHandle(client.getWindow());
+        if (handle == 0L) {
+            return;
+        }
+        for (Module module : ModuleManager.all()) {
+            KeybindEngine.poll(module, isKeyDown(handle, module.keyCode));
+        }
+    }
+
+    private static long windowHandle(Object window) {
+        try {
+            for (var method : window.getClass().getMethods()) {
+                if (method.getParameterCount() == 0 && method.getReturnType() == long.class) {
+                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    if (name.contains("handle") || name.contains("pointer")) {
+                        return (Long) method.invoke(window);
+                    }
+                }
+            }
+            for (var method : window.getClass().getMethods()) {
+                if (method.getParameterCount() == 0 && method.getReturnType() == long.class) {
+                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    if (name.contains("window")) {
+                        return (Long) method.invoke(window);
+                    }
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return 0L;
+        }
+        return 0L;
+    }
+
+    private static boolean isKeyDown(long handle, int keyCode) {
+        try {
+            if (keyDownMethod == null) {
+                for (var method : com.mojang.blaze3d.platform.InputConstants.class.getMethods()) {
+                    Class<?>[] params = method.getParameterTypes();
+                    if (java.lang.reflect.Modifier.isStatic(method.getModifiers()) && params.length == 2
+                            && params[0] == long.class && params[1] == int.class
+                            && method.getReturnType() == boolean.class) {
+                        keyDownMethod = method;
+                        break;
+                    }
+                }
+            }
+            if (keyDownMethod != null) {
+                return (Boolean) keyDownMethod.invoke(null, handle, keyCode);
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            keyDownMethod = null;
+        }
+        return false;
     }
 
     private static void updateStats(Minecraft client) {

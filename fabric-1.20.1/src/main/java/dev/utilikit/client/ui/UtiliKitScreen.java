@@ -1,6 +1,8 @@
 package dev.utilikit.client.ui;
 
 import dev.utilikit.client.config.PresetManager;
+import dev.utilikit.client.modules.KeybindEngine;
+import dev.utilikit.client.modules.KeyNames;
 import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
@@ -26,7 +28,8 @@ public class UtiliKitScreen extends Screen {
 
     private enum View {
         MODULES,
-        PRESETS
+        PRESETS,
+        PARAMS
     }
 
     private final List<Row> rows = new ArrayList<>();
@@ -34,6 +37,7 @@ public class UtiliKitScreen extends Screen {
     private Module selected;
     private View view = View.MODULES;
     private String status = null;
+    private Module bindingTarget = null;
     private int presetScroll = 0;
 
     public UtiliKitScreen() {
@@ -66,10 +70,10 @@ public class UtiliKitScreen extends Screen {
         }
 
         addDrawable((context, mouseX, mouseY, delta) -> renderCustom(context, mouseX, mouseY));
-        if (view == View.MODULES) {
-            addSettingsWidgets();
-        } else {
+        if (view == View.PRESETS) {
             addPresetWidgets();
+        } else {
+            addSettingsWidgets();
         }
 
         addDrawableChild(ButtonWidget.builder(Text.literal(view == View.MODULES ? "Presets" : "Modules"),
@@ -138,7 +142,7 @@ public class UtiliKitScreen extends Screen {
             }
         }
 
-        if (view == View.MODULES && selected != null) {
+        if (view != View.PRESETS && selected != null) {
             context.drawTextWithShadow(this.textRenderer, "§l" + selected.name,
                     settingsLeft + 8, top + 6, 0xFFFFFF);
             int descY = top + 18;
@@ -162,6 +166,9 @@ public class UtiliKitScreen extends Screen {
                         settingsLeft + 8, row.y + 6, 0xDDDDDD);
             }
         }
+        context.drawTextWithShadow(this.textRenderer,
+                "\u00a77Clic gauche : activer \u00b7 Clic droit : param\u00e8tres + touche",
+                LIST_X, this.height - 44, 0x777788);
     }
 
     private List<String> wrap(String text, int maxWidth) {
@@ -200,16 +207,18 @@ public class UtiliKitScreen extends Screen {
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        if (button == 0 && view == View.MODULES) {
+        if (view == View.MODULES) {
             for (Row row : rows) {
                 if (row.module == null) {
                     continue;
                 }
                 if (isOverRow(row, (int) mouseX, (int) mouseY)) {
-                    if (row.module == selected) {
+                    selected = row.module;
+                    if (button == 0) {
                         row.module.setEnabled(!row.module.enabled);
-                    } else {
-                        selected = row.module;
+                    } else if (button == 1) {
+                        bindingTarget = null;
+                        view = View.PARAMS;
                     }
                     rebuild();
                     return true;
@@ -238,6 +247,23 @@ public class UtiliKitScreen extends Screen {
         return layoutTop() + 82;
     }
 
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (bindingTarget != null) {
+            if (keyCode == 256) {
+                bindingTarget = null;
+                rebuild();
+                return true;
+            }
+            bindingTarget.keyCode = keyCode;
+            ModuleManager.save();
+            bindingTarget = null;
+            rebuild();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
     private void addSettingsWidgets() {
         if (selected == null) {
             return;
@@ -262,6 +288,31 @@ public class UtiliKitScreen extends Screen {
                 addDrawableChild(new ModuleSliderWidget(x, y, w, 18, selected, slider));
                 y += 26;
             }
+        }
+        if (view == View.PARAMS) {
+            String keyLabel;
+            if (bindingTarget == selected) {
+                keyLabel = "Appuie sur une touche\u2026 (\u00c9chap = annuler)";
+            } else {
+                keyLabel = "Touche d'activation : "
+                        + (selected.keyCode <= 0 ? "Aucune" : KeyNames.keyName(selected.keyCode));
+            }
+            addDrawableChild(ButtonWidget.builder(Text.literal(keyLabel), b -> {
+                        bindingTarget = bindingTarget == selected ? null : selected;
+                        rebuild();
+                    })
+                    .dimensions(x, y + 6, w, 18)
+                    .build());
+            y += 28;
+            addDrawableChild(ButtonWidget.builder(Text.literal("Retirer la touche"), b -> {
+                        selected.keyCode = -1;
+                        KeybindEngine.clear(selected.id);
+                        ModuleManager.save();
+                        bindingTarget = null;
+                        rebuild();
+                    })
+                    .dimensions(x, y + 6, w, 18)
+                    .build());
         }
     }
 

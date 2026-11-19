@@ -1,6 +1,7 @@
 package dev.utilikit.client;
 
 import dev.utilikit.client.modules.InfoModule;
+import dev.utilikit.client.modules.KeybindEngine;
 import dev.utilikit.client.modules.Module;
 import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
@@ -19,6 +20,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
+
+import org.lwjgl.glfw.GLFW;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -81,6 +84,16 @@ public final class ClientIntegrations {
             }
         }
         updateStats(client);
+    }
+
+    public static void pollKeybinds(MinecraftClient client, boolean screenOpen) {
+        if (screenOpen) {
+            return;
+        }
+        long handle = client.getWindow().getHandle();
+        for (Module module : ModuleManager.all()) {
+            KeybindEngine.poll(module, GLFW.glfwGetKey(handle, module.keyCode) == GLFW.GLFW_PRESS);
+        }
     }
 
     private static void updateStats(MinecraftClient client) {

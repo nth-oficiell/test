@@ -35,6 +35,7 @@ public final class ConfigManager {
         for (Module module : modules) {
             JsonObject moduleJson = new JsonObject();
             moduleJson.addProperty("enabled", module.enabled);
+            moduleJson.addProperty("key", module.keyCode);
             JsonObject settingsJson = new JsonObject();
             for (Setting setting : module.settings) {
                 if (setting instanceof Setting.Toggle toggle) {
@@ -65,6 +66,9 @@ public final class ConfigManager {
             }
             boolean enabled = moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean();
             module.enabled = enabled;
+            if (moduleJson.has("key") && moduleJson.get("key").isJsonPrimitive()) {
+                module.keyCode = moduleJson.get("key").getAsInt();
+            }
             JsonObject settingsJson = moduleJson.getAsJsonObject("settings");
             if (settingsJson == null) {
                 continue;
