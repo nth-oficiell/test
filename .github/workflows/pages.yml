@@ -48,7 +48,8 @@ jobs:
           gradle-version: ${{ matrix.gradle }}
 
       - name: Build ${{ matrix.project }}
-        run: gradle :${{ matrix.project }}:build
+        working-directory: ${{ matrix.project }}
+        run: gradle build
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
@@ -77,14 +78,17 @@ jobs:
         run: |
           set -e
           mkdir -p docs/downloads
-          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
           for dir in jars/fabric-*/; do
             project=$(basename "$dir")
             mc="${project#fabric-}"
             for jar in "$dir"utilikit-*.jar; do
               [ -e "$jar" ] || continue
               case "$jar" in *sources*) continue ;; esac
-              cp "$jar" "docs/downloads/utilikit-${mc}-v${MOD_VERSION}.jar"
+              name=$(basename "$jar")
+              ver="${name#utilikit-}"
+              ver="${ver#*-}"
+              ver="${ver%.jar}"
+              cp "$jar" "docs/downloads/utilikit-${mc}-v${ver}.jar"
             done
           done
           python3 - <<'PY'

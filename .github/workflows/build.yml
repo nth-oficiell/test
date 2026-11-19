@@ -37,7 +37,8 @@ jobs:
           gradle-version: ${{ matrix.gradle }}
 
       - name: Build ${{ matrix.project }}
-        run: gradle :${{ matrix.project }}:build --stacktrace
+        working-directory: ${{ matrix.project }}
+        run: gradle build --stacktrace
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
