@@ -667,15 +667,7 @@ public final class ClientIntegrations {
         ModuleManager.register(new InfoModule("armorpieces", "Pi\u00e8ces d'armure",
                 "Compte les pi\u00e8ces d'armure que tu portes.",
                 ModuleCategory.AFFICHAGE,
-                game -> {
-                    int worn = 0;
-                    for (int i = 0; i < 4; i++) {
-                        if (!player(game).getInventory().armor.get(i).isEmpty()) {
-                            worn++;
-                        }
-                    }
-                    return "Armure \u00e9quip\u00e9e : " + worn + " / 4";
-                }));
+                game -> "Armure \u00e9quip\u00e9e : " + wornArmor(player(game)) + " / 4"));
 
         ModuleManager.register(new InfoModule("stackmaxhand", "Empilement max main",
                 "Affiche la taille maximale d'empilement de ton objet en main.",
@@ -711,7 +703,7 @@ public final class ClientIntegrations {
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.hitResult instanceof BlockHitResult hit) {
-                        return "Face : " + prettify(hit.getSide().getName());
+                        return "Face : " + prettify(directionName(hit.getDirection()));
                     }
                     return null;
                 }));
@@ -871,6 +863,45 @@ public final class ClientIntegrations {
         } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
             return;
         }
+    }
+
+    private static int wornArmor(Object playerObj) {
+        int worn = 0;
+        try {
+            for (var method : playerObj.getClass().getMethods()) {
+                if (method.getParameterCount() == 0
+                        && method.getName().toLowerCase(Locale.ROOT).contains("armoritems")) {
+                    Object items = method.invoke(playerObj);
+                    if (items instanceof Iterable<?> iterable) {
+                        for (Object stack : iterable) {
+                            if (stack == null || !((Boolean) stack.getClass()
+                                    .getMethod("isEmpty").invoke(stack))) {
+                                worn++;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return 0;
+        }
+        return worn;
+    }
+
+    private static String directionName(Object direction) {
+        try {
+            for (var method : direction.getClass().getMethods()) {
+                if (method.getParameterCount() == 0
+                        && (method.getName().equals("getName") || method.getName().equals("asString"))) {
+                    Object result = method.invoke(direction);
+                    return result == null ? String.valueOf(direction) : result.toString();
+                }
+            }
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            return String.valueOf(direction);
+        }
+        return String.valueOf(direction);
     }
 
     private static net.minecraft.world.item.ItemStack offhandStack(Object playerObj) {
