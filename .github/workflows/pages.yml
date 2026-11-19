@@ -28,10 +28,10 @@ jobs:
             gradle: '8.8'
           - project: fabric-1.21.1
             java: '21'
-            gradle: '8.14'
+            gradle: '9.9.1'
           - project: fabric-1.21.11
             java: '21'
-            gradle: '8.14'
+            gradle: '9.9.1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
