@@ -62,6 +62,8 @@ public class UtiliKitScreen extends Screen {
 
     public UtiliKitScreen() {
         super(Component.literal("NTH Utils"));
+        MenuFx.onOpen();
+        UiSounds.open();
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }
@@ -438,10 +440,12 @@ public class UtiliKitScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFF55FFFF);
+        MenuFx.tick();
+        int slide = MenuFx.slideOffset(20);
+        graphics.centeredText(this.font, this.title, this.width / 2, 12 - slide, 0xFF55FFFF);
 
-        int top = layoutTop();
-        int bottom = listBottom();
+        int top = layoutTop() - slide;
+        int bottom = listBottom() - slide;
         drawPanel(graphics, LIST_X, top, LIST_X + LIST_W, bottom);
         graphics.outline(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
@@ -451,9 +455,9 @@ public class UtiliKitScreen extends Screen {
         graphics.outline(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         if (view != View.PRESETS && !rows.isEmpty()) {
-            int contentTopY = layoutTop() + 44;
+            int contentTopY = layoutTop() + 44 - slide;
             for (Row row : rows) {
-                int rowY = row.y - listScroll;
+                int rowY = row.y - listScroll - slide;
                 if (rowY < contentTopY || rowY + row.h > listBottom()) {
                     continue;
                 }
@@ -544,6 +548,7 @@ public class UtiliKitScreen extends Screen {
                     selected = row.module;
                     if (button == left) {
                         dev.utilikit.client.modules.ModuleActions.activate(selected);
+                        UiSounds.toggle();
                     } else {
                         KeybindEngine.cancelCapture();
                         view = View.PARAMS;

@@ -49,6 +49,8 @@ public class UtiliKitScreen extends Screen {
 
     public UtiliKitScreen() {
         super(Text.literal("NTH Utils"));
+        MenuFx.onOpen();
+        UiSounds.open();
         if (!ModuleManager.all().isEmpty()) {
             selected = ModuleManager.all().iterator().next();
         }
@@ -164,6 +166,13 @@ public class UtiliKitScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title,
                 this.width / 2, 12, 0xFF55FFFF);
 
+        MenuFx.tick();
+        int slide = MenuFx.slideOffset(20);
+        if (slide > 0) {
+            context.getMatrices().push();
+            context.getMatrices().translate(0.0F, -slide, 0.0F);
+        }
+
         int top = layoutTop();
         int bottom = listBottom();
         drawPanel(context, LIST_X, top, LIST_X + LIST_W, bottom);
@@ -190,7 +199,9 @@ public class UtiliKitScreen extends Screen {
                         LIST_X + 8, rowY + 5, categoryColor(row.category));
             } else if (row.module != null) {
                 boolean hovered = isOverRow(row, rowY, mouseX, mouseY);
-                int bg = row.module == selected ? 0x50FFFFFF : (hovered ? 0x28FFFFFF : 0x00000000);
+                float hoverFade = MenuFx.approach(row.module, hovered ? 1.0F : 0.0F);
+                int bg = row.module == selected ? 0x50FFFFFF
+                        : (hoverFade > 0.02F ? ((int) (40.0F * hoverFade)) << 24 : 0x00000000);
                 if (bg != 0) {
                     context.fill(LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, bg);
                 }
@@ -241,6 +252,9 @@ public class UtiliKitScreen extends Screen {
         context.drawTextWithShadow(this.textRenderer,
                 "\u00a77Clic gauche : activer \u00b7 Clic droit : param\u00e8tres + touche",
                 LIST_X, this.height - 44, 0xFF777788);
+        if (slide > 0) {
+            context.getMatrices().pop();
+        }
     }
 
     private List<String> wrap(String text, int maxWidth) {
@@ -287,6 +301,7 @@ public class UtiliKitScreen extends Screen {
             int index = (int) ((mouseX - LIST_X) / (seg + 2));
             if (index >= 0 && index <= 3) {
                 activeCategory = index == 0 ? null : ModuleCategory.values()[index - 1];
+                UiSounds.click();
                 moduleScroll = 0;
                 rebuild();
                 return true;
@@ -302,6 +317,7 @@ public class UtiliKitScreen extends Screen {
                     selected = row.module;
                     if (button == 0) {
                         dev.utilikit.client.modules.ModuleActions.activate(row.module);
+                        UiSounds.toggle();
                     } else if (button == 1) {
                         bindingTarget = null;
                         view = View.PARAMS;

@@ -2,6 +2,7 @@ package dev.utilikit.client;
 
 import dev.utilikit.client.modules.ModuleManager;
 import dev.utilikit.client.modules.impl.AutoSprintModule;
+import dev.utilikit.client.modules.impl.UiSoundsModule;
 import dev.utilikit.client.modules.impl.CopyCoordsModule;
 import dev.utilikit.client.modules.impl.DurabilityModule;
 import dev.utilikit.client.modules.impl.FullBrightModule;
@@ -53,6 +54,7 @@ public class UtiliKitClient implements ClientModInitializer {
         ModuleManager.register(new PingHudModule());
         ModuleManager.register(new DurabilityModule());
         ModuleManager.register(new MaxFpsModule());
+        ModuleManager.register(new UiSoundsModule());
         ClientIntegrations.register();
         ModuleManager.load();
 
