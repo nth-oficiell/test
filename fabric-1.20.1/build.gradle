@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '1.6.12'
 }
 
-version = '0.6.1'
+version = '0.7.0'
 group = 'dev.utilikit'
 
 base {
