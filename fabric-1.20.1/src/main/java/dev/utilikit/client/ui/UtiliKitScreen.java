@@ -41,7 +41,13 @@ public class UtiliKitScreen extends Screen {
     @Override
     protected void init() {
         installHooks();
-        menu.layout(this.width, this.height, pen);
+                try {
+            menu.versionLabel = "v" + net.fabricmc.loader.api.FabricLoader.getInstance()
+                    .getModContainer("utilikit").orElseThrow().getMetadata().getVersion().getFriendlyString();
+        } catch (Throwable t) {
+            menu.versionLabel = "";
+        }
+menu.layout(this.width, this.height, pen);
         if (menu.mode == CorzMenu.Mode.MODULES && menu.searchFieldW() > 0) {
             TextFieldWidget field = new TextFieldWidget(this.textRenderer, menu.searchFieldX(),
                     menu.searchFieldY(), menu.searchFieldW(), 14, Text.literal("Recherche\u2026"));

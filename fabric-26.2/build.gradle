@@ -2,7 +2,7 @@ plugins {
     id 'net.fabricmc.fabric-loom' version '1.19.4'
 }
 
-version = '0.10.0'
+version = '0.10.1'
 group = 'dev.utilikit'
 
 base {

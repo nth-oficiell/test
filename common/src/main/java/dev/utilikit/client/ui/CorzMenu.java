@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class CorzMenu {
+    public String versionLabel = "";
     public interface Pen {
         void text(String s, double x, double y, int argb);
 
@@ -368,6 +369,9 @@ public final class CorzMenu {
         }
 
         pen.text("\u00a7lNTH UTILS", 12, 10 + oy, accent);
+        if (!versionLabel.isEmpty()) {
+            pen.text("\u00a7f" + versionLabel, 12 + pen.width("NTH UTILS") + 5, 11 + oy, 0xFF6E6E82);
+        }
         String time = java.time.LocalTime.now().format(
                 java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
         pen.text(time, w - 12 - pen.width(time), 10 + oy, 0xFF9A9AB0);
