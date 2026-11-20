@@ -21,7 +21,7 @@
 
 ### 🔓 La solution 26.x
 
-Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms de classes officiels de Mojang et Yarn n'est plus maintenu au-delà de 1.21.11. Les sous-projets 26.x compilent donc **sans aucune mappings** avec le nouveau plugin Loom non-remap (`net.fabricmc.fabric-loom`), en ciblant les **noms officiels Mojang** (`Minecraft`, `LocalPlayer`, `GuiGraphicsExtractor`, `HudElementRegistry`…). Résultat : les 10 versions sont supportées en parallèle, avec les mêmes 116 modules. |
+Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms de classes officiels de Mojang et Yarn n'est plus maintenu au-delà de 1.21.11. Les sous-projets 26.x compilent donc **sans aucune mappings** avec le nouveau plugin Loom non-remap (`net.fabricmc.fabric-loom`), en ciblant les **noms officiels Mojang** (`Minecraft`, `LocalPlayer`, `GuiGraphicsExtractor`, `HudElementRegistry`…). Résultat : les 10 versions sont supportées en parallèle, avec les mêmes 117 modules. |
 
 > Les jars exacts et leur dernière version sont listés sur le site (ils sont générés par les builds GitHub Actions de ce dépôt).
 
