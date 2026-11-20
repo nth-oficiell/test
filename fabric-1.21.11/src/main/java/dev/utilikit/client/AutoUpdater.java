@@ -171,7 +171,7 @@ public final class AutoUpdater {
         } catch (Throwable ignored) {
         }
         try {
-            for (var container : net.fabricmc.loader.api.FabricLoader.getInstance().getModContainers()) {
+            for (var container : net.fabricmc.loader.api.FabricLoader.getInstance().getAllMods()) {
                 if (!MOD_ID.equals(container.getMetadata().getId())) {
                     continue;
                 }
