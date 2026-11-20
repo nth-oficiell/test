@@ -66,6 +66,11 @@ public class UtiliKitClient implements ClientModInitializer {
                 initialStatesApplied = true;
                 ModuleManager.applyLoadedStates();
             }
+            if (AutoUpdater.hasNotes()) {
+                for (String updateNote : AutoUpdater.takeNotes()) {
+                    dev.utilikit.client.modules.extra.Notifier.push(updateNote, 12000L);
+                }
+            }
             zoom.tick();
             ClientIntegrations.tick(client);
             ClientIntegrations.pollKeybinds(client, isScreenOpen(client));
@@ -79,6 +84,7 @@ public class UtiliKitClient implements ClientModInitializer {
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.disableAll());
 
+        AutoUpdater.start();
         LOGGER.info("[NTH Utils] Client initialisé — {} module(s) chargé(s).", ModuleManager.all().size());
     }
 

@@ -98,6 +98,7 @@ jobs:
       - name: Copy jars + manifest into site
         run: |
           set -e
+          git log --pretty=format:'%s' -6 > /tmp/notes.txt || true
           mkdir -p docs/downloads
           for dir in jars/fabric-*/; do
             project=$(basename "$dir")
@@ -123,8 +124,9 @@ jobs:
           def key(e):
               return [int(x) for x in e["mc"].replace('+', '.').split('.')]
           entries.sort(key=key, reverse=True)
+          notes = open('/tmp/notes.txt').read().splitlines() if os.path.exists('/tmp/notes.txt') else []
           with open('docs/downloads/manifest.json', 'w') as f:
-              json.dump({"latest": entries[0] if entries else None, "builds": entries}, f, indent=2)
+              json.dump({"latest": entries[0] if entries else None, "builds": entries, "notes": notes[:5]}, f, indent=2)
           PY
           cp docs/downloads/manifest.json /tmp/manifest-preview.json
 
