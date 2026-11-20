@@ -6,7 +6,7 @@ import dev.utilikit.client.modules.extra.Waypoints;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
@@ -124,15 +124,15 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
+    public boolean keyPressed(KeyEvent event) {
         if (menu.capturing()) {
-            menu.captureKey(input.key());
+            menu.captureKey(event.key());
             return true;
         }
         if (menu.escape()) {
             return true;
         }
-        return super.keyPressed(input);
+        return super.keyPressed(event);
     }
 
     @Override

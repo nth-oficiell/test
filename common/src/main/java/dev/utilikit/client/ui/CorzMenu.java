@@ -117,6 +117,7 @@ public final class CorzMenu {
 
     private int w;
     private int h;
+    private int railX = RAIL_X;
     private int railY;
     private int panelX;
     private int panelW;
