@@ -296,10 +296,13 @@ public final class CorzMenu {
             modalRect = new int[0];
             return;
         }
-        modalW = Math.min(280, Math.max(190, w - panelX - panelW - 20));
-        modalX = Math.min(w - modalW - 12, panelX + panelW + 12);
-        if (modalX < 12) {
-            modalX = 12;
+        int freeRight = w - panelX - panelW - 20;
+        if (freeRight >= 190) {
+            modalW = Math.min(280, freeRight);
+            modalX = panelX + panelW + 12;
+        } else {
+            modalW = Math.min(280, panelW - 8);
+            modalX = panelX + (panelW - modalW) / 2;
         }
         if (modalX + modalW > w - 8) {
             modalW = w - modalX - 8;
@@ -646,6 +649,9 @@ public final class CorzMenu {
         if (binding) {
             pen.text("\u00a7eAppuie sur une touche\u2026 (\u00c9chap = annuler)", contentX, y2 - 14,
                     Palettes.accentAlpha(0xFF));
+        } else {
+            pen.text("\u00a77Clic gauche \u00e0 c\u00f4t\u00e9 : fermer et retourner aux modules", contentX, y2 - 14,
+                    0xFF6E6E82);
         }
 
         for (ModalRow row : modalRows) {
@@ -903,6 +909,9 @@ public final class CorzMenu {
     private void clickModal(double x, double y, int button) {
         for (ModalRow row : modalRows) {
             int ry = row.y;
+            if (ry < modalTop + 36 || ry + row.h > modalBottom - 22) {
+                continue;
+            }
             if (!hovered(x, y, modalX + 12, ry, modalX + modalW - 12, ry + row.h)) {
                 continue;
             }
@@ -959,6 +968,12 @@ public final class CorzMenu {
                 }
             }
             return;
+        }
+        if (button == 0) {
+            closeModal();
+            if (soundClick != null) {
+                soundClick.run();
+            }
         }
     }
 
