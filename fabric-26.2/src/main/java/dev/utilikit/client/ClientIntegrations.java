@@ -11,6 +11,7 @@ import dev.utilikit.client.modules.impl.DurabilityModule;
 import dev.utilikit.client.modules.impl.HudInfoModule;
 import dev.utilikit.client.modules.impl.KeystrokesModule;
 import dev.utilikit.client.modules.impl.PingHudModule;
+import dev.utilikit.client.modules.impl.HudPaint;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
