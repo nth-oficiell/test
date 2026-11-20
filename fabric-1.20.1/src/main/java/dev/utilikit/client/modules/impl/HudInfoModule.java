@@ -66,13 +66,14 @@ public class HudInfoModule extends Module {
         }
         int lineHeight = 12;
         int scaledWidth = client.getWindow().getScaledWidth();
+        int scaledHeight = client.getWindow().getScaledHeight();
         int maxW = 0;
         for (String text : lines) {
             maxW = Math.max(maxW, client.textRenderer.getWidth(text));
         }
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int x = scaledWidth / 2 - maxW / 2 + hudOffset[0];
-        int y = 6 + hudOffset[1];
+        int y = scaledHeight / 2 - (6 + lines.size() * lineHeight) / 2 + hudOffset[1];
         if (hud.background.value) {
             HudPaint.panel(context, x - 6, y - 4, x + maxW + 6, y + 2 + lines.size() * lineHeight);
         }
