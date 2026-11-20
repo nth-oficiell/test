@@ -316,24 +316,24 @@ public class UtiliKitScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (view == View.PRESETS
                 && mouseX >= settingsX() && mouseX <= settingsX() + settingsW()
                 && mouseY >= layoutTop() && mouseY <= listBottom()) {
             int viewport = listBottom() - contentTop() - 40;
             int maxScroll = Math.max(0, presetRows.size() * PRESET_ROW_H - viewport + 8);
-            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(amount) * PRESET_ROW_H));
+            presetScroll = Math.max(0, Math.max(0, presetScroll - (int) Math.signum(verticalAmount) * PRESET_ROW_H));
             presetScroll = Math.min(presetScroll, maxScroll);
             rebuild();
             return true;
         }
         if (mouseX >= LIST_X && mouseX <= LIST_X + LIST_W
                 && mouseY >= layoutTop() && mouseY <= listBottom()) {
-            moduleScroll = Math.max(0, moduleScroll - (int) Math.signum(amount) * (ROW_H + 2));
+            moduleScroll = Math.max(0, moduleScroll - (int) Math.signum(verticalAmount) * (ROW_H + 2));
             moduleScroll = Math.min(moduleScroll, moduleMaxScroll);
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     private int contentTop() {
