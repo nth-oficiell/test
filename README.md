@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| **Menu principal** (vue Modules, coins arrondis + glow accent) | **Paramètres du module** (clic droit sur un module) |
+| **Menu principal** (rail à la Corz + paramètres empilés, clic droit sur un module) | **Presets** (★ dans le rail : sauvegarde, export, import) |
 | ![Menu principal](docs/screenshots/menu-principal.png) | ![Presets](docs/screenshots/presets.png) |
 | **HUD en jeu** (dégradés + Keystrokes) | **Palettes de thème** (accent animé, à la CorzClient) |
 | ![HUD](docs/screenshots/hud.png) | ![Palettes](docs/screenshots/palettes.png) |
