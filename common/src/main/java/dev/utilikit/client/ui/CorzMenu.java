@@ -118,6 +118,7 @@ public final class CorzMenu {
     private int w;
     private int h;
     private int railX = RAIL_X;
+    private int railB = RAIL_B;
     private int railY;
     private int panelX;
     private int panelW;
@@ -186,7 +187,9 @@ public final class CorzMenu {
         this.w = width;
         this.h = height;
         int entries = railCount();
-        railY = Math.max(28, (height - entries * (RAIL_B + RAIL_GAP) + RAIL_GAP) / 2);
+        int needed = entries * (RAIL_B + RAIL_GAP) - RAIL_GAP;
+        railB = needed <= height - 48 ? RAIL_B : Math.max(20, (height - 48 - (entries - 1) * RAIL_GAP) / entries);
+        railY = Math.max(24, (height - (entries * railB + (entries - 1) * RAIL_GAP)) / 2);
         panelX = RAIL_X + RAIL_B + 16;
         panelW = Math.min(PANEL_W, Math.max(150, width - panelX - 16));
         panelBottom = Math.max(130, height - 32);
@@ -412,14 +415,14 @@ public final class CorzMenu {
     private void drawRail(Rounded.Canvas cv, int oy, int accent, float fade) {
         int n = railCount();
         int bg1 = railY - 10 + oy;
-        int bg2 = railY + n * (RAIL_B + RAIL_GAP) - RAIL_GAP + 10 + oy;
-        Rounded.glow(cv, railX - 6, bg1, railX + RAIL_B + 6, bg2, 12, accent, 3, 0.08F);
-        Rounded.rect(cv, railX - 6, bg1, railX + RAIL_B + 6, bg2, 12, 0xC60D0D15);
-        Rounded.stroke(cv, railX - 6, bg1, railX + RAIL_B + 6, bg2, 12, Palettes.accentAlpha(0x38));
+        int bg2 = railY + n * (railB + RAIL_GAP) - RAIL_GAP + 10 + oy;
+        Rounded.glow(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, accent, 3, 0.08F);
+        Rounded.rect(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, 0xC60D0D15);
+        Rounded.stroke(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, Palettes.accentAlpha(0x38));
 
         for (int i = 0; i < n; i++) {
             int bx = railX;
-            int by = railY + i * (RAIL_B + RAIL_GAP) + oy;
+            int by = railY + i * (railB + RAIL_GAP) + oy;
             boolean active;
             String label;
             int color;
@@ -438,22 +441,22 @@ public final class CorzMenu {
                 color = categoryColor(cat);
             }
             float hover = MenuFx.approach("rail#" + i,
-                    hovered(mx, my, bx, by, bx + RAIL_B, by + RAIL_B) ? 1.0F : 0.0F);
+                    hovered(mx, my, bx, by, bx + railB, by + railB) ? 1.0F : 0.0F);
             int on = active ? (((int) (0x9E * fade)) << 24) | (color & 0xFFFFFF)
                     : (hover > 0.02F ? ((int) (46.0F * hover)) << 24 : 0);
             if (on != 0) {
-                Rounded.rect(cv, bx, by, bx + RAIL_B, by + RAIL_B, 10, on);
+                Rounded.rect(cv, bx, by, bx + railB, by + railB, 10, on);
             }
             if (active || hover > 0.02F) {
-                Rounded.stroke(cv, bx, by, bx + RAIL_B, by + RAIL_B, 10,
+                Rounded.stroke(cv, bx, by, bx + railB, by + railB, 10,
                         active ? 0xFFEAEAFF : (((int) (hover * 200.0F)) << 24) | (color & 0xFFFFFF));
             }
-            pen.textCenter(label, bx + RAIL_B / 2.0D, by + RAIL_B / 2.0D - 4, active ? 0xFF0B0B14 : color);
+            pen.textCenter(label, bx + railB / 2.0D, by + railB / 2.0D - 4, active ? 0xFF0B0B14 : color);
             if (hover > 0.25F && !active) {
                 int nameW = pen.width(railName(i)) + 16;
-                int tx = bx + RAIL_B + 10;
-                Rounded.rect(cv, tx, by + 8, tx + nameW, by + RAIL_B - 8, 7, 0xD010101C);
-                pen.text(railName(i), tx + 8, by + RAIL_B / 2.0D - 4, 0xFFE6E6F2);
+                int tx = bx + railB + 10;
+                Rounded.rect(cv, tx, by + 8, tx + nameW, by + railB - 8, 7, 0xD010101C);
+                pen.text(railName(i), tx + 8, by + railB / 2.0D - 4, 0xFFE6E6F2);
             }
         }
     }
@@ -738,8 +741,8 @@ public final class CorzMenu {
         }
         for (int i = 0; i < railCount(); i++) {
             int bx = railX;
-            int by = railY + i * (RAIL_B + RAIL_GAP);
-            if (inside(x, y, bx, by, bx + RAIL_B, by + RAIL_B)) {
+            int by = railY + i * (railB + RAIL_GAP);
+            if (inside(x, y, bx, by, bx + railB, by + railB)) {
                 clickRail(i);
                 return true;
             }
