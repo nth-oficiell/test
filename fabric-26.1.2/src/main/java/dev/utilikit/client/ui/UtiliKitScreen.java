@@ -1,530 +1,108 @@
 package dev.utilikit.client.ui;
 
-import dev.utilikit.client.config.PresetManager;
-import dev.utilikit.client.modules.KeybindEngine;
-import dev.utilikit.client.modules.KeyNames;
-import dev.utilikit.client.modules.Module;
-import dev.utilikit.client.modules.ModuleCategory;
 import dev.utilikit.client.modules.ModuleManager;
 import dev.utilikit.client.modules.Setting;
+import dev.utilikit.client.modules.extra.Waypoints;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 public class UtiliKitScreen extends Screen {
-    private static final int LIST_X = 16;
-    private static final int LIST_W = 190;
-    private static final int ROW_H = 22;
-    private static final int HEADER_H = 18;
-    private static final int GAP = 8;
-    private static final int PRESET_ROW_H = 20;
-    private static final int VISIBLE_ROWS = 8;
-
-    private enum View {
-        MODULES,
-        PRESETS,
-        PARAMS
-    }
-
-    private final List<Runnable> rowBuilders = new ArrayList<>();
-    private Module selected;
-    private EditBox searchField;
-    private String searchFilter = "";
-
-    private View view = View.MODULES;
-    private String status = null;
-    private static final int MOUSE_BUTTON_LEFT;
-
-    static {
-        int left = 0;
-        try {
-            left = Class.forName("com.mojang.blaze3d.platform.InputConstants")
-                    .getField("MOUSE_BUTTON_LEFT").getInt(null);
-        } catch (Throwable ignored) {
-            left = 0;
+    private final CorzMenu menu = new CorzMenu();
+    private GuiGraphicsExtractor graphicsContext;
+    private final CorzMenu.Pen pen = new CorzMenu.Pen() {
+        @Override
+        public void text(String s, double x, double y, int argb) {
+            if (graphicsContext != null) {
+                graphicsContext.text(font, s, (int) x, (int) y, argb, true);
+            }
         }
-        MOUSE_BUTTON_LEFT = left;
-    }
 
-    private int listScroll = 0;
-    private ModuleCategory activeCategory = null;
-    private final java.util.Map<ModuleCategory, Integer> categoryCounts = new java.util.EnumMap<>(ModuleCategory.class);
-    private int presetScroll = 0;
-    private EditBox presetNameField;
+        @Override
+        public void textCenter(String s, double x, double y, int argb) {
+            if (graphicsContext != null) {
+                graphicsContext.text(font, s, (int) (x - font.width(s) / 2.0D), (int) y, argb, true);
+            }
+        }
+
+        @Override
+        public int width(String s) {
+            return font.width(s);
+        }
+    };
 
     public UtiliKitScreen() {
         super(Component.literal("NTH Utils"));
         MenuFx.onOpen();
         UiSounds.open();
-        if (!ModuleManager.all().isEmpty()) {
-            selected = ModuleManager.all().iterator().next();
-        }
     }
 
     @Override
     protected void init() {
-        rowBuilders.clear();
-        if (view == View.PRESETS) {
-            addPresetWidgets();
-        } else {
-            addModuleListWidgets();
-            addSettingsWidgets();
-        }
-
-        Button switchButton = Button.builder(Component.literal(view == View.MODULES ? "Presets" : "Modules"),
-                        b -> {
-                            view = view == View.MODULES ? View.PRESETS : View.MODULES;
-                            status = null;
-                            listScroll = 0;
-                            rebuild();
-                        })
-                .bounds(LIST_X, this.height - 26, 80, 18)
-                .build();
-        addRenderableWidget(switchButton);
-
-        Button closeButton = Button.builder(Component.literal("Fermer"),
-                        b -> onClose())
-                .bounds(this.width / 2 - 40, this.height - 26, 80, 18)
-                .build();
-        addRenderableWidget(closeButton);
-    }
-
-    private void addModuleListWidgets() {
-        categoryCounts.clear();
-        for (ModuleCategory category : ModuleCategory.values()) {
-            int count = 0;
-            for (Module module : ModuleManager.all()) {
-                if (module.category == category) {
-                    count++;
+        installHooks();
+        menu.layout(this.width, this.height, pen);
+        if (menu.mode == CorzMenu.Mode.MODULES && menu.searchFieldW() > 0) {
+            EditBox field = new EditBox(this.font, menu.searchFieldX(), menu.searchFieldY(),
+                    menu.searchFieldW(), 14, Component.literal("Recherche\u2026"));
+            field.setMaxLength(48);
+            field.setValue(menu.search);
+            field.setResponder(v -> {
+                if (!v.equals(menu.search)) {
+                    menu.search = v;
+                    menu.layout(this.width, this.height, pen);
                 }
-            }
-            categoryCounts.put(category, count);
+            });
+            addRenderableWidget(field);
+        } else if (menu.mode == CorzMenu.Mode.PRESETS && menu.presetFieldW() > 0) {
+            EditBox field = new EditBox(this.font, menu.presetFieldX(), menu.presetFieldY(),
+                    menu.presetFieldW(), 14, Component.literal("Nom du preset"));
+            field.setMaxLength(24);
+            field.setValue(menu.presetName);
+            field.setResponder(v -> menu.presetName = v);
+            addRenderableWidget(field);
         }
-        searchField = new EditBox(this.font, LIST_X + 4, layoutTop() + 5, LIST_W - 10, 16, Component.literal("Recherche\u2026"));
-        searchField.setMaxLength(24);
-        searchField.setValue(searchFilter);
-        searchField.setResponder(v -> {
-            if (!v.equals(searchFilter)) {
-                searchFilter = v;
-                rebuild();
-            }
-        });
-        addRenderableWidget(searchField);
-
-        for (int i = 0; i < ModuleCategory.values().length + 1; i++) {
-            ModuleCategory chipCategory = i == 0 ? null : ModuleCategory.values()[i - 1];
-            boolean on = chipCategory == null ? activeCategory == null : chipCategory == activeCategory;
-            int chipX = LIST_X + i * ((LIST_W - 6) / 4 + 2);
-            String label = chipCategory == null ? "Tous" : shortLabel(chipCategory);
-            addRenderableWidget(Button.builder(Component.literal((on ? "\u25CF " : "") + label), b -> {
-                        activeCategory = chipCategory == null || activeCategory == chipCategory ? null : chipCategory;
-                        listScroll = 0;
-                        rebuild();
-                    })
-                    .bounds(chipX, layoutTop() + 22, (LIST_W - 6) / 4, 16)
-                    .build());
+        for (CorzMenu.FieldBox box : menu.textFields) {
+            EditBox field = new EditBox(this.font, box.x, box.y, box.w, 14,
+                    Component.literal(box.setting.label));
+            field.setMaxLength(240);
+            field.setValue(box.setting.value);
+            field.setResponder(v -> {
+                box.setting.value = v;
+                ModuleManager.save();
+            });
+            addRenderableWidget(field);
         }
-
-        for (Runnable builder : listBuilders()) {
-            builder.run();
-        }
-        if (rows.get(rows.size() - 1).y > listBottom()) {
-            addRenderableWidget(Button.builder(Component.literal("\u25B2"), b -> {
-                        listScroll = Math.max(0, listScroll - (ROW_H + 2) * 2);
-                        rebuild();
-                    }).bounds(LIST_X + LIST_W / 2 - 40, listBottom() + 2, 38, 16).build());
-            addRenderableWidget(Button.builder(Component.literal("\u25BC"), b -> {
-                        listScroll = listScroll + (ROW_H + 2) * 2;
-                        rebuild();
-                    }).bounds(LIST_X + LIST_W / 2 + 2, listBottom() + 2, 38, 16).build());
-        }
-    }
-
-    private List<Row> rows = new ArrayList<>();
-
-    private List<Runnable> listBuilders() {
-        List<Runnable> builders = new ArrayList<>();
-        rows = new ArrayList<>();
-        int y = layoutTop() + 44;
-        int startY = y;
-        String needle = searchFilter.trim().toLowerCase();
-        for (ModuleCategory category : ModuleManager.categories()) {
-            if (activeCategory != null && activeCategory != category) {
-                continue;
-            }
-            boolean hasModule = !needle.isEmpty()
-                    ? ModuleManager.all().stream().anyMatch(m -> m.category == category && m.name.toLowerCase().contains(needle))
-                    : ModuleManager.all().stream().anyMatch(m -> m.category == category);
-            if (!hasModule) {
-                continue;
-            }
-            rows.add(new Row(null, category, y, HEADER_H, null));
-            y += HEADER_H + 2;
-            for (Module module : ModuleManager.ordered()) {
-                if (module.category != category) {
-                    continue;
-                }
-                if (!needle.isEmpty() && !module.name.toLowerCase().contains(needle)) {
-                    continue;
-                }
-                Module moduleF = module;
-                int rowYF = y;
-                rows.add(new Row(module, null, y, ROW_H, null));
-                builders.add(() -> {
-                    int shiftedY = rowYF - listScroll;
-                    if (shiftedY < startY || shiftedY + ROW_H > listBottom()) {
-                        return;
-                    }
-                    Button b = Button.builder(Component.literal(moduleF.name + (moduleF.enabled ? "  \u2713" : "")),
-                                    btn -> UtiliKitScreen.this.handleRowClick(moduleF))
-                            .bounds(LIST_X + 2, shiftedY, LIST_W - 4, ROW_H - 4)
-                            .build();
-                    addRenderableWidget(b);
-                });
-                y += ROW_H + 2;
-            }
-            y += GAP;
-        }
-        int maxScroll = Math.max(0, (y - startY) - (listBottom() - startY));
-        listScroll = Math.max(0, Math.min(listScroll, maxScroll));
-        return builders;
-    }
-
-    private void select(Module module) {
-        selected = module;
-        rebuild();
-    }
-
-    private void handleRowClick(Module module) {
-        selected = module;
-        dev.utilikit.client.modules.ModuleActions.activate(module);
-        rebuild();
-    }
-
-    private void addSettingsWidgets() {
-        if (selected == null) {
-            return;
-        }
-        int x = settingsX() + 8;
-        int w = settingsW() - 16;
-        int y = layoutTop() + 40;
-        for (Setting setting : selected.settings) {
-            if (setting instanceof Setting.Toggle toggle) {
-                Setting.Toggle finalToggle = toggle;
-                addRenderableWidget(Button.builder(
-                                Component.literal(toggle.label + " : " + (toggle.value ? "OUI" : "NON")),
-                                b -> {
-                                    finalToggle.value = !finalToggle.value;
-                                    selected.onSettingChanged();
-                                    ModuleManager.save();
-                                    rebuild();
-                                })
-                        .bounds(x, y, w, 18)
-                        .build());
-                y += 22;
-            } else if (setting instanceof Setting.Slider slider) {
-                addRenderableWidget(new ModuleSliderWidget(x, y, w, 18, selected, slider));
-                y += 26;
-            } else if (setting instanceof Setting.Text textSetting) {
-                final Setting.Text textF = textSetting;
-                EditBox field = new EditBox(this.font, x, y, w, 18, Component.literal(textF.label));
-                field.setMaxLength(100);
-                field.setValue(textF.value);
-                field.setResponder(v -> {
-                    if (!v.equals(textF.value)) {
-                        textF.value = v;
-                        ModuleManager.save();
-                    }
-                });
-                addRenderableWidget(field);
-                y += 26;
-            }
-        }
-        if (view == View.PARAMS) {
-            String keyLabel;
-            if (KeybindEngine.isCapturing(selected)) {
-                keyLabel = "Appuie sur une touche\u2026 (\u00c9chap = annuler)";
-            } else {
-                keyLabel = "Touche d'activation : "
-                        + (selected.keyCode <= 0 ? "Aucune" : KeyNames.keyName(selected.keyCode));
-            }
-            addRenderableWidget(Button.builder(Component.literal(keyLabel), b -> {
-                        if (KeybindEngine.isCapturing(selected)) {
-                            KeybindEngine.cancelCapture();
-                        } else {
-                            KeybindEngine.beginCapture(selected);
-                        }
-                        rebuild();
-                    })
-                    .bounds(x, y + 30, w, 18)
-                    .build());
-            addRenderableWidget(Button.builder(Component.literal("Retirer la touche"), b -> {
-                        selected.keyCode = -1;
-                        KeybindEngine.clear(selected.id);
-                        KeybindEngine.cancelCapture();
-                        ModuleManager.save();
-                        rebuild();
-                    })
-                    .bounds(x, y + 52, w, 18)
-                    .build());
-        addRenderableWidget(Button.builder(Component.literal("\u2605 Favori : " + (selected.favorite ? "OUI" : "NON")), b -> {
-                    selected.favorite = !selected.favorite;
-                    ModuleManager.save();
-                    rebuild();
-                })
-                .bounds(x, y + 34, w, 18)
-                .build());
-            if ("waypoints".equals(selected.id)) {
-        addRenderableWidget(Button.builder(Component.literal("Ajouter un waypoint ici"), b -> {
-                    dev.utilikit.client.modules.extra.Waypoints.addHere(this.minecraft);
-                    rebuild();
-                })
-                .bounds(x, y + 74, w, 18)
-                .build());
-        addRenderableWidget(Button.builder(Component.literal("Retirer le dernier waypoint"), b -> {
-                    dev.utilikit.client.modules.extra.Waypoints.removeLast();
-                    rebuild();
-                })
-                .bounds(x, y + 96, w, 18)
-                .build());
-        addRenderableWidget(Button.builder(Component.literal("Tout effacer les waypoints"), b -> {
-                    dev.utilikit.client.modules.extra.Waypoints.clear();
-                    rebuild();
-                })
-                .bounds(x, y + 118, w, 18)
-                .build());
-            }
-        }
-        addRenderableWidget(Button.builder(
-                        Component.literal((selected.enabled ? "Désactiver" : "Activer") + " : " + selected.name),
-                        b -> {
-                            dev.utilikit.client.modules.ModuleActions.activate(selected);
-                            rebuild();
-                        })
-                .bounds(x, y + 6, w, 20)
-                .build());
-    }
-
-    private void addPresetWidgets() {
-        int x = settingsX() + 8;
-        int w = settingsW() - 16;
-        int y = layoutTop() + 34;
-
-        presetNameField = new EditBox(this.font, x, y, w, 18, Component.literal("Nom du preset"));
-        presetNameField.setMaxLength(32);
-        presetNameField.setValue("");
-        presetNameField.setHint(Component.literal("Nom du preset"));
-        addRenderableWidget(presetNameField);
-        setInitialFocus(presetNameField);
-        y += 22;
-
-        int half = (w - 6) / 2;
-        addRenderableWidget(Button.builder(Component.literal("Exporter"), b -> {
-                    String json = PresetManager.exportCurrent();
-                    if (json != null) {
-                        this.minecraft.keyboardHandler.setClipboard(json);
-                        status = "Config copiée dans le presse-papiers \u2713";
-                    } else {
-                        status = "Export impossible";
-                    }
-                    rebuild();
-                })
-                .bounds(x, y, half, 18)
-                .build());
-        addRenderableWidget(Button.builder(Component.literal("Importer"), b -> {
-                    String json = this.minecraft.keyboardHandler.getClipboard();
-                    String presetName = presetNameField.getValue();
-                    if (PresetManager.importJson(presetName, json)) {
-                        status = "Preset importé \u2713";
-                    } else {
-                        status = "Import impossible (JSON invalide ?)";
-                    }
-                    rebuild();
-                })
-                .bounds(x + half + 6, y, w - half - 6, 18)
-                .build());
-        y += 22;
-
-        addRenderableWidget(Button.builder(Component.literal("Sauvegarder la config actuelle"), b -> {
-                    if (PresetManager.save(presetNameField.getValue())) {
-                        status = "Preset \u00ab " + PresetManager.sanitize(presetNameField.getValue()) + " \u00bb sauvegardé \u2713";
-                    } else {
-                        status = "Entre d'abord un nom de preset";
-                    }
-                    rebuild();
-                })
-                .bounds(x, y, w, 18)
-                .build());
-        y += 22;
-        addRenderableWidget(Button.builder(Component.literal("Tout désactiver"), b -> {
-                    ModuleManager.disableAll();
-                    ModuleManager.save();
-                    rebuild();
-                })
-                .bounds(x, y, w, 18)
-                .build());
-
-
-        int listY = contentTop();
-        List<String> names = PresetManager.names();
-        int visible = 0;
-        for (int i = presetScroll; i < names.size() && visible < VISIBLE_ROWS; i++) {
-            int rowTop = listY + visible * PRESET_ROW_H;
-            String name = names.get(i);
-            int finalY = rowTop;
-            addRenderableWidget(Button.builder(Component.literal("Appliquer"), b -> {
-                        if (PresetManager.apply(name)) {
-                            status = "Preset \u00ab " + name + " \u00bb appliqué \u2713";
-                        } else {
-                            status = "Application impossible";
-                        }
-                        rebuild();
-                    })
-                    .bounds(x, finalY, half, 17)
-                    .build());
-            addRenderableWidget(Button.builder(Component.literal("\u2715"), b -> {
-                        if (PresetManager.delete(name)) {
-                            status = "Preset \u00ab " + name + " \u00bb supprimé";
-                        }
-                        rebuild();
-                    })
-                    .bounds(x + half + 6, finalY, w - half - 6, 17)
-                    .build());
-            visible++;
-        }
-        if (names.size() > VISIBLE_ROWS) {
-            addRenderableWidget(Button.builder(Component.literal("\u25B2"), b -> {
-                        presetScroll = Math.max(0, presetScroll - 2);
-                        rebuild();
-                    }).bounds(x + w / 2 - 40, listBottom() + 2, 38, 16).build());
-            addRenderableWidget(Button.builder(Component.literal("\u25BC"), b -> {
-                        presetScroll = Math.min(names.size() - 1, presetScroll + 2);
-                        rebuild();
-                    }).bounds(x + w / 2 + 2, listBottom() + 2, 38, 16).build());
-        }
-    }
-
-    private void rebuild() {
-        this.rebuildWidgets();
-    }
-
-    private int layoutTop() {
-        return 34;
-    }
-
-    private int listBottom() {
-        return this.height - 36;
-    }
-
-    private int settingsX() {
-        return LIST_X + LIST_W + GAP;
-    }
-
-    private int settingsW() {
-        return this.width - settingsX() - 16;
-    }
-
-    private int contentTop() {
-        return layoutTop() + 74;
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         super.extractRenderState(graphics, mouseX, mouseY, delta);
-
+        this.graphicsContext = graphics;
         MenuFx.tick();
-        int slide = MenuFx.slideOffset(20);
-        graphics.centeredText(this.font, this.title, this.width / 2, 12 - slide, Palettes.accentAlpha(0xFF));
-
-        int top = layoutTop() - slide;
-        int bottom = listBottom() - slide;
-        Rounded.Canvas cv = graphics::fill;
-        drawPanel(graphics, LIST_X, top, LIST_X + LIST_W, bottom);
-
-        int settingsLeft = settingsX();
-        int settingsWidth = settingsW();
-        drawPanel(graphics, settingsLeft, top, settingsLeft + settingsWidth, bottom);
-
-        if (view != View.PRESETS && !rows.isEmpty()) {
-            int contentTopY = layoutTop() + 44 - slide;
-            for (Row row : rows) {
-                int rowY = row.y - listScroll - slide;
-                if (rowY < contentTopY || rowY + row.h > listBottom()) {
-                    continue;
-                }
-                if (row.category != null) {
-                    Integer count = categoryCounts.get(row.category);
-                    String headerLabel = row.category.label + " \u2014" + (count == null ? "" : " (" + count + ")");
-                    graphics.fill(LIST_X + 2, rowY + 4, LIST_X + 5, rowY + row.h - 4, categoryColor(row.category));
-                    graphics.text(this.font, headerLabel, LIST_X + 8, rowY + 5, categoryColor(row.category), true);
-                } else if (row.module != null && row.module == selected) {
-                    Rounded.stroke(cv, LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, 6, Palettes.accent());
-                }
-            }
-            Row lastRow = rows.get(rows.size() - 1);
-            int maxScroll = Math.max(0, (lastRow.y + lastRow.h - contentTopY) - (listBottom() - contentTopY));
-            if (maxScroll > 0) {
-                int trackH = listBottom() - contentTopY;
-                int contentH = trackH + maxScroll;
-                int thumbH = Math.max(12, trackH * trackH / contentH);
-                int thumbY = contentTopY + (trackH - thumbH) * listScroll / maxScroll;
-                Rounded.rect(cv, LIST_X + LIST_W - 7, contentTopY, LIST_X + LIST_W - 3, listBottom(), 2, 0x30FFFFFF);
-                Rounded.rect(cv, LIST_X + LIST_W - 7, thumbY, LIST_X + LIST_W - 3, thumbY + thumbH, 2, Palettes.accent());
-            }
-        }
-
-        if (view != View.PRESETS && selected != null) {
-            graphics.text(this.font, "\u00A7l" + selected.name, settingsLeft + 8, top + 6, 0xFFFFFFFF, true);
-            int descY = top + 18;
-            for (String descLine : wrap(selected.description, settingsWidth - 16)) {
-                graphics.text(this.font, descLine, settingsLeft + 8, descY, 0xFF8A8A9E, true);
-                descY += 11;
-            }
-            graphics.text(this.font, (view == View.PARAMS
-                            ? "Clic gauche : activer \u00b7 setting/touche ici"
-                            : "Modules : " + ModuleManager.all().size() + " — NTH Utils"),
-                    settingsLeft + 8, bottom - 16, 0xFF556677, true);
-        } else if (view == View.PRESETS) {
-            graphics.text(this.font, "\u00A7lGestion des presets", settingsLeft + 8, top + 6, 0xFFFFFFFF, true);
-            if (status != null) {
-                graphics.text(this.font, status, settingsLeft + 8, top + 18, 0xFF55FFAA, true);
-            }
-        }
+        menu.draw(graphics::fill, mouseX, mouseY);
     }
 
-    private List<String> wrap(String text, int maxWidth) {
-        List<String> lines = new ArrayList<>();
-        if (text == null || text.isBlank()) {
-            return lines;
-        }
-        if (this.font.width(text) <= maxWidth) {
-            lines.add(text);
-            return lines;
-        }
-        StringBuilder sb = new StringBuilder();
-        int lineWidth = 0;
-        for (String word : text.split(" ")) {
-            int w = this.font.width(word + " ");
-            if (lineWidth + w > maxWidth && lineWidth > 0) {
-                lines.add(sb.toString().trim());
-                sb.setLength(0);
-                lineWidth = 0;
+    private void installHooks() {
+        menu.soundClick = UiSounds::click;
+        menu.soundToggle = UiSounds::toggle;
+        menu.requestClose = this::onClose;
+        menu.onLayoutChanged = this::rebuild;
+        menu.clipboardGet = () -> this.minecraft == null ? "" : this.minecraft.keyboardHandler.getClipboard();
+        menu.clipboardSet = v -> {
+            if (this.minecraft != null) {
+                this.minecraft.keyboardHandler.setClipboard(v);
             }
-            sb.append(word).append(' ');
-            lineWidth += w;
-        }
-        if (!sb.isEmpty()) {
-            lines.add(sb.toString().trim());
-        }
-        return lines;
+        };
+        menu.waypointAddHere = () -> Waypoints.addHere(this.minecraft);
+        menu.waypointRemoveLast = Waypoints::removeLast;
+        menu.waypointClear = Waypoints::clear;
+    }
+
+    private void rebuild() {
+        this.rebuildWidgets();
     }
 
     @Override
@@ -532,46 +110,29 @@ public class UtiliKitScreen extends Screen {
         if (super.mouseClicked(event, doubled)) {
             return true;
         }
-        int left = MOUSE_BUTTON_LEFT;
-        int right = left == 0 ? 1 : 3;
-        int button = event.button();
-        if ((button == left || button == right) && view == View.MODULES) {
-            for (Row row : rows) {
-                if (row.module == null) {
-                    continue;
-                }
-                int rowY = row.y - listScroll;
-                if (event.x() >= LIST_X + 2 && event.x() <= LIST_X + LIST_W - 2
-                        && event.y() >= rowY && event.y() < rowY + row.h - 4
-                        && rowY >= layoutTop() + 44 && rowY + row.h - 4 <= listBottom()) {
-                    selected = row.module;
-                    if (button == left) {
-                        dev.utilikit.client.modules.ModuleActions.activate(selected);
-                        UiSounds.toggle();
-                    } else {
-                        KeybindEngine.cancelCapture();
-                        view = View.PARAMS;
-                        listScroll = 0;
-                    }
-                    rebuild();
-                    return true;
-                }
-            }
-            return true;
+        boolean handled = menu.click(event.x(), event.y(), event.button());
+        if (handled) {
+            this.setFocused(null);
         }
-        return false;
+        return handled;
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (view != View.PRESETS
-                && mouseX >= LIST_X && mouseX <= LIST_X + LIST_W
-                && mouseY >= layoutTop() && mouseY <= listBottom()) {
-            listScroll = Math.max(0, listScroll - (int) Math.signum(scrollY) * (ROW_H + 2));
-            rebuild();
+        menu.scroll(scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (menu.capturing()) {
+            menu.captureKey(input.key());
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        if (menu.escape()) {
+            return true;
+        }
+        return super.keyPressed(input);
     }
 
     @Override
@@ -580,80 +141,5 @@ public class UtiliKitScreen extends Screen {
             this.minecraft.setScreen(null);
         }
         super.onClose();
-    }
-
-    private class ModuleSliderWidget extends AbstractSliderButton {
-        private Module module;
-        private Setting.Slider setting;
-
-        ModuleSliderWidget(int x, int y, int width, int height, Module module, Setting.Slider setting) {
-            super(x, y, width, height, Component.empty(),
-                    (setting.value - setting.min) / (setting.max - setting.min));
-            this.module = module;
-            this.setting = setting;
-            updateMessage();
-        }
-
-        @Override
-        protected void updateMessage() {
-            if (setting == null) {
-                return;
-            }
-            setMessage(Component.literal(setting.label + " : " + String.format(Locale.ROOT, "%.1f", setting.value)));
-        }
-
-        @Override
-        protected void applyValue() {
-            if (setting == null || module == null) {
-                return;
-            }
-            setting.value = setting.min + (setting.max - setting.min) * this.value;
-            module.onSettingChanged();
-            ModuleManager.save();
-        }
-    }
-
-    private static int categoryColor(ModuleCategory category) {
-        return switch (category) {
-            case AFFICHAGE -> 0xFF55FFFF;
-            case VISUEL -> 0xFF7CFF6B;
-            case PRATIQUE -> 0xFFFFB14D;
-        };
-    }
-
-    private static String shortLabel(ModuleCategory category) {
-        return switch (category) {
-            case AFFICHAGE -> "Info";
-            case VISUEL -> "Visu";
-            case PRATIQUE -> "Util";
-        };
-    }
-
-    private void drawPanel(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
-        Rounded.Canvas cv = graphics::fill;
-        Rounded.glow(cv, x1 + 2, y1 + 2, x2 - 2, y2 - 2, 10, Palettes.accent(), 5, 0.11F);
-        Rounded.rect(cv, x1, y1, x2, y2, 10, 0xD80B0B15);
-        if (dev.utilikit.client.modules.extra.Gradients.active()) {
-            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1 + 10, y1 + 10, x2 - 10, y2 - 10)) {
-                Rounded.rect(cv, gband[0], gband[1], gband[2], gband[3], 4, gband[4]);
-            }
-        }
-        Rounded.stroke(cv, x1, y1, x2, y2, 10, Palettes.accentAlpha(0x50));
-    }
-
-    private static final class Row {
-        final Module module;
-        final ModuleCategory category;
-        final int y;
-        final int h;
-        final Object extra;
-
-        Row(Module module, ModuleCategory category, int y, int h, Object extra) {
-            this.module = module;
-            this.category = category;
-            this.y = y;
-            this.h = h;
-            this.extra = extra;
-        }
     }
 }
