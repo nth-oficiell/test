@@ -12,7 +12,7 @@ public class PingHudModule extends Module {
     private final Setting.Toggle background;
 
     public PingHudModule() {
-        super("ping", "Ping HUD", "Affiche ta latence avec le serveur en haut à droite de l'écran.", ModuleCategory.AFFICHAGE);
+        super("ping", "Ping HUD", "Affiche ta latence avec le serveur en haut à droite de l'écran.", ModuleCategory.SYSTEME);
         background = new Setting.Toggle("background", "Fond semi-transparent", true);
         settings.add(background);
     }

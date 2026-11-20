@@ -7,7 +7,7 @@ import net.minecraft.client.MinecraftClient;
 
 public class AutoSprintModule extends Module {
     public AutoSprintModule() {
-        super("autosprint", "Auto Sprint", "Sprint automatique dès que tu marches vers l'avant.", ModuleCategory.PRATIQUE);
+        super("autosprint", "Auto Sprint", "Sprint automatique dès que tu marches vers l'avant.", ModuleCategory.JEU);
     }
 
     public static void tick() {

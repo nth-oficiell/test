@@ -332,7 +332,7 @@ public final class ClientIntegrations {
                         + " / max " + fpsMax));
         ModuleManager.register(new InfoModule("ram", "Mémoire (RAM)",
                 "Affiche la mémoire utilisée et allouée par le jeu.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Runtime runtime = Runtime.getRuntime();
                     long used = (runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L);
@@ -427,14 +427,14 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("server", "Serveur",
                 "Affiche l'adresse du serveur sur lequel tu es connecté.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     return "Serveur : " + (client.getCurrentServer() != null ? client.getCurrentServer().ip : "Solo");
                 }));
         ModuleManager.register(new InfoModule("brand", "Marque du serveur",
                 "Affiche la plateforme du serveur (vanilla, paper...).",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.getConnection() == null) {
@@ -463,11 +463,11 @@ public final class ClientIntegrations {
                 game -> "Heure réelle : " + LocalTime.now().format(IRL_FORMAT)));
         ModuleManager.register(new InfoModule("playername", "Pseudo",
                 "Affiche ton pseudo.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> "Pseudo : " + String.valueOf(player(game).getName())));
         ModuleManager.register(new InfoModule("uuid", "UUID",
                 "Affiche ton UUID.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> "UUID : " + player(game).getUUID()));
         ModuleManager.register(new InfoModule("nether", "Coordonnées Nether",
                 "Convertit tes coordonnées en coordonnées Nether/Overworld selon la dimension.",
@@ -486,7 +486,7 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("gamemode", "Mode de jeu",
                 "Affiche ton mode de jeu actuel.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     LocalPlayer player = player(game);
                     if (player.isSpectator()) {
@@ -499,7 +499,7 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("targetblock", "Bloc visé",
                 "Affiche le nom du bloc que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (!(client.hitResult instanceof BlockHitResult hit) || client.level == null) {
@@ -510,7 +510,7 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("targetentity", "Entité visée",
                 "Affiche le nom de l'entité que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.hitResult instanceof EntityHitResult hit) {
@@ -520,7 +520,7 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("targetdist", "Distance de visée",
                 "Affiche la distance avec ce que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     LocalPlayer player = player(game);
@@ -536,11 +536,11 @@ public final class ClientIntegrations {
                 }));
         ModuleManager.register(new InfoModule("attackcd", "Recharge d'attaque",
                 "Affiche la recharge de ton attaque en pourcentage.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Recharge d'attaque : " + (int) (player(game).getAttackStrengthScale(0.0F) * 100.0F) + "%"));
         ModuleManager.register(new InfoModule("fall", "Hauteur de chute",
                 "Affiche la hauteur de chute en cours.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     double fall = player(game).fallDistance;
                     return fall > 0.5D ? "Chute : " + String.format(Locale.ROOT, "%.1f", fall) + " m" : null;
@@ -575,7 +575,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("compass", "Boussole",
                 "Affiche ton orientation pr\u00e9cise (Nord, Nord-Est...).",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.AFFICHAGE,
                 game -> {
                     LocalPlayer player = player(game);
                     String[] points = {"Sud", "Sud-Ouest", "Ouest", "Nord-Ouest", "Nord", "Nord-Est", "Est", "Sud-Est"};
@@ -585,7 +585,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("window", "R\u00e9solution \u00e9cran",
                 "Affiche la r\u00e9solution de ta fen\u00eatre de jeu.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     return "R\u00e9solution : " + client.getWindow().getWidth()
@@ -594,7 +594,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("guisize", "Taille interface",
                 "Affiche la taille en pixels de ton interface.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     return "Interface : " + client.getWindow().getGuiScaledWidth()
@@ -603,7 +603,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("pinginfo", "Ping d\u00e9taill\u00e9",
                 "Affiche ton ping (latence) vers le serveur.",
-                ModuleCategory.AFFICHAGE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.getConnection() == null || client.player == null) {
@@ -615,7 +615,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("difficulty", "Difficult\u00e9",
                 "Affiche la difficult\u00e9 du monde en cours.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.level == null) {
@@ -627,47 +627,47 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("effects", "Effets actifs",
                 "Compte tes effets de potion actifs.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.AFFICHAGE,
                 game -> "Effets : " + player(game).getActiveEffects().size()));
 
         ModuleManager.register(new InfoModule("flying", "Vol",
                 "Indique si tu es en train de voler.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Vol : " + (player(game).getAbilities().flying ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("vehicle", "V\u00e9hicule",
                 "Indique si tu chevauches une entit\u00e9.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "V\u00e9hicule : " + (player(game).isPassenger() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("sneak", "Accroupi",
                 "Indique si tu es accroupi.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Accroupi : " + (player(game).isShiftKeyDown() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("sprint", "Sprint",
                 "Indique si tu sprintes.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Sprint : " + (player(game).isSprinting() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("underwater", "Sous l'eau",
                 "Indique si ta t\u00eate est sous l'eau.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Sous l'eau : " + (player(game).isUnderWater() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("onfire", "En feu",
                 "Indique si tu es en feu.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "En feu : " + (player(game).isOnFire() ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("java", "Version Java",
                 "Affiche la version de Java utilis\u00e9e par le jeu.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> "Java : " + System.getProperty("java.version")));
 
         ModuleManager.register(new InfoModule("os", "Syst\u00e8me",
                 "Affiche ton syst\u00e8me d'exploitation et ton architecture.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> "OS : " + System.getProperty("os.name")
                         + " (" + String.valueOf(System.getProperty("os.arch")).replace("amd64", "x64") + ")"));
 
@@ -678,12 +678,12 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("singleplayer", "Solo / Multi",
                 "Indique si tu joues en solo ou en ligne.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> "Mode : " + (isSingleplayer(Minecraft.getInstance()) ? "Solo" : "En ligne")));
 
         ModuleManager.register(new InfoModule("heldcount", "Quantit\u00e9 en main",
                 "Affiche le nombre d'objets empil\u00e9s dans ta main.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "Qt\u00e9 en main : " + player(game).getMainHandItem().getCount()));
 
         ModuleManager.register(new InfoModule("blockunder", "Bloc sous les pieds",
@@ -700,7 +700,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("targetpos", "Position vis\u00e9e",
                 "Affiche les coordonn\u00e9es du bloc que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (!(client.hitResult instanceof BlockHitResult hit) || client.level == null) {
@@ -794,7 +794,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("durabilhand", "Durabilit\u00e9 % main",
                 "Affiche la durabilit\u00e9 restante de ton objet en main en pourcentage.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     net.minecraft.world.item.ItemStack stack = player(game).getMainHandItem();
                     if (stack.isEmpty()) {
@@ -809,7 +809,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("targetface", "Face vis\u00e9e",
                 "Affiche la face du bloc que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.hitResult instanceof BlockHitResult hit) {
@@ -820,7 +820,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("targetlife", "Vie vis\u00e9e",
                 "Affiche les points de vie de l'entit\u00e9 vis\u00e9e.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.hitResult instanceof EntityHitResult hit
@@ -833,7 +833,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("targetcoords", "Entit\u00e9 vis\u00e9e (pos)",
                 "Affiche la position de l'entit\u00e9 que tu vises.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> {
                     Minecraft client = (Minecraft) game;
                     if (client.hitResult instanceof EntityHitResult hit) {
@@ -844,7 +844,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("hurt", "D\u00e9g\u00e2ts r\u00e9cents",
                 "Indique si tu viens de recevoir des d\u00e9g\u00e2ts.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.JEU,
                 game -> "D\u00e9g\u00e2ts r\u00e9cents : " + (player(game).hurtTime > 0 ? "Oui" : "Non")));
 
         ModuleManager.register(new InfoModule("origin", "Distance au 0,0",
@@ -861,13 +861,13 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("modcount", "Mods charg\u00e9s",
                 "Affiche le nombre de mods charg\u00e9s par Fabric.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> "Mods charg\u00e9s : "
                         + net.fabricmc.loader.api.FabricLoader.getInstance().getAllMods().size()));
 
         ModuleManager.register(new InfoModule("about", "\u00c0 propos",
                 "Affiche la version de NTH Utils install\u00e9e.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("utilikit");
                     String version = container
@@ -877,7 +877,7 @@ public final class ClientIntegrations {
 
         ModuleManager.register(new InfoModule("fabricver", "Version Fabric",
                 "Affiche la version de Fabric Loader et de Fabric API.",
-                ModuleCategory.PRATIQUE,
+                ModuleCategory.SYSTEME,
                 game -> {
                     var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
                     var container = loader.getModContainer("fabric-api");

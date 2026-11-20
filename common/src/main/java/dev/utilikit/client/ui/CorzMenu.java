@@ -88,12 +88,12 @@ public final class CorzMenu {
         }
     }
 
-    private static final int RAIL_X = 18;
-    private static final int RAIL_B = 40;
-    private static final int RAIL_GAP = 8;
+    private static final int RAIL_X = 10;
+    private static final int RAIL_W = 108;
+    private static final int RAIL_GAP = 5;
     private static final int PANEL_TOP = 32;
-    private static final int PANEL_W = 232;
-    private static final int ROW_H = 24;
+    private static final int PANEL_W = 236;
+    private static final int ROW_H = 30;
     private static final int HEADER_H = 18;
 
     public Mode mode = Mode.MODULES;
@@ -118,8 +118,8 @@ public final class CorzMenu {
     private int w;
     private int h;
     private int railX = RAIL_X;
-    private int railB = RAIL_B;
-    private int railY;
+    private int railB = 22;
+    private int[] railYs = new int[0];
     private int panelX;
     private int panelW;
     private int panelBottom = 200;
@@ -150,7 +150,7 @@ public final class CorzMenu {
     private Pen pen;
 
     public int railCount() {
-        return 1 + ModuleCategory.values().length + 1;
+        return ModuleCategory.values().length + 1;
     }
 
     public int searchFieldX() {
@@ -187,10 +187,15 @@ public final class CorzMenu {
         this.w = width;
         this.h = height;
         int entries = railCount();
-        int needed = entries * (RAIL_B + RAIL_GAP) - RAIL_GAP;
-        railB = needed <= height - 48 ? RAIL_B : Math.max(20, (height - 48 - (entries - 1) * RAIL_GAP) / entries);
-        railY = Math.max(24, (height - (entries * railB + (entries - 1) * RAIL_GAP)) / 2);
-        panelX = RAIL_X + RAIL_B + 16;
+        railB = Math.max(16, Math.min(26, (height - 74 - (entries - 1) * RAIL_GAP) / entries));
+        railYs = new int[entries];
+        for (int i = 0; i <= 4 && i < entries; i++) {
+            railYs[i] = 40 + i * (railB + RAIL_GAP);
+        }
+        if (entries > 5) {
+            railYs[5] = railYs[4] + railB + 26;
+        }
+        panelX = railX + RAIL_W + 12;
         panelW = Math.min(PANEL_W, Math.max(150, width - panelX - 16));
         panelBottom = Math.max(130, height - 32);
         buildFieldRects();
@@ -362,6 +367,11 @@ public final class CorzMenu {
             return;
         }
 
+        pen.text("\u00a7lNTH UTILS", 12, 10 + oy, accent);
+        String time = java.time.LocalTime.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+        pen.text(time, w - 12 - pen.width(time), 10 + oy, 0xFF9A9AB0);
+
         drawRail(cv, oy, accent, fade);
 
         int t = PANEL_TOP + oy;
@@ -414,62 +424,87 @@ public final class CorzMenu {
 
     private void drawRail(Rounded.Canvas cv, int oy, int accent, float fade) {
         int n = railCount();
-        int bg1 = railY - 10 + oy;
-        int bg2 = railY + n * (railB + RAIL_GAP) - RAIL_GAP + 10 + oy;
-        Rounded.glow(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, accent, 3, 0.08F);
-        Rounded.rect(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, 0xC60D0D15);
-        Rounded.stroke(cv, railX - 6, bg1, railX + railB + 6, bg2, 12, Palettes.accentAlpha(0x38));
+        int x1 = railX - 6;
+        int x2 = railX + RAIL_W + 6;
+        int bg1 = railYs[0] - 16 + oy;
+        int bg2 = railYs[n - 1] + railB + 10 + oy;
+        Rounded.glow(cv, x1, bg1, x2, bg2, 12, accent, 3, 0.08F);
+        Rounded.rect(cv, x1, bg1, x2, bg2, 12, 0xC60D0D15);
+        Rounded.stroke(cv, x1, bg1, x2, bg2, 12, Palettes.accentAlpha(0x38));
+
+        pen.text("\u00a77MODULES", railX + 2, bg1 + 5 + oy, 0xFF6E6E82);
+        pen.text("\u00a77G\u00c9N\u00c9RAL", railX + 2, railYs[4] + railB + 6 + oy, 0xFF6E6E82);
 
         for (int i = 0; i < n; i++) {
-            int bx = railX;
-            int by = railY + i * (railB + RAIL_GAP) + oy;
             boolean active;
             String label;
             int color;
             if (i == n - 1) {
                 active = mode == Mode.PRESETS;
-                label = "\u2605";
+                label = "Presets";
                 color = 0xFFFFD44D;
-            } else if (i == 0) {
-                active = mode == Mode.MODULES && filter == null;
-                label = "TO";
-                color = accent;
             } else {
-                ModuleCategory cat = ModuleCategory.values()[i - 1];
+                ModuleCategory cat = ModuleCategory.values()[i];
                 active = mode == Mode.MODULES && filter == cat;
-                label = cat.label.substring(0, Math.min(2, cat.label.length())).toUpperCase();
+                label = cat.label;
                 color = categoryColor(cat);
             }
+            int bx = railX;
+            int by = railYs[i] + oy;
             float hover = MenuFx.approach("rail#" + i,
-                    hovered(mx, my, bx, by, bx + railB, by + railB) ? 1.0F : 0.0F);
+                    hovered(mx, my, bx, by, bx + RAIL_W, by + railB) ? 1.0F : 0.0F);
             int on = active ? (((int) (0x9E * fade)) << 24) | (color & 0xFFFFFF)
-                    : (hover > 0.02F ? ((int) (46.0F * hover)) << 24 : 0);
+                    : (hover > 0.02F ? ((int) (40.0F * hover)) << 24 : 0);
             if (on != 0) {
-                Rounded.rect(cv, bx, by, bx + railB, by + railB, 10, on);
+                Rounded.rect(cv, bx, by, bx + RAIL_W, by + railB, 8, on);
             }
             if (active || hover > 0.02F) {
-                Rounded.stroke(cv, bx, by, bx + railB, by + railB, 10,
-                        active ? 0xFFEAEAFF : (((int) (hover * 200.0F)) << 24) | (color & 0xFFFFFF));
+                Rounded.stroke(cv, bx, by, bx + RAIL_W, by + railB, 8,
+                        active ? 0xFFEAEAFF : (((int) (hover * 190.0F)) << 24) | (color & 0xFFFFFF));
             }
-            pen.textCenter(label, bx + railB / 2.0D, by + railB / 2.0D - 4, active ? 0xFF0B0B14 : color);
-            if (hover > 0.25F && !active) {
-                int nameW = pen.width(railName(i)) + 16;
-                int tx = bx + railB + 10;
-                Rounded.rect(cv, tx, by + 8, tx + nameW, by + railB - 8, 7, 0xD010101C);
-                pen.text(railName(i), tx + 8, by + railB / 2.0D - 4, 0xFFE6E6F2);
+            int iconColor = active ? 0xFF0B0B14 : color;
+            int iconY = by + railB / 2 - 5;
+            if (i == n - 1) {
+                pen.text("\u2605", bx + 8, iconY + 1, iconColor);
+            } else {
+                drawIcon(cv, i, bx + 8, iconY, iconColor);
             }
+            pen.text(label, bx + 26, by + railB / 2.0D - 4, active ? 0xFF0B0B14 : 0xFFB4BAC8);
         }
     }
 
-    private String railName(int index) {
-        int n = railCount();
-        if (index == n - 1) {
-            return "Presets";
+    private void drawIcon(Rounded.Canvas cv, int kind, int x, int y, int color) {
+        switch (kind) {
+            case 0 -> {
+                Rounded.stroke(cv, x - 2, y + 1, x + 12, y + 9, 4, color);
+                Rounded.rect(cv, x + 3, y + 3, x + 7, y + 7, 2, color);
+            }
+            case 1 -> {
+                Rounded.rect(cv, x + 3, y + 1, x + 7, y + 5, 2, color);
+                Rounded.rect(cv, x + 4, y - 2, x + 6, y, 1, color);
+                Rounded.rect(cv, x + 4, y + 6, x + 6, y + 8, 1, color);
+                Rounded.rect(cv, x, y + 1, x + 2, y + 3, 1, color);
+                Rounded.rect(cv, x + 8, y + 1, x + 10, y + 3, 1, color);
+            }
+            case 2 -> {
+                for (int i = 0; i < 9; i++) {
+                    Rounded.rect(cv, x + 1 + i, y + 8 - i, x + 3 + i, y + 10 - i, 0, color);
+                }
+                Rounded.rect(cv, x - 1, y + 6, x + 3, y + 8, 0, color);
+            }
+            case 3 -> {
+                Rounded.rect(cv, x, y + 1, x + 10, y + 3, 1, color);
+                Rounded.rect(cv, x, y + 6, x + 10, y + 8, 1, color);
+                Rounded.rect(cv, x + 1, y, x + 5, y + 4, 1, color);
+                Rounded.rect(cv, x + 6, y + 5, x + 10, y + 9, 1, color);
+            }
+            default -> {
+                Rounded.rect(cv, x, y, x + 4, y + 4, 1, color);
+                Rounded.rect(cv, x + 6, y, x + 10, y + 4, 1, color);
+                Rounded.rect(cv, x, y + 6, x + 4, y + 10, 1, color);
+                Rounded.rect(cv, x + 6, y + 6, x + 10, y + 10, 1, color);
+            }
         }
-        if (index == 0) {
-            return "Tous";
-        }
-        return ModuleCategory.values()[index - 1].label;
     }
 
     private void drawModuleList(Rounded.Canvas cv, int oy, int accent) {
@@ -496,14 +531,47 @@ public final class CorzMenu {
                 }
                 int dot = mod.enabled ? 0xFF55FF88 : 0xFFFF5566;
                 Rounded.rect(cv, panelX + 13, y + row.h / 2 - 2, panelX + 17, y + row.h / 2 + 2, 2, dot);
-                pen.text(mod.name, panelX + 24, y + 8, mod.enabled ? 0xFFFFFFFF : 0xFFA8A8BC);
-                pen.text(mod.enabled ? "\u2713" : "\u00b7", panelX + panelW - 14, y + 8,
+                pen.text(mod.name, panelX + 23, y + 4, mod.enabled ? 0xFFFFFFFF : 0xFFA8A8BC);
+                String sub = mod.keyCode > 0
+                        ? "\u00a77Touche : \u00a7f" + KeyNames.keyName(mod.keyCode)
+                        : "\u00a77" + ellipsize(mod.description, panelW - 48);
+                pen.text(sub, panelX + 23, y + 17, 0xFF6E6E82);
+                pen.text(mod.enabled ? "\u2713" : "\u00b7", panelX + panelW - 14, y + 11,
                         mod.enabled ? 0xFF55FF88 : 0xFF5A5A6E);
             }
         }
         if (listMax > 0) {
             drawScrollbar(cv, panelX + panelW - 5, viewTop, viewBottom, listScroll, listMax, accent);
         }
+    }
+
+    private String ellipsize(String s, int maxW) {
+        if (s == null || s.isEmpty()) {
+            return "clic droit : r\u00e9glages";
+        }
+        if (pen.width(s) <= maxW) {
+            return s;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String word : s.split(" ")) {
+            if (pen.width(sb + word) > maxW - 8) {
+                break;
+            }
+            sb.append(word).append(' ');
+        }
+        String out = sb.toString().trim();
+        return out.isEmpty() ? shortWord(s) : out + " \u2026";
+    }
+
+    private String shortWord(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int j = 0; j < s.length(); j++) {
+            if (pen.width(sb + "\u2026") > 60) {
+                break;
+            }
+            sb.append(s.charAt(j));
+        }
+        return sb + "\u2026";
     }
 
     private Integer countOf(ModuleCategory cat) {
@@ -739,10 +807,9 @@ public final class CorzMenu {
             }
             return clickRows(x, y, button);
         }
-        for (int i = 0; i < railCount(); i++) {
-            int bx = railX;
-            int by = railY + i * (railB + RAIL_GAP);
-            if (inside(x, y, bx, by, bx + railB, by + railB)) {
+        for (int i = 0; i < railCount() && i < railYs.length; i++) {
+            int by = railYs[i];
+            if (inside(x, y, railX, by, railX + RAIL_W, by + railB)) {
                 clickRail(i);
                 return true;
             }
@@ -762,13 +829,16 @@ public final class CorzMenu {
                 layoutChanged();
             }
         } else {
-            ModuleCategory cat = index == 0 ? null : ModuleCategory.values()[index - 1];
+            ModuleCategory cat = ModuleCategory.values()[index];
             if (mode != Mode.MODULES || filter != cat) {
                 mode = Mode.MODULES;
                 filter = cat;
                 listScroll = 0;
-                layoutChanged();
+            } else {
+                filter = null;
+                listScroll = 0;
             }
+            layoutChanged();
         }
         if (soundClick != null) {
             soundClick.run();
@@ -1030,6 +1100,8 @@ public final class CorzMenu {
         return switch (category) {
             case AFFICHAGE -> 0xFF55FFFF;
             case VISUEL -> 0xFF7CFF6B;
+            case JEU -> 0xFFFF5566;
+            case SYSTEME -> 0xFF5B9CFF;
             case PRATIQUE -> 0xFFFFB14D;
         };
     }
