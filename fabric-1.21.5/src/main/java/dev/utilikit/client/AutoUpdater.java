@@ -207,7 +207,7 @@ public final class AutoUpdater {
     private static Manifest fetchManifest() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(SITE + "downloads/manifest.json"))
+                    .uri(URI.create(SITE + "downloads/manifest.json?v=" + System.currentTimeMillis()))
                     .timeout(Duration.ofSeconds(10))
                     .header("User-Agent", "NTH-Utils")
                     .GET().build();
