@@ -442,17 +442,16 @@ public class UtiliKitScreen extends Screen {
 
         MenuFx.tick();
         int slide = MenuFx.slideOffset(20);
-        graphics.centeredText(this.font, this.title, this.width / 2, 12 - slide, 0xFF55FFFF);
+        graphics.centeredText(this.font, this.title, this.width / 2, 12 - slide, Palettes.accentAlpha(0xFF));
 
         int top = layoutTop() - slide;
         int bottom = listBottom() - slide;
+        Rounded.Canvas cv = graphics::fill;
         drawPanel(graphics, LIST_X, top, LIST_X + LIST_W, bottom);
-        graphics.outline(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
         drawPanel(graphics, settingsLeft, top, settingsLeft + settingsWidth, bottom);
-        graphics.outline(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         if (view != View.PRESETS && !rows.isEmpty()) {
             int contentTopY = layoutTop() + 44 - slide;
@@ -467,7 +466,7 @@ public class UtiliKitScreen extends Screen {
                     graphics.fill(LIST_X + 2, rowY + 4, LIST_X + 5, rowY + row.h - 4, categoryColor(row.category));
                     graphics.text(this.font, headerLabel, LIST_X + 8, rowY + 5, categoryColor(row.category), true);
                 } else if (row.module != null && row.module == selected) {
-                    graphics.outline(LIST_X + 2, rowY - 2, LIST_W - 4, row.h, 0xFF61B8FF);
+                    Rounded.stroke(cv, LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, 6, Palettes.accent());
                 }
             }
             Row lastRow = rows.get(rows.size() - 1);
@@ -477,8 +476,8 @@ public class UtiliKitScreen extends Screen {
                 int contentH = trackH + maxScroll;
                 int thumbH = Math.max(12, trackH * trackH / contentH);
                 int thumbY = contentTopY + (trackH - thumbH) * listScroll / maxScroll;
-                graphics.fill(LIST_X + LIST_W - 6, contentTopY, LIST_X + LIST_W - 4, listBottom(), 0x40FFFFFF);
-                graphics.fill(LIST_X + LIST_W - 6, thumbY, LIST_X + LIST_W - 4, thumbY + thumbH, 0xFF61B8FF);
+                Rounded.rect(cv, LIST_X + LIST_W - 7, contentTopY, LIST_X + LIST_W - 3, listBottom(), 2, 0x30FFFFFF);
+                Rounded.rect(cv, LIST_X + LIST_W - 7, thumbY, LIST_X + LIST_W - 3, thumbY + thumbH, 2, Palettes.accent());
             }
         }
 
@@ -631,13 +630,15 @@ public class UtiliKitScreen extends Screen {
     }
 
     private void drawPanel(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
+        Rounded.Canvas cv = graphics::fill;
+        Rounded.glow(cv, x1 + 2, y1 + 2, x2 - 2, y2 - 2, 10, Palettes.accent(), 5, 0.11F);
+        Rounded.rect(cv, x1, y1, x2, y2, 10, 0xD80B0B15);
         if (dev.utilikit.client.modules.extra.Gradients.active()) {
-            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1, y1, x2, y2)) {
-                graphics.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1 + 10, y1 + 10, x2 - 10, y2 - 10)) {
+                Rounded.rect(cv, gband[0], gband[1], gband[2], gband[3], 4, gband[4]);
             }
-            return;
         }
-        graphics.fill(x1, y1, x2, y2, 0xC0101018);
+        Rounded.stroke(cv, x1, y1, x2, y2, 10, Palettes.accentAlpha(0x50));
     }
 
     private static final class Row {

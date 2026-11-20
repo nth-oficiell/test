@@ -252,6 +252,7 @@ public final class ExtraModules {
         module.settings.add(new Setting.Text("c1", "Couleur 1 (hex, ex : #7A3CFF)", "#7A3CFF"));
         module.settings.add(new Setting.Text("c2", "Couleur 2 (hex, ex : #00FFC8)", "#00FFC8"));
         module.settings.add(new Setting.Slider("dir", "Direction (0 vertical, 1 horizontal, 2 diagonale)", 0.0D, 2.0D, 0.0D));
+        module.settings.add(new Setting.Slider("palette", "Palette (0 NTH, 1 Oc\u00e9an, 2 Coucher, 3 Toxic, 4 Sang, 5 Or, 6 Menthe, 7 Givre)", 0.0D, 7.0D, 0.0D));
         module.settings.add(new Setting.Slider("alpha", "Opacit\u00e9 (%)", 0.0D, 100.0D, 60.0D));
         return module;
     }

@@ -164,7 +164,7 @@ public class UtiliKitScreen extends Screen {
 
     private void renderCustom(DrawContext context, int mouseX, int mouseY) {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title,
-                this.width / 2, 12, 0xFF55FFFF);
+                this.width / 2, 12, Palettes.accentAlpha(0xFF));
 
         MenuFx.tick();
         int slide = MenuFx.slideOffset(20);
@@ -175,13 +175,12 @@ public class UtiliKitScreen extends Screen {
 
         int top = layoutTop();
         int bottom = listBottom();
+        Rounded.Canvas cv = context::fill;
         drawPanel(context, LIST_X, top, LIST_X + LIST_W, bottom);
-        context.drawBorder(LIST_X, top, LIST_W, bottom - top, 0xFF3A3A52);
 
         int settingsLeft = settingsX();
         int settingsWidth = settingsW();
         drawPanel(context, settingsLeft, top, settingsLeft + settingsWidth, bottom);
-        context.drawBorder(settingsLeft, top, settingsWidth, bottom - top, 0xFF3A3A52);
 
         if (view == View.MODULES) {
             drawChips(context);
@@ -200,13 +199,11 @@ public class UtiliKitScreen extends Screen {
             } else if (row.module != null) {
                 boolean hovered = isOverRow(row, rowY, mouseX, mouseY);
                 float hoverFade = MenuFx.approach(row.module, hovered ? 1.0F : 0.0F);
-                int bg = row.module == selected ? 0x50FFFFFF
-                        : (hoverFade > 0.02F ? ((int) (40.0F * hoverFade)) << 24 : 0x00000000);
-                if (bg != 0) {
-                    context.fill(LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, bg);
-                }
+                Rounded.rect(cv, LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, 6,
+                        row.module == selected ? Palettes.accentAlpha(0x58)
+                                : (hoverFade > 0.02F ? ((int) (40.0F * hoverFade)) << 24 : 0x00000000));
                 if (row.module == selected) {
-                    context.drawBorder(LIST_X + 1, rowY - 1, LIST_W - 2, row.h + 2, 0xFF61B8FF);
+                    Rounded.stroke(cv, LIST_X + 2, rowY, LIST_X + LIST_W - 2, rowY + row.h, 6, Palettes.accent());
                 }
                 int statusColor = row.module.enabled ? 0xFF55FF55 : 0xFFFF5555;
                 context.fill(LIST_X + 6, rowY + row.h / 2 - 1, LIST_X + 10, rowY + row.h / 2 + 3, statusColor);
@@ -221,8 +218,8 @@ public class UtiliKitScreen extends Screen {
             int contentH = trackH + moduleMaxScroll;
             int thumbH = Math.max(12, trackH * trackH / contentH);
             int thumbY = trackTop + (trackH - thumbH) * moduleScroll / moduleMaxScroll;
-            context.fill(LIST_X + LIST_W - 6, trackTop, LIST_X + LIST_W - 4, bottom, 0x40FFFFFF);
-            context.fill(LIST_X + LIST_W - 6, thumbY, LIST_X + LIST_W - 4, thumbY + thumbH, 0xFF61B8FF);
+            Rounded.rect(cv, LIST_X + LIST_W - 7, trackTop, LIST_X + LIST_W - 3, bottom, 2, 0x30FFFFFF);
+            Rounded.rect(cv, LIST_X + LIST_W - 7, thumbY, LIST_X + LIST_W - 3, thumbY + thumbH, 2, Palettes.accent());
         }
 
         if (view != View.PRESETS && selected != null) {
@@ -614,10 +611,11 @@ public class UtiliKitScreen extends Screen {
             ModuleCategory category = i == 0 ? null : ModuleCategory.values()[i - 1];
             boolean on = category == null ? activeCategory == null : category == activeCategory;
             int cx = LIST_X + i * (seg + 2);
-            int accent = category == null ? 0xFF61B8FF : categoryColor(category);
-            context.fill(cx, chipY, cx + seg, chipY + 16, on ? accent : 0x40303A55);
+            int accent = category == null ? Palettes.accent() : categoryColor(category);
+            Rounded.rect(context::fill, cx, chipY, cx + seg, chipY + 16, 6, on ? accent : 0x40303A55);
             if (on) {
-                context.drawBorder(cx, chipY, seg, 16, 0xFFEAEAFF);
+                Rounded.glow(context::fill, cx, chipY + 3, cx + seg, chipY + 13, 5, accent, 2, 0.30F);
+                Rounded.stroke(context::fill, cx, chipY, cx + seg, chipY + 16, 6, 0xFFEAEAFF);
             }
             String label = category == null ? "Tous" : shortLabel(category);
             String chipLabel = (on ? "\u25cf " : "") + label;
@@ -628,13 +626,15 @@ public class UtiliKitScreen extends Screen {
     }
 
     private void drawPanel(DrawContext context, int x1, int y1, int x2, int y2) {
+        Rounded.Canvas cv = context::fill;
+        Rounded.glow(cv, x1 + 2, y1 + 2, x2 - 2, y2 - 2, 10, Palettes.accent(), 5, 0.11F);
+        Rounded.rect(cv, x1, y1, x2, y2, 10, 0xD80B0B15);
         if (dev.utilikit.client.modules.extra.Gradients.active()) {
-            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1, y1, x2, y2)) {
-                context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
+            for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x1 + 10, y1 + 10, x2 - 10, y2 - 10)) {
+                Rounded.rect(cv, gband[0], gband[1], gband[2], gband[3], 4, gband[4]);
             }
-            return;
         }
-        context.fill(x1, y1, x2, y2, 0xC0101018);
+        Rounded.stroke(cv, x1, y1, x2, y2, 10, Palettes.accentAlpha(0x50));
     }
 
     private static final class Row {
