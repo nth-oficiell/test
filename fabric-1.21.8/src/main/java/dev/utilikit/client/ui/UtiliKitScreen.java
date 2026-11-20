@@ -169,8 +169,8 @@ public class UtiliKitScreen extends Screen {
         MenuFx.tick();
         int slide = MenuFx.slideOffset(20);
         if (slide > 0) {
-            context.getMatrices().push();
-            context.getMatrices().translate(0.0F, -slide, 0.0F);
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(0.0F, -slide);
         }
 
         int top = layoutTop();
@@ -253,7 +253,7 @@ public class UtiliKitScreen extends Screen {
                 "\u00a77Clic gauche : activer \u00b7 Clic droit : param\u00e8tres + touche",
                 LIST_X, this.height - 44, 0xFF777788);
         if (slide > 0) {
-            context.getMatrices().pop();
+            context.getMatrices().popMatrix();
         }
     }
 
