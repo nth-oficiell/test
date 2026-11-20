@@ -262,7 +262,11 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:24px">
       <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
         <img src="screenshots/menu-principal.png" alt="Menu principal NTH Utils" loading="lazy" style="width:100%;border-radius:8px;display:block">
-        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Menu principal — rail latéral, modules et paramètres empilés (clic droit sur un module)</figcaption>
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Menu principal — rail à sections façon Corz : 5 catégories (Affichage, Visuel, Jeu, Système, Pratique) + Presets, header avec horloge, modules sur 2 lignes</figcaption>
+      </figure>
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
+        <img src="screenshots/menu-parametres.png" alt="Paramètres d'un module NTH Utils" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Paramètres d'un module — clic droit sur un module : sliders, toggles, keybind configurable</figcaption>
       </figure>
       <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
         <img src="screenshots/presets.png" alt="Gestion des presets" loading="lazy" style="width:100%;border-radius:8px;display:block">
@@ -346,29 +350,33 @@
 <script>
 const MODULES = {
   "Affichage": [
-    "HUD Infos", "Coordonnées", "Altitude", "Chunk", "Direction visuelle", "Angles de vue",
-    "Biome", "Dimension", "Lumière", "Heure du monde", "Jour du monde", "FPS info",
-    "FPS min/moy/max", "Mémoire (RAM)", "Vitesse", "Vitesse verticale", "Distance parcourue",
-    "Compteur de pas", "Vie", "Faim", "Saturation", "Air", "Niveau XP", "Progression XP",
-    "XP total", "Armure", "Objet en main", "Durabilité en main", "Météo", "Serveur",
-    "Marque du serveur", "Temps de session", "Entités proches", "Heure réelle", "Pseudo",
-    "UUID", "Ping HUD", "Keystrokes", "Durabilité",
-    "Phase de lune", "Période", "Résolution écran", "Taille interface", "Ping détaillé", "Bloc sous les pieds",
-    "Position arrondie", "Chunk local", "Jour écoulé", "Main secondaire", "Pièces d'armure", "Empilement max main",
-    "CPS", "Vitesse km/h", "Waypoints", "Vie monture", "Chrono", "Clics totaux"
-  ],
-  "Pratique": [
-    "Coordonnées Nether", "Mode de jeu", "Bloc visé", "Entité visée", "Distance de visée",
-    "Recharge d'attaque", "Hauteur de chute", "Auto Sprint", "Copier Coordonnées",
-    "Boussole", "Difficulté", "Effets actifs", "Vol", "Véhicule", "Accroupi", "Sprint",
-    "Sous l'eau", "En feu", "Java", "Système", "Plein écran", "Solo / Multi", "Message auto", "Reconnexion auto", "Anti AFK", "Mention chat", "Alerte vie",
-    "Quantité en main", "Position visée",
-    "Durabilité % main", "Face visée", "Vie visée", "Entité visée (pos)", "Dégâts récents",
-    "Distance au 0,0", "Mods chargés", "À propos", "Version Fabric", "Chrono reset", "Log de chat", "Alerte faim", "Alerte durabilité", "Sons d'interface"
+    "Air", "Altitude", "Angles de vue", "Armure", "Biome", "Bloc sous les pieds", "Boussole", "CPS", "Chrono",
+    "Chunk", "Chunk local", "Clics totaux", "Compteur de pas", "Coordonnées", "Dimension", "Direction visuelle",
+    "Distance parcourue", "Durabilité", "Durabilité en main", "Effets actifs", "Empilement max main", "Entités proches",
+    "FPS info", "FPS min/moy/max", "Faim", "HUD Infos", "Heure du monde", "Heure réelle", "Jour du monde",
+    "Jour écoulé", "Keystrokes", "Lumière", "Main secondaire", "Météo", "Niveau XP", "Objet en main", "Phase de lune",
+    "Pièces d'armure", "Position arrondie", "Progression XP", "Période", "Saturation", "Temps de session",
+    "Vie", "Vie monture", "Vitesse", "Vitesse km/h", "Vitesse verticale", "XP total"
   ],
   "Visuel": [
-    "FullBright", "Zoom", "No Hurt Cam", "Limite FPS", "FOV personnalisé",
-    "Caméra lisse", "Anti Pluie", "Sensibilité souris", "Luminosité réglage", "Distance de rendu", "Anti Orage", "Rareté de l'objet", "Position du HUD", "Viseur personnalisé", "Déplacer le HUD", "Radar joueurs", "Couleur du HUD"
+    "Anti Orage", "Anti Pluie", "Caméra lisse", "Couleur du HUD", "Distance de rendu", "Dégradés", "FOV personnalisé",
+    "FullBright", "Limite FPS", "Luminosité réglage", "No Hurt Cam", "Position du HUD", "Radar joueurs",
+    "Rareté de l'objet", "Sensibilité souris", "Viseur personnalisé", "Zoom"
+  ],
+  "Jeu": [
+    "Accroupi", "Auto Sprint", "Bloc visé", "Distance de visée", "Durabilité % main", "Dégâts récents", "En feu",
+    "Entité visée", "Entité visée (pos)", "Face visée", "Hauteur de chute", "Position visée", "Quantité en main",
+    "Recharge d'attaque", "Sous l'eau", "Sprint", "Vie visée", "Vol", "Véhicule"
+  ],
+  "Système": [
+    "Difficulté", "Marque du serveur", "Mode de jeu", "Mods chargés", "Mémoire (RAM)", "Ping HUD", "Ping détaillé",
+    "Pseudo", "Résolution écran", "Serveur", "Solo / Multi", "Système", "Taille interface", "UUID", "Version Fabric",
+    "Version Java", "À propos"
+  ],
+  "Pratique": [
+    "Alerte durabilité", "Alerte faim", "Alerte vie", "Anti AFK", "Chrono reset", "Coordonnées Nether", "Copier Coordonnées",
+    "Distance au 0,0", "Log de chat", "Mention chat", "Message auto", "Optimiseur FPS", "Plein écran", "Reconnexion auto",
+    "Sons d'interface"
   ]
 };
 

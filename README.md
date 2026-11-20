@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| **Menu principal** (rail à la Corz + paramètres empilés, clic droit sur un module) | **Presets** (★ dans le rail : sauvegarde, export, import) |
-| ![Menu principal](docs/screenshots/menu-principal.png) | ![Presets](docs/screenshots/presets.png) |
+| **Menu principal** (rail à la Corz : 5 catégories + Presets, header horloge, modules 2 lignes) | **Paramètres d'un module** (clic droit : sliders, toggles, keybind) |
+| ![Menu principal](docs/screenshots/menu-principal.png) | ![Paramètres d'un module](docs/screenshots/menu-parametres.png) |
 | **HUD en jeu** (dégradés + Keystrokes) | **Palettes de thème** (accent animé, à la CorzClient) |
 | ![HUD](docs/screenshots/hud.png) | ![Palettes](docs/screenshots/palettes.png) |
 
@@ -38,9 +38,11 @@ Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms 
 
 | Catégorie | Exemples |
 |---|---|
-| Affichage (57) | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité, Phase de lune, Période, Résolution écran, Taille interface, Ping détaillé, Bloc sous les pieds, Position arrondie, Chunk local, Jour écoulé, Main secondaire, Pièces d'armure, Empilement max main |
-| Pratique (43) | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées, Boussole, Difficulté, Effets actifs, Vol, Véhicule, Accroupi, Sprint, Sous l'eau, En feu, Java, Système, Plein écran, Solo / Multi, Quantité en main, Position visée, Durabilité % main, Face visée, Vie visée, Entité visée (pos), Dégâts récents, Distance au 0,0, Mods chargés, À propos, Version Fabric |
-| Visuel (17) | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie, Sensibilité souris, Luminosité réglage, Distance de rendu, Anti Orage, Rareté de l'objet |
+| Affichage (49) | Air, Altitude, Angles de vue, Armure, Biome, Bloc sous les pieds, Boussole, CPS, Chrono, Chunk, Chunk local, Clics totaux, Compteur de pas, Coordonnées, Dimension, Direction visuelle, Distance parcourue, Durabilité, Durabilité en main, Effets actifs, Empilement max main, Entités proches, FPS info, FPS min/moy/max, Faim, HUD Infos, Heure du monde, Heure réelle, Jour du monde, Jour écoulé, Keystrokes, Lumière, Main secondaire, Météo, Niveau XP, Objet en main, Phase de lune, Pièces d'armure, Position arrondie, Progression XP, Période, Saturation, Temps de session, Vie, Vie monture, Vitesse, Vitesse km/h, Vitesse verticale, XP total |
+| Visuel (17) | Anti Orage, Anti Pluie, Caméra lisse, Couleur du HUD, Distance de rendu, Dégradés, FOV personnalisé, FullBright, Limite FPS, Luminosité réglage, No Hurt Cam, Position du HUD, Radar joueurs, Rareté de l'objet, Sensibilité souris, Viseur personnalisé, Zoom |
+| Jeu (19) | Accroupi, Auto Sprint, Bloc visé, Distance de visée, Durabilité % main, Dégâts récents, En feu, Entité visée, Entité visée (pos), Face visée, Hauteur de chute, Position visée, Quantité en main, Recharge d'attaque, Sous l'eau, Sprint, Vie visée, Vol, Véhicule |
+| Système (17) | Difficulté, Marque du serveur, Mode de jeu, Mods chargés, Mémoire (RAM), Ping HUD, Ping détaillé, Pseudo, Résolution écran, Serveur, Solo / Multi, Système, Taille interface, UUID, Version Fabric, Version Java, À propos |
+| Pratique (15) | Alerte durabilité, Alerte faim, Alerte vie, Anti AFK, Chrono reset, Coordonnées Nether, Copier Coordonnées, Distance au 0,0, Log de chat, Mention chat, Message auto, Optimiseur FPS, Plein écran, Reconnexion auto, Sons d'interface |
 
 Chaque module a ses réglages (toggles, sliders) dans le menu in-game, sauvegardés automatiquement et exportables via presets. Nouveaux : **Dégradés** (couleurs hex personnalisables du HUD et du menu) et **Optimiseur FPS** (particules, nuages, ombres, distance de simulation…).
 
