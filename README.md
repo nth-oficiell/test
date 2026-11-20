@@ -4,6 +4,15 @@
 
 🌐 **Site de téléchargement** : https://nth-oficiell.github.io/test/ (choisis ton launcher + ta version, et récupère le jar).
 
+## 🖼 Captures d'écran
+
+| | |
+|---|---|
+| **Menu principal** (vue Modules, coins arrondis + glow accent) | **Paramètres du module** (clic droit sur un module) |
+| ![Menu principal](docs/screenshots/menu-principal.png) | ![Presets](docs/screenshots/presets.png) |
+| **HUD en jeu** (dégradés + Keystrokes) | **Palettes de thème** (accent animé, à la CorzClient) |
+| ![HUD](docs/screenshots/hud.png) | ![Palettes](docs/screenshots/palettes.png) |
+
 ## 📦 Versions disponibles
 
 | Version de Minecraft | Loader | Fichier |
@@ -25,13 +34,13 @@ Depuis **26.1**, Minecraft n'est **plus obfusqué** : le jeu sort avec les noms 
 
 > Les jars exacts et leur dernière version sont listés sur le site (ils sont générés par les builds GitHub Actions de ce dépôt).
 
-## 🧩 Modules (99)
+## 🧩 Modules (117)
 
 | Catégorie | Exemples |
 |---|---|
-| **Affichage (51)** | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité, Phase de lune, Période, Résolution écran, Taille interface, Ping détaillé, Bloc sous les pieds, Position arrondie, Chunk local, Jour écoulé, Main secondaire, Pièces d'armure, Empilement max main |
-| **Pratique (34)** | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées, Boussole, Difficulté, Effets actifs, Vol, Véhicule, Accroupi, Sprint, Sous l'eau, En feu, Java, Système, Plein écran, Solo / Multi, Quantité en main, Position visée, Durabilité % main, Face visée, Vie visée, Entité visée (pos), Dégâts récents, Distance au 0,0, Mods chargés, À propos, Version Fabric |
-| **Visuel (14)** | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie, Sensibilité souris, Luminosité réglage, Distance de rendu, Anti Orage, Rareté de l'objet |
+| Affichage (57) | HUD Infos, Coordonnées, Altitude, Chunk, Direction, Angles de vue, Biome, Dimension, Lumière, Heure du monde, Jour du monde, FPS info, FPS min/moy/max, RAM, Vitesse, Vitesse verticale, Distance parcourue, Pas, Vie, Faim, Saturation, Air, XP (niveau / progression / total), Armure, Objet en main, Durabilité en main, Météo, Serveur, Marque du serveur, Session, Entités proches, Heure réelle, Pseudo, UUID, Ping HUD, Keystrokes, Durabilité, Phase de lune, Période, Résolution écran, Taille interface, Ping détaillé, Bloc sous les pieds, Position arrondie, Chunk local, Jour écoulé, Main secondaire, Pièces d'armure, Empilement max main |
+| Pratique (43) | Coordonnées Nether, Mode de jeu, Bloc visé, Entité visée, Distance de visée, Recharge d'attaque, Hauteur de chute, Auto Sprint, Copier Coordonnées, Boussole, Difficulté, Effets actifs, Vol, Véhicule, Accroupi, Sprint, Sous l'eau, En feu, Java, Système, Plein écran, Solo / Multi, Quantité en main, Position visée, Durabilité % main, Face visée, Vie visée, Entité visée (pos), Dégâts récents, Distance au 0,0, Mods chargés, À propos, Version Fabric |
+| Visuel (17) | FullBright (slider), Zoom (facteur réglable), No Hurt Cam, Limite FPS, FOV personnalisé (slider), Caméra lisse, Anti Pluie, Sensibilité souris, Luminosité réglage, Distance de rendu, Anti Orage, Rareté de l'objet |
 
 Chaque module a ses réglages (toggles, sliders) dans le menu in-game, sauvegardés automatiquement et exportables via presets. Nouveaux : **Dégradés** (couleurs hex personnalisables du HUD et du menu) et **Optimiseur FPS** (particules, nuages, ombres, distance de simulation…).
 
