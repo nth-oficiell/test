@@ -900,13 +900,13 @@ public final class ClientIntegrations {
         int[] hudColors = {0xFFFFFFFF, 0xFF55FF55, 0xFFFF5555, 0xFF5555FF, 0xFFFFFF55, 0xFF55FFFF, 0xFFFF55FF, 0xFF141420};
         int textColor = hudColors[dev.utilikit.client.modules.extra.ExtraModules.hudColorIndex()];
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
-        int x = 6 + hudOffset[0];
-        int y = 6 + hudOffset[1] + hudInfoHeight();
-        int startY = y;
+        int scaledWidth = client.getWindow().getScaledWidth();
         int lineHeight = 12;
         int columnWidth = 170;
         int maxY = client.getWindow().getScaledHeight() - 50;
 
+        java.util.List<InfoModule> visibleMods = new java.util.ArrayList<>();
+        java.util.List<String> visibleLines = new java.util.ArrayList<>();
         for (Module module : ModuleManager.all()) {
             if (!(module instanceof InfoModule info) || !info.enabled) {
                 continue;
@@ -915,42 +915,55 @@ public final class ClientIntegrations {
             if (text == null) {
                 continue;
             }
-            if (y > maxY) {
-                x += columnWidth;
-                y = startY;
-            }
-            int[] lineOffset = dev.utilikit.client.modules.extra.HudDrag.lineOffset(info.id);
-            int lineX = x + lineOffset[0];
-            int lineY = y + lineOffset[1];
-            int width = client.textRenderer.getWidth(text);
-            dev.utilikit.client.modules.extra.HudDrag.track(info.id, x, y, width, lineHeight);
-            if (info.hasBackground()) {
-                if (dev.utilikit.client.modules.extra.Gradients.active()) {
-                    for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10)) {
-                        context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
-                    }
-                } else {
-                    context.fill(lineX - 3, lineY - 2, lineX + width + 3, lineY + 10, 0x90000000);
-                }
-            }
-            context.drawTextWithShadow(client.textRenderer, text, lineX, lineY, textColor);
-            y += lineHeight;
+            visibleMods.add(info);
+            visibleLines.add(text);
         }
 
-        List<String> notes = dev.utilikit.client.modules.extra.Notifier.active();
+        int[] relX = new int[visibleMods.size()];
+        int[] relY = new int[visibleMods.size()];
+        int relW = 0;
+        int relH = 0;
+        int curX = 0;
+        int curY = 0;
+        for (int i = 0; i < visibleMods.size(); i++) {
+            String text = visibleLines.get(i);
+            int width = client.textRenderer.getWidth(text);
+            if (curY > maxY - lineHeight && i > 0) {
+                curX += columnWidth;
+                curY = 0;
+            }
+            relX[i] = curX;
+            relY[i] = curY;
+            relW = Math.max(relW, curX + width);
+            relH = Math.max(relH, curY + lineHeight);
+        }
+
+        if (!visibleMods.isEmpty()) {
+            int panelX1 = Math.max(4, scaledWidth / 2 + hudOffset[0] - (relW + 12) / 2);
+            int panelY1 = 6 + hudOffset[1] + hudInfoHeight();
+            HudPaint.panel(context, panelX1 - 6, panelY1 - 4, panelX1 + relW + 6, panelY1 + relH + 6);
+            for (int i = 0; i < visibleMods.size(); i++) {
+                InfoModule info = visibleMods.get(i);
+                String text = visibleLines.get(i);
+                int ax = panelX1 + relX[i];
+                int ay = panelY1 + relY[i];
+                dev.utilikit.client.modules.extra.HudDrag.track(info.id, ax, ay, client.textRenderer.getWidth(text), lineHeight);
+                HudPaint.text(context, client.textRenderer, text, ax, ay, textColor);
+            }
+        }
+
+        java.util.List<String> notes = dev.utilikit.client.modules.extra.Notifier.active();
         if (!notes.isEmpty()) {
-            int noteY = client.getWindow().getScaledHeight() - 22 - notes.size() * 12;
+            int noteW = 0;
             for (String note : notes) {
-                int noteWidth = client.textRenderer.getWidth(note);
-                if (dev.utilikit.client.modules.extra.Gradients.active()) {
-                    for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(4, noteY - 2, 10 + noteWidth, noteY + 10)) {
-                        context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
-                    }
-                } else {
-                    context.fill(4, noteY - 2, 10 + noteWidth, noteY + 10, 0x90000000);
-                }
-                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, 6, noteY, 0xFFFFEB55);
-                noteY += 12;
+                noteW = Math.max(noteW, client.textRenderer.getWidth("\u26a1 " + note));
+            }
+            int nx = Math.max(4, client.getWindow().getScaledWidth() / 2 - (noteW + 16) / 2);
+            int ny = client.getWindow().getScaledHeight() - 22 - notes.size() * 12;
+            HudPaint.panel(context, nx - 6, ny - 4, nx + noteW + 6, ny + 4 + notes.size() * 12);
+            for (String note : notes) {
+                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, nx, ny, 0xFFFFEB55);
+                ny += 12;
             }
         }
 

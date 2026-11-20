@@ -9,7 +9,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 
 public class HudInfoModule extends Module {
     private final Setting.Toggle showFps;
@@ -19,9 +18,9 @@ public class HudInfoModule extends Module {
     private final Setting.Toggle background;
 
     public HudInfoModule() {
-        super("hudinfo", "HUD Infos", "Affiche FPS, coordonnées, heure et direction en haut à gauche de l'écran.", ModuleCategory.AFFICHAGE);
+        super("hudinfo", "HUD Infos", "Affiche FPS, coordonn\u00e9es, heure et direction dans un panneau centr\u00e9 en haut de l'\u00e9cran, avec fond et d\u00e9grad\u00e9.", ModuleCategory.AFFICHAGE);
         showFps = new Setting.Toggle("fps", "FPS", true);
-        showCoords = new Setting.Toggle("coords", "Coordonnées", true);
+        showCoords = new Setting.Toggle("coords", "Coordonn\u00e9es", true);
         showClock = new Setting.Toggle("clock", "Heure du monde", true);
         showDirection = new Setting.Toggle("direction", "Direction", true);
         background = new Setting.Toggle("background", "Fond semi-transparent", true);
@@ -46,25 +45,42 @@ public class HudInfoModule extends Module {
             return;
         }
         LocalPlayer player = client.player;
-        int x = 6;
-        int y = 6;
-        int lineHeight = 10;
-
+        java.util.List<String> lines = new java.util.ArrayList<>();
         if (hud.showFps.value) {
-            y += hud.line(graphics, client, "FPS : " + client.getFps(), x, y, lineHeight);
+            lines.add("FPS : " + client.getFps());
         }
         if (player != null) {
             BlockPos pos = player.blockPosition();
             if (hud.showCoords.value) {
-                y += hud.line(graphics, client,
-                        "X " + pos.getX() + "  Y " + pos.getY() + "  Z " + pos.getZ(), x, y, lineHeight);
+                lines.add("X " + pos.getX() + "  Y " + pos.getY() + "  Z " + pos.getZ());
             }
             if (hud.showDirection.value) {
-                y += hud.line(graphics, client, "Direction : " + directionLabel(player.getDirection()), x, y, lineHeight);
+                lines.add("Direction : " + directionLabel(player.getDirection()));
             }
             if (hud.showClock.value && client.level != null) {
-                y += hud.line(graphics, client, "Heure : " + worldClock(client), x, y, lineHeight);
+                lines.add("Heure : " + worldClock(client));
             }
+        }
+        if (lines.isEmpty()) {
+            return;
+        }
+        int lineHeight = 12;
+        int scaledWidth = client.getWindow().getGuiScaledWidth();
+        int maxW = 0;
+        for (String text : lines) {
+            maxW = Math.max(maxW, client.font.width(text));
+        }
+        int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
+        int x = scaledWidth / 2 - maxW / 2 + hudOffset[0];
+        int y = 6 + hudOffset[1];
+        if (hud.background.value) {
+            HudPaint.panel(graphics, x - 6, y - 4, x + maxW + 6, y + 2 + lines.size() * lineHeight);
+        }
+        int yy = y + 2;
+        for (String text : lines) {
+            dev.utilikit.client.modules.extra.HudDrag.track("hudinfo", x, yy, maxW, lineHeight);
+            HudPaint.text(graphics, client.font, text, x, yy, 0xFFFFFFFF);
+            yy += lineHeight;
         }
     }
 
@@ -83,21 +99,6 @@ public class HudInfoModule extends Module {
             lines++;
         }
         return lines;
-    }
-
-    private int line(GuiGraphicsExtractor graphics, Minecraft client, String text, int x, int y, int lineHeight) {
-        if (background.value) {
-            int textWidth = client.font.width(text);
-            if (dev.utilikit.client.modules.extra.Gradients.active()) {
-                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2)) {
-                    graphics.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
-                }
-            } else {
-                graphics.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
-            }
-        }
-        graphics.text(client.font, text, x, y, 0xFFFFFFFF, true);
-        return lineHeight + 2;
     }
 
     private static String directionLabel(Direction direction) {

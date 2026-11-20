@@ -18,7 +18,7 @@ public class HudInfoModule extends Module {
     private final Setting.Toggle background;
 
     public HudInfoModule() {
-        super("hudinfo", "HUD Infos", "Affiche FPS, coordonnées, heure et direction en haut à gauche de l'écran.", ModuleCategory.AFFICHAGE);
+        super("hudinfo", "HUD Infos", "Affiche FPS, coordonnées, heure et direction dans un panneau centré en haut de l'écran, avec fond et dégradé.", ModuleCategory.AFFICHAGE);
         showFps = new Setting.Toggle("fps", "FPS", true);
         showCoords = new Setting.Toggle("coords", "Coordonnées", true);
         showClock = new Setting.Toggle("clock", "Heure du monde", true);
@@ -45,41 +45,43 @@ public class HudInfoModule extends Module {
             return;
         }
         ClientPlayerEntity player = client.player;
-        int x = 6;
-        int y = 6;
-        int lineHeight = 10;
-
+        java.util.List<String> lines = new java.util.ArrayList<>();
         if (hud.showFps.value) {
-            y += hud.line(context, client, "FPS : " + client.getCurrentFps(), x, y, lineHeight);
+            lines.add("FPS : " + client.getCurrentFps());
         }
         if (player != null) {
             BlockPos pos = player.getBlockPos();
             if (hud.showCoords.value) {
-                y += hud.line(context, client,
-                        "X " + pos.getX() + "  Y " + pos.getY() + "  Z " + pos.getZ(), x, y, lineHeight);
+                lines.add("X " + pos.getX() + "  Y " + pos.getY() + "  Z " + pos.getZ());
             }
             if (hud.showDirection.value) {
-                y += hud.line(context, client, "Direction : " + directionLabel(player.getHorizontalFacing()), x, y, lineHeight);
+                lines.add("Direction : " + directionLabel(player.getHorizontalFacing()));
             }
             if (hud.showClock.value && client.world != null) {
-                y += hud.line(context, client, "Heure : " + worldClock(client), x, y, lineHeight);
+                lines.add("Heure : " + worldClock(client));
             }
         }
-    }
-
-    private int line(DrawContext context, MinecraftClient client, String text, int x, int y, int lineHeight) {
-        if (background.value) {
-            int textWidth = client.textRenderer.getWidth(text);
-            if (dev.utilikit.client.modules.extra.Gradients.active()) {
-                for (int[] gband : dev.utilikit.client.modules.extra.Gradients.bands(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2)) {
-                    context.fill(gband[0], gband[1], gband[2], gband[3], gband[4]);
-                }
-            } else {
-                context.fill(x - 3, y - 2, x + textWidth + 3, y + lineHeight - 2, 0x90000000);
-            }
+        if (lines.isEmpty()) {
+            return;
         }
-        context.drawTextWithShadow(client.textRenderer, text, x, y, 0xFFFFFFFF);
-        return lineHeight + 2;
+        int lineHeight = 12;
+        int scaledWidth = client.getWindow().getScaledWidth();
+        int maxW = 0;
+        for (String text : lines) {
+            maxW = Math.max(maxW, client.textRenderer.getWidth(text));
+        }
+        int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
+        int x = scaledWidth / 2 - maxW / 2 + hudOffset[0];
+        int y = 6 + hudOffset[1];
+        if (hud.background.value) {
+            HudPaint.panel(context, x - 6, y - 4, x + maxW + 6, y + 2 + lines.size() * lineHeight);
+        }
+        int yy = y + 2;
+        for (String text : lines) {
+            dev.utilikit.client.modules.extra.HudDrag.track("hudinfo", x, yy, maxW, lineHeight);
+            HudPaint.text(context, client.textRenderer, text, x, yy, 0xFFFFFFFF);
+            yy += lineHeight;
+        }
     }
 
     public int lineCount() {
