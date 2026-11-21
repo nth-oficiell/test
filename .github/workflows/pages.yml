@@ -1,0 +1,147 @@
+name: Pages
+
+on:
+  push:
+    branches:
+      - main
+      - 'vibe/**'
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: fabric-1.20.1
+            java: '17'
+            gradle: '8.8'
+          - project: fabric-1.21.1
+            java: '21'
+            gradle: '9.9.1'
+          - project: fabric-1.21.11
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-1.21.5
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-1.21.8
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-1.20.4
+            java: '17'
+            gradle: '8.8'
+          - project: fabric-1.20.6
+            java: '21'
+            gradle: '8.8'
+          - project: fabric-26.1.2
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-26.2
+            java: '25'
+            gradle: '9.9.1'
+          - project: fabric-26.3
+            java: '25'
+            gradle: '9.9.1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Gradle ${{ matrix.gradle }}
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ matrix.gradle }}
+
+      - name: Build ${{ matrix.project }}
+        working-directory: ${{ matrix.project }}
+        run: gradle build
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project }}
+          path: ${{ matrix.project }}/build/libs/*.jar
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download jars
+        uses: actions/download-artifact@v4
+        with:
+          pattern: fabric-*
+          path: jars
+
+      - name: Copy jars + manifest into site
+        run: |
+          set -e
+          git log --pretty=format:'%s' -6 > /tmp/notes.txt || true
+          mkdir -p docs/downloads
+          for dir in jars/fabric-*/; do
+            project=$(basename "$dir")
+            mc="${project#fabric-}"
+            for jar in "$dir"utilikit-*.jar; do
+              [ -e "$jar" ] || continue
+              case "$jar" in *sources*) continue ;; esac
+              name=$(basename "$jar")
+              ver="${name#utilikit-}"
+              ver="${ver#*-}"
+              ver="${ver%.jar}"
+              cp "$jar" "docs/downloads/utilikit-${mc}-v${ver}.jar"
+            done
+          done
+          python3 - <<'PY'
+          import json, os, glob, re
+          entries = []
+          for jar in glob.glob('docs/downloads/*.jar'):
+              m = re.match(r'utilikit-(.+)-v(.+)\.jar', os.path.basename(jar))
+              if m:
+                  entries.append({"file": os.path.basename(jar),
+                                  "mc": m.group(1), "modver": m.group(2)})
+          def key(e):
+              return [int(x) for x in e["mc"].replace('+', '.').split('.')]
+          entries.sort(key=key, reverse=True)
+          notes = open('/tmp/notes.txt').read().splitlines() if os.path.exists('/tmp/notes.txt') else []
+          with open('docs/downloads/manifest.json', 'w') as f:
+              json.dump({"latest": entries[0] if entries else None, "builds": entries, "notes": notes[:5]}, f, indent=2)
+          PY
+          cp docs/downloads/manifest.json /tmp/manifest-preview.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

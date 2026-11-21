@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "utilikit",
+  "version": "${version}",
+  "name": "NTH Utils",
+  "description": "Mod utilitaire client avec un menu in-game pour personnaliser ton jeu : modules activables et réglages à la volée.",
+  "authors": [
+    "NTH"
+  ],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.utilikit.client.UtiliKitClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.6",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11",
+    "java": ">=21"
+  }
+}
