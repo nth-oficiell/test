@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NTH Utils — le mod qui personnalise ton Minecraft | 117 modules, 10 versions</title>
+<meta name="description" content="NTH Utils : mod utilitaire client Fabric avec 118 modules personnalisables depuis un menu in-game. Choisit ton launcher et ta version de Minecraft, télécharge le jar." />
+<style>
+  :root {
+    --bg: #0b0e17;
+    --bg-soft: #111527;
+    --panel: rgba(255,255,255,.035);
+    --border: rgba(255,255,255,.09);
+    --text: #e8ecf6;
+    --muted: #9aa3b8;
+    --accent: #58e6a6;
+    --accent-2: #4f8bff;
+    --accent-3: #a06bff;
+    --grad: linear-gradient(92deg, #58e6a6, #4f8bff 55%, #a06bff);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .aurora .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; will-change: transform; }
+  .aurora .b1 { width: 520px; height: 520px; left: -120px; top: -140px; background: radial-gradient(circle, rgba(88,230,166,.35), transparent 65%); animation: drift1 26s ease-in-out infinite; }
+  .aurora .b2 { width: 640px; height: 640px; right: -180px; top: 8%; background: radial-gradient(circle, rgba(79,139,255,.32), transparent 65%); animation: drift2 32s ease-in-out infinite; }
+  .aurora .b3 { width: 560px; height: 560px; left: 30%; bottom: -260px; background: radial-gradient(circle, rgba(160,107,255,.30), transparent 65%); animation: drift3 38s ease-in-out infinite; }
+  @keyframes drift1 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(90px, 60px) scale(1.15); } }
+  @keyframes drift2 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-110px, 80px) scale(1.1); } }
+  @keyframes drift3 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(70px, -70px) scale(1.2); } }
+  body {
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(79,139,255,.14), transparent 60%),
+      radial-gradient(900px 420px at 10% 0%, rgba(88,230,166,.10), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  header {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(11,14,23,.75);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav { display: flex; align-items: center; gap: 26px; height: 64px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: .3px; text-decoration: none; }
+  .logo .dot {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: var(--grad);
+    display: grid; place-items: center; color: #06130d; font-size: 15px; font-weight: 900;
+  }
+  .nav a.link { color: var(--muted); text-decoration: none; font-size: 15px; }
+  .nav a.link:hover { color: var(--text); }
+  .nav .spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    border: none; cursor: pointer; text-decoration: none;
+    font-weight: 700; font-size: 15px;
+    border-radius: 12px; padding: 10px 20px;
+    color: #04120b; background: var(--grad);
+    box-shadow: 0 6px 24px rgba(88,230,166,.25);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 10px 30px rgba(88,230,166,.35); }
+  .btn.ghost {
+    color: var(--text); background: rgba(255,255,255,.06);
+    border: 1px solid var(--border); box-shadow: none;
+  }
+  .btn.big {
+    font-size: 19px; padding: 16px 34px; border-radius: 14px;
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 6px 24px rgba(88,230,166,.25); }
+    50% { box-shadow: 0 6px 42px rgba(88,230,166,.55); }
+  }
+  .btn.mega {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 16px;
+    font-size: clamp(20px, 3vw, 27px); font-weight: 900;
+    padding: 24px 52px; border-radius: 20px;
+    color: #04120b; background: var(--grad); text-decoration: none;
+    box-shadow: 0 10px 44px rgba(88,230,166,.45), 0 0 0 6px rgba(88,230,166,.12);
+    animation: megaglow 2s ease-in-out infinite;
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .btn.mega .arrow { font-size: 1.15em; animation: bounce 1.4s ease-in-out infinite; display: inline-block; }
+  .btn.mega small { display: block; font-size: 12px; font-weight: 600; opacity: .75; letter-spacing: .3px; }
+  .btn.mega:hover { transform: translateY(-3px) scale(1.03); filter: brightness(1.1); }
+  @keyframes megaglow {
+    0%, 100% { box-shadow: 0 10px 44px rgba(88,230,166,.45), 0 0 0 6px rgba(88,230,166,.12); }
+    50% { box-shadow: 0 14px 62px rgba(88,230,166,.7), 0 0 0 12px rgba(88,230,166,.18); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  .fab {
+    position: fixed; right: 22px; bottom: 22px; z-index: 90;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px; border-radius: 999px; text-decoration: none;
+    font-weight: 800; font-size: 16px; color: #04120b; background: var(--grad);
+    box-shadow: 0 8px 34px rgba(88,230,166,.5);
+    animation: megaglow 2.2s ease-in-out infinite;
+    transition: transform .15s ease;
+  }
+  .fab:hover { transform: translateY(-3px) scale(1.05); }
+  @media (max-width: 860px) { .fab { right: 14px; bottom: 14px; padding: 12px 18px; font-size: 14px; } }
+
+  .hero { padding: 90px 0 60px; text-align: center; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--accent);
+    background: rgba(88,230,166,.08); border: 1px solid rgba(88,230,166,.25);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.08; letter-spacing: -1px; }
+  h1 .grad {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p.sub { color: var(--muted); max-width: 640px; margin: 18px auto 34px; font-size: 18px; }
+  .hero .ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .stats { display: flex; gap: 14px; justify-content: center; margin-top: 44px; flex-wrap: wrap; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 28px; min-width: 150px;
+  }
+  .stat b { display: block; font-size: 28px; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .stat { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+  .stat:hover { transform: translateY(-4px); border-color: rgba(88,230,166,.4); box-shadow: 0 12px 34px rgba(88,230,166,.14); }
+
+  section { padding: 70px 0; }
+  h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -.5px; margin-bottom: 8px; }
+  .kicker { color: var(--accent); text-transform: uppercase; font-size: 13px; letter-spacing: 2px; font-weight: 700; }
+  section > .wrap > p.lead { color: var(--muted); max-width: 620px; margin-bottom: 34px; }
+
+  /* Downloader */
+  .downloader {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 22px; padding: 28px;
+    display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px;
+  }
+  @media (max-width: 860px) { .downloader { grid-template-columns: 1fr; } }
+  .group h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choice {
+    text-align: left; padding: 12px 14px; border-radius: 12px; cursor: pointer;
+    background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    color: var(--text); font-size: 14px; font-weight: 600;
+    transition: all .15s ease;
+  }
+  .choice small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+  .choice:hover { background: rgba(255,255,255,.08); }
+  .choice.on { border-color: var(--accent); background: rgba(88,230,166,.10); box-shadow: inset 0 0 0 1px rgba(88,230,166,.35); }
+  .dl-result { display: flex; flex-direction: column; gap: 14px; }
+  .dl-box { border: 1px dashed rgba(255,255,255,.16); border-radius: 16px; padding: 18px; }
+  .dl-box .file { color: var(--muted); font-size: 13px; margin-bottom: 12px; word-break: break-all; }
+  .dl-btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; padding: 18px 12px; border-radius: 14px; text-decoration: none;
+    background: var(--grad); color: #04120b; font-weight: 800; font-size: 18px;
+    box-shadow: 0 8px 30px rgba(88,230,166,.3);
+    transition: transform .15s ease, filter .15s;
+  }
+  .dl-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .dl-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; filter: none; }
+  .install { font-size: 14px; color: var(--muted); }
+  .install ol { margin: 8px 0 0 18px; display: grid; gap: 6px; }
+  .install code { background: rgba(255,255,255,.07); border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+
+  /* Features */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    position: relative;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 18px; padding: 22px;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: -1px; border-radius: 19px; pointer-events: none;
+    background: linear-gradient(135deg, rgba(88,230,166,.55), rgba(79,139,255,.4) 50%, rgba(160,107,255,.5));
+    opacity: 0; transition: opacity .18s ease; -webkit-mask: linear-gradient(#fff,#fff) content-box, linear-gradient(#fff,#fff);
+    mask: linear-gradient(#fff,#fff) content-box, linear-gradient(#fff,#fff);
+    -webkit-mask-composite: xor; mask-composite: exclude; padding: 1px;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 44px rgba(0,0,0,.35); }
+  .card:hover::before { opacity: 1; }
+  .card h3 { margin-bottom: 12px; font-size: 17px; display: flex; align-items: center; gap: 9px; }
+  .card ul { list-style: none; display: flex; flex-wrap: wrap; gap: 7px; }
+  .card li {
+    font-size: 13px; color: var(--muted);
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 11px;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .card li:hover { color: var(--text); border-color: rgba(88,230,166,.45); background: rgba(88,230,166,.09); }
+  .ico { width: 26px; height: 26px; border-radius: 8px; background: var(--grad); display: grid; place-items: center; font-size: 13px; color:#04120b; font-weight:900; }
+
+  .versions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
+  .vchip {
+    position: relative;
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px; font-size: 14px; color: var(--muted);
+    overflow: hidden; transition: transform .15s ease, border-color .15s ease;
+  }
+  .vchip::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--grad); opacity: .8; }
+  .vchip:hover { transform: translateY(-2px); border-color: rgba(88,230,166,.35); }
+  .vchip b { color: var(--text); }
+
+  footer { border-top: 1px solid var(--border); padding: 34px 0 60px; color: var(--muted); font-size: 14px; }
+  .foot { display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#"><span class="dot">N</span>NTH Utils</a>
+    <a class="link" href="#telecharger">Télécharger</a>
+    <a class="link" href="#captures">Captures</a>
+    <a class="link" href="#modules">117 Modules</a>
+    <span class="spacer"></span>
+    <a class="btn" href="#telecharger">⬇ Obtenir le mod</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="badge">✅ Client-only • Fabric • 100 % gratuit • open-source</div>
+    <h1>Personnalise ton jeu<br /><span class="grad">avec 117 modules</span></h1>
+    <p class="sub">NTH Utils ajoute un menu in-game (touche <b>Shift droit</b>) pour activer et régler plus de 117 modules sur 10 versions de Minecraft : HUD, visuels, infos de jeu, presets… compatible avec ton launcher préféré.</p>
+    <div class="ctas" style="flex-direction:column;align-items:center">
+      <a class="btn mega" href="#telecharger">
+        <span class="arrow">⬇️</span>
+        <span>Télécharger NTH Utils<small>Gratuit • sans compte • jar direct</small></span>
+      </a>
+      <a class="btn ghost" href="#modules">Voir les 117 modules</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>117</b><span>modules</span></div>
+      <div class="stat"><b>10</b><span>versions supportées</span></div>
+      <div class="stat"><b>5</b><span>launchers</span></div>
+      <div class="stat"><b>1</b><span>menu, Shift droit</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="captures">
+  <div class="wrap">
+    <div class="kicker">Aperçu</div>
+    <h2>Captures du mod</h2>
+    <p class="lead">Le menu in-game de NTH Utils, ses presets, ses palettes de thème et le HUD — tout est arrondi, avec glow accent animé.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:24px">
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
+        <img src="screenshots/menu-principal-0.10.6.png" alt="Menu principal NTH Utils" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Menu principal — rail à sections façon Corz : 5 catégories (Affichage, Visuel, Jeu, Système, Pratique) + Presets, header avec horloge, modules sur 2 lignes</figcaption>
+      </figure>
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
+        <img src="screenshots/menu-parametres-0.10.6.png" alt="Paramètres d'un module NTH Utils" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Paramètres d'un module — clic droit sur un module : sliders, toggles, keybind configurable</figcaption>
+      </figure>
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
+        <img src="screenshots/presets-0.10.6.png" alt="Gestion des presets" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">Presets — export / import / sauvegarde</figcaption>
+      </figure>
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(0,255,200,.25);border-radius:14px;padding:10px">
+        <img src="screenshots/hud-0.10.6.png" alt="HUD en jeu" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">HUD en jeu — panneau d'infos au centre de l'écran avec dégradé personnalisable, Keystrokes et toasts Module Activé/Désactivé — et FPS boosté par l'Optimiseur</figcaption>
+      </figure>
+      <figure style="margin:0;background:rgba(12,12,20,.72);border:1px solid rgba(122,60,255,.28);border-radius:14px;padding:10px">
+        <img src="screenshots/palettes-0.10.6.png" alt="Palettes de thème" loading="lazy" style="width:100%;border-radius:8px;display:block">
+        <figcaption style="padding:8px 4px 2px;font-size:13px;color:#aab">8 palettes de thème — accent animé à la CorzClient</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="telecharger">
+  <div class="wrap">
+    <div class="kicker">Get started</div>
+    <h2>Télécharger le mod</h2>
+    <p class="lead">Choisis ton launcher et ta version de Minecraft : on te donne le bon fichier et les instructions exactes.</p>
+
+    <div class="downloader">
+      <div>
+        <div class="group"><h3>1 · Ton launcher</h3>
+          <div class="choices" id="launchers">
+            <button class="choice on" data-l="prism">Prism / PolyMC / MultiMC<small>Fabrics → Ajouter un mod</small></button>
+            <button class="choice" data-l="modrinth">Modrinth App<small>Onglet Contenu → Ajouter</small></button>
+            <button class="choice" data-l="curseforge">CurseForge App<small>My modpacks → Add mod</small></button>
+            <button class="choice" data-l="atlauncher">ATLauncher<small>Instances → Add mod</small></button>
+            <button class="choice" data-l="vanilla">Launcher officiel<small>Installation Fabric requise</small></button>
+          </div>
+        </div>
+        <div class="group" style="margin-top:24px"><h3>2 · Ta version de Minecraft</h3>
+          <div class="choices" id="versions"></div>
+        </div>
+      </div>
+
+      <div class="dl-result">
+        <div class="dl-box">
+          <div class="file" id="dl-file">—</div>
+          <a class="dl-btn" id="dl-btn" href="#" download>⬇ Télécharger</a>
+          <p class="install" id="dl-status" style="margin-top:10px">Chargement des versions disponibles…</p>
+        </div>
+        <div class="install" id="steps"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="modules">
+  <div class="wrap">
+    <div class="kicker">117 modules</div>
+    <h2>Tout ce que tu peux activer</h2>
+    <p class="lead">Chaque module est activable / désactivable d'un **clic gauche**, et un **clic droit** ouvre ses paramètres complets : sliders, toggles et touche d’activation personnalisable. La liste se défile à la molette avec sa barre de scroll. Nouveautés : <b>Dégradés personnalisables</b> (menu + HUD) et <b>Optimiseur FPS</b> intégré. Tes réglages sont sauvegardés, exportables et importables via des presets.</p>
+    <div class="grid" id="modulegrid"></div>
+
+    <div class="versions">
+      <div class="vchip"><b>26.3</b> · Fabric ≥ 0.18.6</div>
+      <div class="vchip"><b>26.2</b> · Fabric ≥ 0.18.6</div>
+      <div class="vchip"><b>26.1.2</b> · Fabric ≥ 0.18.6</div>
+      <div class="vchip"><b>1.21.11</b> · Fabric ≥ 0.18.6</div>
+      <div class="vchip"><b>1.21.8</b> · Fabric ≥ 0.17</div>
+      <div class="vchip"><b>1.21.5</b> · Fabric ≥ 0.16</div>
+      <div class="vchip"><b>1.21.1</b> · Fabric ≥ 0.17</div>
+      <div class="vchip"><b>1.20.6</b> · Fabric ≥ 0.15</div>
+      <div class="vchip"><b>1.20.4</b> · Fabric ≥ 0.15</div>
+      <div class="vchip"><b>1.20.1</b> · Fabric ≥ 0.15</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>NTH Utils — mod utilitaire client open-source (MIT).</div>
+    <div><a style="color:var(--accent)" href="https://github.com/nth-oficiell/test" target="_blank" rel="noopener">Sources sur GitHub</a></div>
+  </div>
+</footer>
+
+<script>
+const MODULES = {
+  "Affichage": [
+    "Air", "Altitude", "Angles de vue", "Armure", "Biome", "Bloc sous les pieds", "Boussole", "CPS", "Chrono",
+    "Chunk", "Chunk local", "Clics totaux", "Compteur de pas", "Coordonnées", "Dimension", "Direction visuelle",
+    "Distance parcourue", "Durabilité", "Durabilité en main", "Effets actifs", "Empilement max main", "Entités proches",
+    "FPS info", "FPS min/moy/max", "Faim", "HUD Infos", "Heure du monde", "Heure réelle", "Jour du monde",
+    "Jour écoulé", "Keystrokes", "Lumière", "Main secondaire", "Météo", "Niveau XP", "Objet en main", "Phase de lune",
+    "Pièces d'armure", "Position arrondie", "Progression XP", "Période", "Saturation", "Temps de session",
+    "Vie", "Vie monture", "Vitesse", "Vitesse km/h", "Vitesse verticale", "XP total"
+  ],
+  "Visuel": [
+    "Anti Orage", "Anti Pluie", "Caméra lisse", "Couleur du HUD", "Distance de rendu", "Dégradés", "FOV personnalisé",
+    "FullBright", "Limite FPS", "Luminosité réglage", "No Hurt Cam", "Position du HUD", "Radar joueurs",
+    "Rareté de l'objet", "Sensibilité souris", "Viseur personnalisé", "Zoom"
+  ],
+  "Jeu": [
+    "Accroupi", "Auto Sprint", "Bloc visé", "Distance de visée", "Durabilité % main", "Dégâts récents", "En feu",
+    "Entité visée", "Entité visée (pos)", "Face visée", "Hauteur de chute", "Position visée", "Quantité en main",
+    "Recharge d'attaque", "Sous l'eau", "Sprint", "Vie visée", "Vol", "Véhicule"
+  ],
+  "Système": [
+    "Difficulté", "Marque du serveur", "Mode de jeu", "Mods chargés", "Mémoire (RAM)", "Ping HUD", "Ping détaillé",
+    "Pseudo", "Résolution écran", "Serveur", "Solo / Multi", "Système", "Taille interface", "UUID", "Version Fabric",
+    "Version Java", "À propos"
+  ],
+  "Pratique": [
+    "Alerte durabilité", "Alerte faim", "Alerte vie", "Anti AFK", "Chrono reset", "Coordonnées Nether", "Copier Coordonnées",
+    "Distance au 0,0", "Log de chat", "Mention chat", "Message auto", "Optimiseur FPS", "Plein écran", "Reconnexion auto",
+    "Sons d'interface"
+  ]
+};
+
+const LAUNCHER_STEPS = {
+  prism: [
+    "Ouvre Prism Launcher et sélectionne ton instance",
+    "Clic droit sur l'instance → <code>Éditer</code> → <code>Mods</code>",
+    "Glisse le fichier .jar téléchargé dans la liste (avec Fabric API activé)",
+    "Lance le jeu, puis appuie sur <code>Shift droit</code> pour ouvrir NTH Utils"
+  ],
+  modrinth: [
+    "Ouvre l'app Modrinth et ton profil",
+    "Onglet <code>Contenu</code> → glisse le .jar dans la liste (ou bouton <code>Ajouter un fichier</code>)",
+    "Vérifie que Fabric API est présent",
+    "Lance le jeu, appuie sur <code>Shift droit</code>"
+  ],
+  curseforge: [
+    "Ouvre CurseForge App → <code>My Modpacks</code> + ton profil Fabric",
+    "Clic droit sur le profil → <code>Add mod</code> / glisse le .jar",
+    "Assure-toi d'avoir Fabric API installé",
+    "Lance le jeu, touche <code>Shift droit</code>"
+  ],
+  atlauncher: [
+    "Ouvre ATLauncher et ton instance Fabric",
+    "Onglet <code>Mods</code> → bouton <code>Add Mod</code> → glisse le .jar (ou via bouton <code>Install from file</code>)",
+    "Vérifie que Fabric API est activé",
+    "Lance le jeu, touche <code>Shift droit</code>"
+  ],
+  vanilla: [
+    "Installe Fabric Loader depuis <a style='color:var(--accent-2)' href='https://fabricmc.net/use/installer/' target='_blank' rel='noopener'>fabricmc.net</a> pour ta version",
+    "Télécharge Fabric API et dépose-le dans le dossier <code>mods</code>",
+    "Choisis ton profil Fabric dans le Launcher, puis <code>Jouer</code>",
+    "Touche <code>Shift droit</code> en jeu pour ouvrir le menu"
+  ]
+};
+
+const grid = document.getElementById('modulegrid');
+grid.innerHTML = Object.entries(MODULES).map(([cat, mods]) => `
+  <div class="card">
+    <h3><span class="ico">${cat[0]}</span>${cat} <span style="color:var(--muted);font-weight:400">(${mods.length})</span></h3>
+    <ul>${mods.map(m => `<li>${m}</li>`).join('')}</ul>
+  </div>`).join('');
+
+let launcher = 'prism';
+let version = null;
+let builds = [];
+
+const vwrap = document.getElementById('versions');
+
+
+document.querySelectorAll('#launchers .choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#launchers .choice').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    launcher = btn.dataset.l;
+    renderSteps();
+  });
+});
+
+function renderVersionButtons() {
+  vwrap.innerHTML = builds.map(b => `
+    <button class="choice ${version === b.mc ? 'on' : ''}" data-v="${b.mc}">MC <b>${b.mc}</b><small>NTH Utils v${b.modver}</small></button>
+  `).join('');
+  vwrap.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      version = btn.dataset.v;
+      renderVersionButtons();
+      renderDl();
+    });
+  });
+}
+
+function renderDl() {
+  const fileEl = document.getElementById('dl-file');
+  const btn = document.getElementById('dl-btn');
+  const status = document.getElementById('dl-status');
+  const build = builds.find(b => b.mc === version);
+  if (!build) {
+    btn.removeAttribute('href');
+    fileEl.textContent = '—';
+    status.innerHTML = 'Ce build n\'est pas encore disponible — réessaie dans quelques minutes.';
+    return;
+  }
+  const url = './downloads/' + build.file;
+  fileEl.textContent = build.file;
+  btn.href = url;
+  btn.setAttribute('download', build.file);
+  status.innerHTML = 'Fabric API requis dans ton dossier <code>mods</code>';
+  renderSteps();
+}
+
+function renderSteps() {
+  const steps = document.getElementById('steps');
+  const list = LAUNCHER_STEPS[launcher] || LAUNCHER_STEPS.prism;
+  steps.innerHTML = '<h3 style="color:var(--text);font-size:15px;margin-bottom:10px">Installation (' +
+    (document.querySelector('#launchers .choice.on')?.textContent.split('\n')[0] || 'launcher') + ')</h3><ol>' +
+    list.map(s => `<li>${s}</li>`).join('') + '</ol>';
+}
+
+document.getElementById('dl-btn').disabled = true;
+
+fetch('./downloads/manifest.json')
+  .then(r => r.json())
+  .then(m => {
+    builds = (m.builds || []).slice();
+    builds.sort((a, b) => {
+      const pa = a.mc.split('.').map(Number), pb = b.mc.split('.').map(Number);
+      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const d = (pb[i] || 0) - (pa[i] || 0);
+        if (d) return d;
+      }
+      return 0;
+    });
+    if (!builds.length) {
+      document.getElementById('dl-status').innerHTML = 'Aucun build publié pour l\'instant — reviens bientôt !';
+      return;
+    }
+    version = builds[0].mc;
+    renderVersionButtons();
+    renderDl();
+  })
+  .catch(() => {
+    document.getElementById('dl-status').innerHTML = 'Le manifeste des builds n\'est pas encore disponible.';
+  });
+</script>
+<a class="fab" href="#telecharger">⬇️ Télécharger</a>
+
+</body>
+</html>
