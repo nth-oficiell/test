@@ -196,8 +196,10 @@ public final class CorzMenu {
         if (entries > 5) {
             railYs[5] = railYs[4] + railB + 26;
         }
+        panelW = Math.min(PANEL_W, Math.max(150, width - 158));
+        // bloc menu (rail + panneau) centré horizontalement sur l'écran
+        railX = Math.max(6, (width - (RAIL_W + 12 + panelW)) / 2);
         panelX = railX + RAIL_W + 12;
-        panelW = Math.min(PANEL_W, Math.max(150, width - panelX - 16));
         panelBottom = Math.max(130, height - 32);
         buildFieldRects();
         buildModuleRows();
@@ -371,13 +373,13 @@ public final class CorzMenu {
             return;
         }
 
-        pen.text("\u00a7lNTH UTILS", 12, 10 + oy, accent);
+        pen.text("\u00a7lNTH UTILS", railX + 2, 10 + oy, accent);
         if (!versionLabel.isEmpty()) {
-            pen.text("\u00a7f" + versionLabel, 12 + pen.width("NTH UTILS") + 5, 11 + oy, 0xFF6E6E82);
+            pen.text("\u00a7f" + versionLabel, railX + 2 + pen.width("NTH UTILS") + 5, 11 + oy, 0xFF6E6E82);
         }
         String time = java.time.LocalTime.now().format(
                 java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-        pen.text(time, w - 12 - pen.width(time), 10 + oy, 0xFF9A9AB0);
+        pen.text(time, panelX + panelW - pen.width(time), 10 + oy, 0xFF9A9AB0);
 
         drawRail(cv, oy, accent, fade);
 

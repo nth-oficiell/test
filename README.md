@@ -9,9 +9,9 @@
 | | |
 |---|---|
 | **Menu principal** (rail à la Corz : 5 catégories + Presets, header horloge, modules 2 lignes) | **Paramètres d'un module** (clic droit : sliders, toggles, keybind) |
-| ![Menu principal](docs/screenshots/menu-principal-0.10.6.png) | ![Paramètres d'un module](docs/screenshots/menu-parametres-0.10.6.png) |
+| ![Menu principal](docs/screenshots/menu-principal-0.10.7.png) | ![Paramètres d'un module](docs/screenshots/menu-parametres-0.10.7.png) |
 | **HUD en jeu** (panneau centré, dégradés + Keystrokes) | **Palettes de thème** (accent animé, à la CorzClient) |
-| ![HUD](docs/screenshots/hud-0.10.6.png) | ![Palettes](docs/screenshots/palettes-0.10.6.png) |
+| ![HUD](docs/screenshots/hud-0.10.7.png) | ![Palettes](docs/screenshots/palettes-0.10.7.png) |
 
 ## 📦 Versions disponibles
 
