@@ -1,12 +1,10 @@
 package dev.utilikit.client.modules.extra;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+/**
+ * File de messages NTH — désormais affichée via les toasts façon CorzClient
+ * (voir CorzToasts). Le texte "Titre : détail" est découpé sur " : ".
+ */
 public final class Notifier {
-    private static final List<Note> NOTES = new ArrayList<>();
-
     private Notifier() {
     }
 
@@ -14,45 +12,15 @@ public final class Notifier {
         if (text == null || text.isEmpty()) {
             return;
         }
-        push(text, 2200L);
+        int sep = text.indexOf(" : ");
+        if (sep > 0) {
+            CorzToasts.push(text.substring(0, sep), text.substring(sep + 3), true);
+        } else {
+            CorzToasts.push("NTH Utils", text, true);
+        }
     }
 
     public static void push(String text, long durationMs) {
-        long now = System.currentTimeMillis();
-        for (Note note : NOTES) {
-            if (note.text.equals(text)) {
-                note.expires = now + durationMs;
-                return;
-            }
-        }
-        NOTES.add(new Note(text, now + durationMs));
-        if (NOTES.size() > 5) {
-            NOTES.remove(0);
-        }
-    }
-
-    public static List<String> active() {
-        List<String> texts = new ArrayList<>();
-        long now = System.currentTimeMillis();
-        Iterator<Note> iterator = NOTES.iterator();
-        while (iterator.hasNext()) {
-            Note note = iterator.next();
-            if (note.expires <= now) {
-                iterator.remove();
-            } else {
-                texts.add(note.text);
-            }
-        }
-        return texts;
-    }
-
-    private static final class Note {
-        final String text;
-        long expires;
-
-        Note(String text, long expires) {
-            this.text = text;
-            this.expires = expires;
-        }
+        push(text);
     }
 }

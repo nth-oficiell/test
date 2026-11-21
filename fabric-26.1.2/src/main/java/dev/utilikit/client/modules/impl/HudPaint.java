@@ -26,12 +26,10 @@ public final class HudPaint {
         if (x2 <= x1 || y2 <= y1) {
             return;
         }
-        fill(graphics, x1, y1, x2, y2);
-        int border = Palettes.accentAlpha(0x5A);
-        graphics.fill(x1, y1, x2, y1 + 1, border);
-        graphics.fill(x1, y2 - 1, x2, y2, border);
-        graphics.fill(x1, y1 + 1, x1 + 1, y2 - 1, border);
-        graphics.fill(x2 - 1, y1 + 1, x2, y2 - 1, border);
+        dev.utilikit.client.ui.Rounded.Canvas cv =
+                (ax1, ay1, ax2, ay2, col) -> graphics.fill(ax1, ay1, ax2, ay2, col);
+        fill(graphics, x1 + 1, y1 + 1, x2 - 1, y2 - 1);
+        dev.utilikit.client.ui.Rounded.stroke(cv, x1, y1, x2, y2, 8, 0x30FFFFFF);
     }
 
     public static void text(GuiGraphicsExtractor graphics, Font font, String text, int x, int y, int valueColor) {

@@ -953,21 +953,25 @@ public final class ClientIntegrations {
             }
         }
 
-        java.util.List<String> notes = dev.utilikit.client.modules.extra.Notifier.active();
-        if (!notes.isEmpty()) {
-            int noteW = 0;
-            for (String note : notes) {
-                noteW = Math.max(noteW, client.textRenderer.getWidth("\u26a1 " + note));
+        dev.utilikit.client.ui.Rounded.Canvas toastCanvas = (tx1, ty1, tx2, ty2, tcol) ->
+                context.fill(tx1, ty1, tx2, ty2, tcol);
+        dev.utilikit.client.ui.CorzMenu.Pen toastPen = new dev.utilikit.client.ui.CorzMenu.Pen() {
+            @Override
+            public void text(String s, double x, double y, int argb) {
+                context.drawTextWithShadow(client.textRenderer, s, (int) x, (int) y, argb);
             }
-            int nx = Math.max(4, client.getWindow().getScaledWidth() / 2 - (noteW + 16) / 2);
-            int ny = client.getWindow().getScaledHeight() - 22 - notes.size() * 12;
-            HudPaint.panel(context, nx - 6, ny - 4, nx + noteW + 6, ny + 4 + notes.size() * 12);
-            for (String note : notes) {
-                context.drawTextWithShadow(client.textRenderer, "\u26a1 " + note, nx, ny, 0xFFFFEB55);
-                ny += 12;
+            @Override
+            public void textCenter(String s, double x, double y, int argb) {
+                context.drawTextWithShadow(client.textRenderer, s,
+                        (int) x - client.textRenderer.getWidth(s) / 2, (int) y, argb);
             }
-        }
-
+            @Override
+            public int width(String s) {
+                return client.textRenderer.getWidth(s);
+            }
+        };
+        dev.utilikit.client.modules.extra.CorzToasts.render(toastCanvas, toastPen,
+                client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
 
         int[] crosshair = dev.utilikit.client.modules.extra.ExtraModules.crosshairSpec();
         if (crosshair != null) {

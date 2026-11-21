@@ -31,7 +31,7 @@ public abstract class Module {
         } else {
             onDisable();
         }
-        dev.utilikit.client.modules.extra.Notifier.push(name + (value ? " : activé ✓" : " : désactivé"));
+        dev.utilikit.client.modules.extra.CorzToasts.push(name, value ? "Module Activé" : "Module Désactivé", value);
         ModuleManager.save();
     }
 
