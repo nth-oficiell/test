@@ -940,8 +940,8 @@ public final class ClientIntegrations {
         }
 
         if (!visibleMods.isEmpty()) {
-            int panelX1 = Math.max(4, scaledWidth / 2 + hudOffset[0] - (relW + 12) / 2);
-            int panelY1 = 6 + hudOffset[1];
+            int panelX1 = Math.max(4, 4 + hudOffset[0]);
+            int panelY1 = 6 + hudOffset[1] + hudInfoHeight();
             HudPaint.panel(context, panelX1 - 6, panelY1 - 4, panelX1 + relW + 6, panelY1 + relH + 6);
             for (int i = 0; i < visibleMods.size(); i++) {
                 InfoModule info = visibleMods.get(i);
@@ -1023,6 +1023,21 @@ public final class ClientIntegrations {
         }
     }
 
+
+
+    private static int hudInfoHeight() {
+        Module hudInfo = ModuleManager.get("hudinfo");
+        if (hudInfo == null || !hudInfo.enabled) {
+            return 0;
+        }
+        int lines = 0;
+        for (Setting setting : hudInfo.settings) {
+            if (setting instanceof Setting.Toggle toggle && toggle.value && !"background".equals(toggle.id)) {
+                lines++;
+            }
+        }
+        return lines * 12 + 4;
+    }
 
     private static class FovLockModule extends TickModule {
         private final Setting.Slider fov;
