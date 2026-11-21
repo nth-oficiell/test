@@ -18,7 +18,7 @@ public class HudInfoModule extends Module {
     private final Setting.Toggle background;
 
     public HudInfoModule() {
-        super("hudinfo", "HUD Infos", "Affiche FPS, coordonn\u00e9es, heure et direction dans un panneau centr\u00e9 en haut de l'\u00e9cran, avec fond et d\u00e9grad\u00e9.", ModuleCategory.AFFICHAGE);
+        super("hudinfo", "HUD Infos", "Affiche FPS, coordonn\u00e9es, heure et direction dans un panneau au centre de l'\u00e9cran, avec fond et d\u00e9grad\u00e9.", ModuleCategory.AFFICHAGE);
         showFps = new Setting.Toggle("fps", "FPS", true);
         showCoords = new Setting.Toggle("coords", "Coordonn\u00e9es", true);
         showClock = new Setting.Toggle("clock", "Heure du monde", true);
@@ -72,8 +72,10 @@ public class HudInfoModule extends Module {
             maxW = Math.max(maxW, client.font.width(text));
         }
         int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
-        int x = 4 + hudOffset[0];
-        int y = 4 + hudOffset[1];
+        int panelW = maxW + 12;
+        int panelH = 6 + lines.size() * lineHeight;
+        int x = (scaledWidth - panelW) / 2 + hudOffset[0];
+        int y = (scaledHeight - panelH) / 2 + hudOffset[1];
         if (hud.background.value) {
             HudPaint.panel(graphics, x - 6, y - 4, x + maxW + 6, y + 2 + lines.size() * lineHeight);
         }

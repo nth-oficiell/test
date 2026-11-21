@@ -1065,7 +1065,6 @@ public final class ClientIntegrations {
         dev.utilikit.client.modules.extra.HudDrag.beginFrame();
         int[] hudColors = {0xFFFFFFFF, 0xFF55FF55, 0xFFFF5555, 0xFF5555FF, 0xFFFFFF55, 0xFF55FFFF, 0xFFFF55FF, 0xFF141420};
         int textColor = hudColors[dev.utilikit.client.modules.extra.ExtraModules.hudColorIndex()];
-        int[] hudOffset = dev.utilikit.client.modules.extra.ExtraModules.hudOffset();
         int scaledWidth = client.getWindow().getGuiScaledWidth();
         int lineHeight = 12;
         int columnWidth = 170;
@@ -1105,8 +1104,8 @@ public final class ClientIntegrations {
         }
 
         if (!visibleMods.isEmpty()) {
-            int panelX1 = Math.max(4, 4 + hudOffset[0]);
-            int panelY1 = 6 + hudOffset[1] + hudInfoHeight();
+            int panelX1 = 4;
+            int panelY1 = 6;
             HudPaint.panel(graphics, panelX1 - 6, panelY1 - 4, panelX1 + relW + 6, panelY1 + relH + 6);
             for (int i = 0; i < visibleMods.size(); i++) {
                 InfoModule info = visibleMods.get(i);
@@ -1188,20 +1187,6 @@ public final class ClientIntegrations {
     }
 
 
-
-    private static int hudInfoHeight() {
-        Module hudInfo = ModuleManager.get("hudinfo");
-        if (hudInfo == null || !hudInfo.enabled) {
-            return 0;
-        }
-        int lines = 0;
-        for (Setting setting : hudInfo.settings) {
-            if (setting instanceof Setting.Toggle toggle && toggle.value && !"background".equals(toggle.id)) {
-                lines++;
-            }
-        }
-        return lines * 12 + 4;
-    }
 
     private static class FovLockModule extends TickModule {
         private final Setting.Slider fov;
