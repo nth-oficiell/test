@@ -12,6 +12,14 @@ Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Vor
 - **Config conservée** : les modules restent sauvegardés dans `.minecraft/config/corzclient` avec les mêmes noms de modules/réglages, ta config existante se recharge telle quelle
 - Licence et appareil : constants d'authentification conservés (aucune influence sur la config)
 
+## Mise à jour : modules sus chunk remplacés (donutlarp)
+- Ancienne logique « seed feature » des modules Sus retirée
+- `Sus Chunk Finder` → marque la zone sus approximative autour de chaque base (données serveur `donutlarp:bases`, fuzz par hash)
+- `SusChunkFinderV2` → marque le chunk doré au-dessus de chaque base
+- Nouveau module `Activity Inspector` → chunks rouges d'activité sous terre (données serveur `donutlarp:activity`), toast/chat/son
+- Receptors payload Fabric enregistrés au démarrage du client ; données nettoyées à la déconnexion
+- Noms de modules gardés identiques → ta config existante reste valide
+
 ## Build
 ```
 ./gradlew build

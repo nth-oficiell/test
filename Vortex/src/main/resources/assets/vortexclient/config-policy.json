@@ -839,13 +839,12 @@
       "role": "PORTABLE"
     },
     "sus_chunk_finder": {
-      "role": "PORTABLE",
-      "local": [
-        "Seed"
-      ],
-      "why": "The server seed is private."
+      "role": "PORTABLE"
     },
     "sus_chunk_finder_v2": {
+      "role": "PORTABLE"
+    },
+    "activity_inspector": {
       "role": "PORTABLE"
     },
     "sword_inspect": {

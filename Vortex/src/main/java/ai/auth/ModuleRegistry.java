@@ -58,6 +58,7 @@ import com.vortex.client.categories.donutsmp.AutoSell;
 import com.vortex.client.categories.donutsmp.AutoSellChest;
 import com.vortex.client.categories.donutsmp.Bloodhound;
 import com.vortex.client.categories.donutsmp.BoneDropper;
+import com.vortex.client.categories.donutsmp.ActivityInspector;
 import com.vortex.client.categories.donutsmp.ChunkFinder;
 import com.vortex.client.categories.donutsmp.ChunkFinderV2;
 import com.vortex.client.categories.donutsmp.DeepPlayerFinder;
@@ -333,6 +334,7 @@ public class ModuleRegistry {
         registerModule(new StorageESP());
         registerModule(new SusChunkFinder());
         registerModule(new SusChunkFinderV2());
+        registerModule(new ActivityInspector());
         registerModule(new SwordInspect());
         registerModule(new SwordPvpBot());
         registerModule(new TargetESP());

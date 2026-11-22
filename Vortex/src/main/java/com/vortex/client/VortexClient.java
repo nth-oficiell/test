@@ -45,8 +45,11 @@ import net.minecraft.client.util.Window;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import com.vortex.client.categories.bots.AutoBuilder;
+import com.vortex.client.categories.donutsmp.DonutPayloads;
 import com.vortex.client.categories.donutsmp.GamblingRigger;
 import com.vortex.client.utils.ConnectionTimeUtils;
+import com.vortex.client.utils.DonutActivityStore;
+import com.vortex.client.utils.DonutBaseStore;
 import com.vortex.client.utils.EntityDamageUtils;
 import com.vortex.client.utils.InventoryPlayerUtils;
 import com.vortex.client.categories.settings.GUISettings;
@@ -114,6 +117,7 @@ public class VortexClient implements ClientModInitializer {
 
    public void onInitializeClient() {
       LicenseRuntime.initialize();
+      DonutPayloads.register();
       fontManager = new ClientFonts();
       ModuleRegistry.registerAllModules();
       DiscordRichPresence.startPresenceUpdates();
@@ -125,6 +129,8 @@ public class VortexClient implements ClientModInitializer {
          }
       });
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> {
+         DonutBaseStore.clear();
+         DonutActivityStore.clear();
          ConnectionTimeUtils.update2();
          EntityDamageUtils.updateTime();
          ClientThreadUtils.updateDequeFlag();

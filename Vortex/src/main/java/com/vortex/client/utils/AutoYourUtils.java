@@ -227,7 +227,7 @@ public final class AutoYourUtils {
       YOUR_YOU_MAP.put("Waypoints", "Mark spots in the world and see them as a beam, icon and distance label.");
       YOUR_YOU_MAP.put("StaffList", "Lists online DonutSMP staff, detected live from the star badges in the tab list.");
       YOUR_YOU_MAP.put("AntiVanish", "Detects vanished staff and if you're being watched.");
-      YOUR_YOU_MAP.put("SusChunkFinder", "Flags likely player bases from grown crops and rotated deepslate (DonutSMP).");
+      YOUR_YOU_MAP.put("SusChunkFinder", "Marks the rough sus area around every base the server reports (DonutLarp data).");
       YOUR_YOU_MAP.put("SpawnerProtect", "Safe AFK: panic-mines your spawners and logs off when a player approaches.");
       YOUR_YOU_MAP.put("SkinProtect", "Wears a random vanilla skin over your own player (client-side only).");
       YOUR_YOU_MAP.put("CustomSkin", "Turns you into a 3D Italian brainrot like Tung Tung Tung Sahur (client-side only).");
@@ -245,7 +245,7 @@ public final class AutoYourUtils {
       YOUR_YOU_MAP.put("ACAlert", "Pops a toast from the top when the anticheat goes quiet in your region, and when it is back.");
       YOUR_YOU_MAP.put("WeatherChanger", "Forces the client-side weather: clear, rain or thunder.");
       YOUR_YOU_MAP.put("GamblingRigger", "Rig a dispenser/dropper gamble: keep one slot, pull the rest, then restore (DonutSMP).");
-      YOUR_YOU_MAP.put("SusChunkFinderV2", "Weighted base finder: grown amethyst/plants flag chunks, merged into zones (DonutSMP).");
+      YOUR_YOU_MAP.put("SusChunkFinderV2", "Marks a golden chunk above every base the server reports (DonutLarp data).");
       YOUR_YOU_MAP.put("HitSwap", "Swaps to the best weapon for the hit you land (mace when you smash, axe on a raised shield), then swaps back.");
       YOUR_YOU_MAP.put("MaceBomber", "Lands a mace smash for you when you fall onto your target; Auto Stun Slam breaks a raised shield with an axe first.");
       YOUR_YOU_MAP.put(
@@ -273,6 +273,7 @@ public final class AutoYourUtils {
       YOUR_YOU_MAP.put("BoneDropper", "Bone-farm macro: drops every page of bones from a DonutSMP spawner's storage, or auto-fulfils /order bone orders.");
       YOUR_YOU_MAP.put("ChunkFinderV2", "Highlights amethyst and player chunks; turn on farms, redstone or deepslate if you want them too (DonutSMP).");
       YOUR_YOU_MAP.put("DeepPlayerFinder", "Reveals hidden underground players from the zeroed sky-light the anti-ESP leaves around them (DonutSMP).");
+      YOUR_YOU_MAP.put("ActivityInspector", "Marks red chunks where players are underground, straight from the server activity feed (DonutLarp data).");
       YOUR_YOU_MAP.put("FakePay", "Intercepts /pay locally and prints a fake \"you paid\" line. Nothing is sent; no money moves (DonutSMP).");
       YOUR_YOU_MAP.put(
          "NetheriteFinder", "Finds the ancient debris your client knows about and draws the real block through walls, with an optional outline box."
