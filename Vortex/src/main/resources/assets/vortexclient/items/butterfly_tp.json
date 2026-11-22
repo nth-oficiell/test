@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      { "type": "minecraft:model", "model": "vortexclient:item/balisong_safe" },
+      { "type": "minecraft:model", "model": "vortexclient:item/balisong_blade" },
+      { "type": "minecraft:model", "model": "vortexclient:item/balisong_bite" }
+    ]
+  }
+}
