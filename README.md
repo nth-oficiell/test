@@ -1,9 +1,10 @@
-# Vortex
+# Matrix
 
-Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Vortex**.
+Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Matrix**.
 
 ## Contenu
-- `vortex-client-2.0.1.jar` — le mod compilé, prêt à mettre dans `.minecraft/mods`
+- `matrix-client-2.0.1.jar` — le mod compilé, prêt à mettre dans `.minecraft/mods`
+- ⚠️ Supprime l'ancien `vortex-client-2.0.1.jar` de `.minecraft/mods` (l'addon donutlarp original n'est pas requis, tout est intégré)
 - `Vortex/` — sources complètes (Gradle / Fabric Loom)
 
 ## Changements
@@ -19,6 +20,11 @@ Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Vor
 - Nouveau module `Activity Inspector` → chunks rouges d'activité sous terre (données serveur `donutlarp:activity`), toast/chat/son
 - Receptors payload Fabric enregistrés au démarrage du client ; données nettoyées à la déconnexion
 - Noms de modules gardés identiques → ta config existante reste valide
+
+## Fix réseau sus chunks
+- Les payloads `donutlarp:bases` / `donutlarp:activity` sont maintenant décodés octet par octet (buffer entier) comme l'addon original — corrige le `DecoderException: Packet custom_payload was larger than I expected`
+- Enregistrement des payloads résilient si l'addon donutlarp original est aussi installé
+- **Renommage complet Vortex → Matrix** (id `matrixclient`, packages `com.matrix.client`, assets, GUI)
 
 ## Build
 ```
