@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.matrix.client.categories.misc.Capes;
 import com.matrix.client.categories.misc.SkinProtect;
+import com.matrix.client.categories.visuals.SkinChanger;
 import com.matrix.client.utils.EmitVertex;
 import com.matrix.client.utils.SubmitMatrixApi;
 
@@ -40,6 +41,10 @@ public class MixinAbstractClientPlayerEntity implements SubmitMatrixApi {
       SkinTextures orig = (SkinTextures)callbackInfoReturnable.getReturnValue();
       if (orig != null) {
          SkinTextures skin = SkinProtect.getMatrixclientInstance(self);
+         if (skin == null) {
+            skin = SkinChanger.getOverride(self);
+         }
+
          Identifier cape = Capes.getIdentifierInstance(self);
          if (skin != null || cape != null) {
             TextureAsset body = skin != null ? skin.body() : orig.body();

@@ -155,6 +155,7 @@ import com.matrix.client.categories.visuals.PearlPrediction;
 import com.matrix.client.categories.visuals.PlayerESP;
 import com.matrix.client.categories.visuals.RealisticWater;
 import com.matrix.client.categories.visuals.ShowHUD;
+import com.matrix.client.categories.visuals.SkinChanger;
 import com.matrix.client.categories.visuals.SpawnerFinder;
 import com.matrix.client.categories.visuals.SpotifyHUD;
 import com.matrix.client.categories.visuals.StorageESP;
@@ -324,6 +325,7 @@ public class ModuleRegistry {
         registerModule(new SilentAim());
         registerModule(new SilentHome());
         registerModule(new SkinProtect());
+        registerModule(new SkinChanger());
         registerModule(new SpawnerFinder());
         registerModule(new SpawnerProtect());
         registerModule(new SpecialItemBuyer());

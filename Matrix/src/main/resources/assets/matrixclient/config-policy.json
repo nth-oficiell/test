@@ -766,6 +766,9 @@
       ],
       "why": "Sends /sethome, /delhome, /rtp and /home by itself."
     },
+    "skin_changer": {
+      "role": "PORTABLE"
+    },
     "skin_protect": {
       "role": "GUARD",
       "why": "A config may turn it on, never off."

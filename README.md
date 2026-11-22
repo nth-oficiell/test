@@ -31,3 +31,9 @@ Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Mat
 ./gradlew build
 ```
 Nécessite JDK 25 (Loom 1.18).
+
+## Mise à jour : module SkinChanger (Visuals)
+- Nouveau module `SkinChanger` dans Visuals : importe un PNG de skin depuis ton PC (bouton Import) ou dépose-le dans `.minecraft/config/corzclient/skins/` (bouton Reload)
+- Application complète côté client : ton joueur (1ère/3ème personne), ta main, et les autres joueurs si « Apply To Others »
+- Détection auto du modèle (Wide/Slim) ou forçage possible
+- Le fichier importé est conservé dans la config (`Skin File`) → rechargé automatiquement à l'activation

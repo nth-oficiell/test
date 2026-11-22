@@ -240,7 +240,7 @@ public final class PlayerSkinResolver {
       PENDING_FETCHES.remove(jsonMetadataText);
    }
 
-   private static NativeImage upgradeLegacySkin(NativeImage read) {
+   public static NativeImage upgradeLegacySkin(NativeImage read) {
       if (read.getWidth() == 64 && read.getHeight() == 32) {
          NativeImage nativeImage = new NativeImage(64, 64, true);
          nativeImage.copyFrom(read);
