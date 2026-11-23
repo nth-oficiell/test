@@ -110,6 +110,8 @@
     "MixinBiomeDebugHudEntryFakeCoords",
     "MixinClientPlayerEntityFakeCoords",
     "MixinKeyboardFakeCoords",
-    "MixinTextRendererNameProtect"
+    "MixinTextRendererNameProtect",
+    "MixinScreenPanoramaBackground",
+    "MixinSplashOverlay"
   ]
 }
