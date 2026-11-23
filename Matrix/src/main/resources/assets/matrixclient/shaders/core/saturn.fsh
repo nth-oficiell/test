@@ -57,7 +57,7 @@ vec3 hash33(vec3 p) {
     return vec3(hash13(p), hash13(p + 19.7), hash13(p + 37.3));
 }
 
-float noise3(vec3 x) {
+float mNoise3(vec3 x) {
     vec3 i = floor(x);
     vec3 f = fract(x);
     f = f * f * (3.0 - 2.0 * f);
@@ -76,7 +76,7 @@ const mat3 M3 = mat3( 0.00,  0.80,  0.60,
 float fbm4(vec3 p) {
     float v = 0.0, a = 0.5;
     for (int i = 0; i < 4; ++i) {
-        v += a * noise3(p);
+        v += a * mNoise3(p);
         p = M3 * p * 2.03;
         a *= 0.5;
     }

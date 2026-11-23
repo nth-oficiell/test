@@ -60,7 +60,7 @@ vec3 hash33(vec3 p) {
     return vec3(hash13(p), hash13(p + 19.7), hash13(p + 37.3));
 }
 
-float noise3(vec3 x) {
+float mNoise3(vec3 x) {
     vec3 i = floor(x);
     vec3 f = fract(x);
     f = f * f * (3.0 - 2.0 * f);
@@ -79,7 +79,7 @@ const mat3 M3 = mat3( 0.00,  0.80,  0.60,
 float fbm3(vec3 p) {
     float v = 0.0, a = 0.5;
     for (int i = 0; i < 3; ++i) {
-        v += a * noise3(p);
+        v += a * mNoise3(p);
         p = M3 * p * 2.03;
         a *= 0.5;
     }
@@ -154,7 +154,7 @@ void diskHit(vec3 P, vec3 v, vec3 n, vec3 e1, vec3 e2, float t, float image, ino
     vec2 cs = vec2(cos(spin), sin(spin));
     float detail = image < 0.5 ? 1.0 : 0.35;
     float n1 = fbm3(vec3(cs * 1.6, r * 0.62));
-    float n2 = noise3(vec3(cs * 4.0, r * 1.45 + 3.0));
+    float n2 = mNoise3(vec3(cs * 4.0, r * 1.45 + 3.0));
     float dens = smoothstep(0.14, 0.88, mix(n1, 0.66 * n1 + 0.34 * n2, detail));
     float u = R_IN / r;
     float temp = pow(u, 0.75) * pow(max(1.0 - sqrt(u), 0.0), 0.25) / 0.488;

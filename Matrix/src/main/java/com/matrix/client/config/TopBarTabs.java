@@ -92,7 +92,7 @@ public class TopBarTabs {
 
    private void fitTabs(VertexTextureFont fontRenderer) {
       float availableWidth = this.barWidth - 16;
-      float brandWidth = 104.0F;
+      float brandWidth = 112.0F;
       float fixedWidth = this.tabCount * 14 + (this.tabCount - 1) * CHIP_GAP;
       float rawWidthsSum = 0.0F;
 
@@ -150,9 +150,9 @@ public class TopBarTabs {
 
       try {
          MatrixPeekUtilsIdentifier.handle(logoProfile, roundOffset, 16.0F, 16.0F, LOGO_TEXTURE, new Color(-920587), matrices);
-         MatrixStackUtilsAmount.handlePushScale("Vortex", titleX(), titleBaseY - 4.0F, 1.1F, -920587);
+         MatrixStackUtilsAmount.handlePushScale("Matrix", titleX(), titleBaseY - 4.0F, 1.1F, -920587);
          MatrixStackUtilsAmount.handlePushScale(
-            VERSION_TEXT, titleX() + MatrixStackUtilsAmount.getAmount3("Vortex") * 1.1F - 2.0F, titleBaseY + 6.5F, 0.72F, -11117467
+            VERSION_TEXT, titleX() + MatrixStackUtilsAmount.getAmount3("Matrix") * 1.1F - 2.0F, titleBaseY + 6.5F, 0.72F, -11117467
          );
       } finally {
          MatrixRoundedUtils.handlePanelOverlay(panelOverlay);

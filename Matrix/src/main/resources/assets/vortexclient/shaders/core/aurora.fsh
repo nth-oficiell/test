@@ -68,7 +68,7 @@ vec3 hash33(vec3 p) {
     return vec3(hash13(p), hash13(p + 19.7), hash13(p + 37.3));
 }
 
-float noise1(float x) {
+float mNoise1(float x) {
     float i = floor(x);
     float f = fract(x);
     float u = f * f * (3.0 - 2.0 * f);
@@ -119,9 +119,9 @@ float curtain(vec2 q, float k, float t, float stepW, float fp, float fpFine, flo
     float x = q.x;
     float fold = 0.80 * sin(x * 0.21 + t * 0.050 + seed)
                + 0.28 * sin(x * 0.57 - t * 0.083 + seed * 1.9)
-               + 0.84 * (noise1(x * 0.33 + t * 0.040 + seed * 5.3) - 0.5);
+               + 0.84 * (mNoise1(x * 0.33 + t * 0.040 + seed * 5.3) - 0.5);
     float d = q.y - k * SPACING - fold;
-    float w = 0.034 + 0.026 * noise1(x * 0.9 + seed * 2.1 + t * 0.07);
+    float w = 0.034 + 0.026 * mNoise1(x * 0.9 + seed * 2.1 + t * 0.07);
     float we = max(w, stepW);
     float sheet = exp(-(d * d) / (we * we)) * (w / we);
     glow = exp(-(d * d) * 2.6);
@@ -130,15 +130,15 @@ float curtain(vec2 q, float k, float t, float stepW, float fp, float fpFine, flo
     float l2 = rayLod(fpFine, 21.0);
     float l3 = rayLod(fpFine, 47.0);
     float streak = 0.53;
-    if (l1 > 0.0) streak = mix(0.53, smoothstep(0.30, 0.84, noise1(x * 8.0 + t * 0.35 + seed * 3.3)), l1);
+    if (l1 > 0.0) streak = mix(0.53, smoothstep(0.30, 0.84, mNoise1(x * 8.0 + t * 0.35 + seed * 3.3)), l1);
     float fine2 = 0.62;
-    if (l2 > 0.0) fine2 = mix(0.62, 0.30 + 0.70 * noise1(x * 21.0 - t * 0.90 + seed * 7.7), l2);
+    if (l2 > 0.0) fine2 = mix(0.62, 0.30 + 0.70 * mNoise1(x * 21.0 - t * 0.90 + seed * 7.7), l2);
     float fine3 = 0.80;
-    if (l3 > 0.0) fine3 = mix(0.80, 0.52 + 0.48 * noise1(x * 47.0 + t * 1.60 + seed * 1.3), l3);
+    if (l3 > 0.0) fine3 = mix(0.80, 0.52 + 0.48 * mNoise1(x * 47.0 + t * 1.60 + seed * 1.3), l3);
     float rays = 0.03 + 1.30 * streak * streak * fine2 * fine3;
-    float surge = 0.07 + 0.93 * smoothstep(0.28, 0.86, noise1(x * 0.16 - t * 0.10 + seed * 4.1));
+    float surge = 0.07 + 0.93 * smoothstep(0.28, 0.86, mNoise1(x * 0.16 - t * 0.10 + seed * 4.1));
     float presence = smoothstep(0.22, 0.64, hash11(k * 3.17 + 0.71));
-    float tall = smoothstep(0.15, 0.85, noise1(x * 2.3 + seed * 2.7 - t * 0.12));
+    float tall = smoothstep(0.15, 0.85, mNoise1(x * 2.3 + seed * 2.7 - t * 0.12));
     float prof = smoothstep(0.0, 0.03, f) * exp(-f * mix(5.2, 2.3, tall));
     return sheet * rays * surge * presence * prof;
 }
