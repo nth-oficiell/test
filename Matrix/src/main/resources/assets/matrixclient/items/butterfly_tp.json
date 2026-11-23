@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      { "type": "minecraft:model", "model": "matrixclient:item/balisong_safe" },
+      { "type": "minecraft:model", "model": "matrixclient:item/balisong_blade" },
+      { "type": "minecraft:model", "model": "matrixclient:item/balisong_bite" }
+    ]
+  }
+}

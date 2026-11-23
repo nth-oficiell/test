@@ -1,0 +1,102 @@
+{
+  "pingsound": {
+    "sounds": [
+      "matrixclient:pingsound"
+    ]
+  },
+  "introsound": {
+    "sounds": [
+      "matrixclient:introsound"
+    ]
+  },
+  "access_granted": {
+    "sounds": [
+      "matrixclient:access_granted"
+    ]
+  },
+  "buildfinished": {
+    "sounds": [
+      "matrixclient:buildfinished"
+    ]
+  },
+  "cs_default_on":  { "sounds": ["matrixclient:modules/module_on"] },
+  "cs_default_off": { "sounds": ["matrixclient:modules/module_off"] },
+  "cs_pack1_on":    { "sounds": ["matrixclient:modules/module_enable"] },
+  "cs_pack1_off":   { "sounds": ["matrixclient:modules/module_disable"] },
+  "cs_pack2_on":    { "sounds": ["matrixclient:modules/module_enable1"] },
+  "cs_pack2_off":   { "sounds": ["matrixclient:modules/module_disable1"] },
+  "cs_pack3_on":    { "sounds": ["matrixclient:modules/module_enable2"] },
+  "cs_pack3_off":   { "sounds": ["matrixclient:modules/module_disable2"] },
+  "cs_th_on":       { "sounds": ["matrixclient:modules/enable"] },
+  "cs_th_off":      { "sounds": ["matrixclient:modules/disable"] },
+  "cs_pack4_on":    { "sounds": ["matrixclient:modules/module_on1"] },
+  "cs_pack4_off":   { "sounds": ["matrixclient:modules/module_off1"] },
+  "cs_hover_scroll": { "sounds": ["matrixclient:modules/scroll"] },
+  "cs_category_click": { "sounds": ["matrixclient:modules/category_click"] },
+  "cs_card_open": { "sounds": ["matrixclient:modules/card_open"] },
+  "knife.deploy": { "sounds": [
+    { "name": "matrixclient:knife/deploy1", "preload": true },
+    { "name": "matrixclient:knife/deploy2", "preload": true },
+    { "name": "matrixclient:knife/deploy3", "preload": true }
+  ] },
+  "knife.deploy_butterfly": { "sounds": [
+    { "name": "matrixclient:knife/deploy_butterfly1", "preload": true },
+    { "name": "matrixclient:knife/deploy_butterfly2", "preload": true },
+    { "name": "matrixclient:knife/deploy_butterfly3", "preload": true }
+  ] },
+  "knife.swish": { "sounds": [
+    { "name": "matrixclient:knife/swish1", "preload": true },
+    { "name": "matrixclient:knife/swish2", "preload": true },
+    { "name": "matrixclient:knife/swish3", "preload": true },
+    { "name": "matrixclient:knife/swish4", "preload": true },
+    { "name": "matrixclient:knife/swish5", "preload": true }
+  ] },
+  "knife.keys": { "sounds": [
+    { "name": "matrixclient:knife/keys1", "preload": true },
+    { "name": "matrixclient:knife/keys2", "preload": true },
+    { "name": "matrixclient:knife/keys3", "preload": true },
+    { "name": "matrixclient:knife/keys4", "preload": true },
+    { "name": "matrixclient:knife/keys5", "preload": true },
+    { "name": "matrixclient:knife/keys6", "preload": true },
+    { "name": "matrixclient:knife/keys7", "preload": true },
+    { "name": "matrixclient:knife/keys8", "preload": true },
+    { "name": "matrixclient:knife/keys9", "preload": true },
+    { "name": "matrixclient:knife/keys10", "preload": true },
+    { "name": "matrixclient:knife/keys11", "preload": true },
+    { "name": "matrixclient:knife/keys12", "preload": true }
+  ] },
+  "knife.tick": { "sounds": [
+    { "name": "matrixclient:knife/tick1", "preload": true },
+    { "name": "matrixclient:knife/tick2", "preload": true },
+    { "name": "matrixclient:knife/tick3", "preload": true },
+    { "name": "matrixclient:knife/tick4", "preload": true },
+    { "name": "matrixclient:knife/tick5", "preload": true },
+    { "name": "matrixclient:knife/tick6", "preload": true }
+  ] },
+  "knife.lock": { "sounds": [
+    { "name": "matrixclient:knife/lock1", "preload": true },
+    { "name": "matrixclient:knife/lock2", "preload": true },
+    { "name": "matrixclient:knife/lock3", "preload": true },
+    { "name": "matrixclient:knife/lock4", "preload": true }
+  ] },
+  "knife.keys_land": { "sounds": [
+    { "name": "matrixclient:knife/keys_land1", "preload": true },
+    { "name": "matrixclient:knife/keys_land2", "preload": true },
+    { "name": "matrixclient:knife/keys_land3", "preload": true },
+    { "name": "matrixclient:knife/keys_land4", "preload": true },
+    { "name": "matrixclient:knife/keys_land5", "preload": true },
+    { "name": "matrixclient:knife/keys_land6", "preload": true },
+    { "name": "matrixclient:knife/keys_land7", "preload": true },
+    { "name": "matrixclient:knife/keys_land8", "preload": true }
+  ] },
+  "knife.ring": { "sounds": [
+    { "name": "matrixclient:knife/ring1", "preload": true },
+    { "name": "matrixclient:knife/ring2", "preload": true },
+    { "name": "matrixclient:knife/ring3", "preload": true },
+    { "name": "matrixclient:knife/ring4", "preload": true },
+    { "name": "matrixclient:knife/ring5", "preload": true },
+    { "name": "matrixclient:knife/ring6", "preload": true }
+  ] },
+  "theme.halloween": { "sounds": [ { "name": "matrixclient:theme/halloween", "stream": true } ] },
+  "theme.christmas": { "sounds": [ { "name": "matrixclient:theme/christmas", "stream": true } ] }
+}
