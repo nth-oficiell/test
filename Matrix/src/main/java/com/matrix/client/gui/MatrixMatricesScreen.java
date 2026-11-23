@@ -1,7 +1,7 @@
 package com.matrix.client.gui;
 
 import com.matrix.client.MatrixClient;
-import com.matrix.client.config.SidebarPanel;
+import com.matrix.client.config.TopBarTabs;
 import com.matrix.client.render.BetaListening;
 import com.matrix.client.render.BindPill;
 import com.matrix.client.render.CardMatrixUtils;
@@ -60,12 +60,14 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
    private final QuintScissor matrixMatricesQuintScissor;
    private static int samplerCount;
    private static long matrixMatricesCount;
+   private static final int TOPBAR_HEIGHT = 44;
+   private static final int TOPBAR_FULL = TOPBAR_HEIGHT + 4;
    private final MatrixMatrix matrixMatrix;
    private long nanoTimeTgtBot;
    private Module next;
    private float matrixMatricesAmount;
    private HelloTime helloTime;
-   private SidebarPanel logoProfile;
+   private TopBarTabs topBar;
    private static boolean introTriggered = false;
    private int cachedHeight;
    private static int samplerAccumulatedMs;
@@ -169,7 +171,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
                   return true;
                } else if (RenderMatrixUtilsAmount.canPipelineFlag(widthAmount, heightAmount, button)) {
                   return true;
-               } else if (this.logoProfile.canConsumeClick(widthAmount, heightAmount, button)) {
+               } else if (this.topBar.canConsumeClick(widthAmount, heightAmount, button)) {
                   return true;
                } else if (this.helloTime.canIconsClear(widthAmount, heightAmount, button)) {
                   return true;
@@ -271,8 +273,8 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
    private void renderClientMatrix(DrawContext context, int clientMatrixValue, int randomValue, float peekFactor) {
       int peekValue = clientMatrixValue + this.clientMatrixValue + 12;
       int peekBound = 620 - this.clientMatrixValue - 18;
-      int matrixStackValue = randomValue + 6;
-      short materialFactor = 348;
+      int matrixStackValue = randomValue + 6 + TOPBAR_FULL;
+      short materialFactor = 300;
       TwoDidUtils.renderMinPeek(context, 0, peekValue, matrixStackValue, peekBound, materialFactor, 7.0F, peekFactor);
    }
 
@@ -320,7 +322,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
    }
 
    private int getValue() {
-      return 316;
+      return 268;
    }
 
    private boolean isTgtBots() {
@@ -459,7 +461,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
       int clientMatrixValue = (super.height - 360) / 2;
       int clientMatrixValue2 = (super.width - 620) / 2;
       int matrixMatricesValue = clientMatrixValue2 + this.clientMatrixValue + 12;
-      int clientMatrixValue4 = clientMatrixValue + 6 + 28 + 4;
+      int clientMatrixValue4 = clientMatrixValue + 6 + TOPBAR_FULL + 28 + 4;
       int constValue = 620 - this.clientMatrixValue - 18;
       int clientMatrixValue6 = this.getValue();
       return this.getAmountMax(matrixMatricesValue, clientMatrixValue4, constValue, clientMatrixValue6);
@@ -634,9 +636,9 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
       int clientMatrixValue = (super.width - 620) / 2;
       int clientMatrixValue2 = (super.height - 360) / 2;
       int clientMatrixValue3 = clientMatrixValue + this.clientMatrixValue + 12;
-      int clientMatrixValue4 = clientMatrixValue2 + 6 + 28 + 4;
+      int clientMatrixValue4 = clientMatrixValue2 + 6 + TOPBAR_FULL + 28 + 4;
       int clientMatrixValue5 = 620 - this.clientMatrixValue - 18;
-      short clientMatrixValue6 = 316;
+      short clientMatrixValue6 = 268;
       return clientMatrixLimit >= clientMatrixValue3 && clientMatrixLimit <= clientMatrixValue3 + clientMatrixValue5 && heightAmount >= clientMatrixValue4 && heightAmount <= clientMatrixValue4 + clientMatrixValue6;
    }
 
@@ -663,7 +665,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
       } else {
          boolean pendingRelayout7 = this.pendingRelayout;
          this.pendingRelayout = false;
-         if (pendingRelayout7 && this.logoProfile != null && super.width == this.cachedWidth && super.height == this.cachedHeight) {
+         if (pendingRelayout7 && this.topBar != null && super.width == this.cachedWidth && super.height == this.cachedHeight) {
             super.init();
             matrixMatricesActive = this.matrixMatrixActive;
          } else {
@@ -674,16 +676,16 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
             var miscDonutsmp = this.instance.getMiscDonutsmp();
             int matrixMatricesValue = (super.width - 620) / 2;
             int matrixMatricesValue2 = (super.height - 360) / 2;
-            this.logoProfile = new SidebarPanel(matrixMatricesValue + 6, matrixMatricesValue2 + 6, 128, 348, miscDonutsmp, this::handlePillTgt);
-            this.clientMatrixValue = this.logoProfile.getCurrentWidth();
-            this.helloTime = new HelloTime(matrixMatricesValue + this.clientMatrixValue + 12, matrixMatricesValue2 + 6, 620 - this.clientMatrixValue - 18);
+            this.topBar = new TopBarTabs(matrixMatricesValue + 6, matrixMatricesValue2 + 6, 608, TOPBAR_HEIGHT, miscDonutsmp, this::handlePillTgt);
+            this.clientMatrixValue = -6;
+            this.helloTime = new HelloTime(matrixMatricesValue + this.clientMatrixValue + 12, matrixMatricesValue2 + 6 + TOPBAR_FULL, 620 - this.clientMatrixValue - 18);
             boolean matrixMatricesFlag = false;
 
             for (IconsPngType iconsPngType : miscDonutsmp) {
                var list = iconsPngType == IconsPngType.BOTS ? MinecraftBotUtils.getItems(this.instance.getItems(iconsPngType)) : this.instance.getItems(iconsPngType);
                var arrayList = new ArrayList();
                int matrixMatricesValue3 = matrixMatricesValue + this.clientMatrixValue + 12;
-               int matrixMatricesValue4 = matrixMatricesValue2 + 6 + 28 + 4 + 0;
+               int matrixMatricesValue4 = matrixMatricesValue2 + 6 + TOPBAR_FULL + 28 + 4 + 0;
                int matrixMatricesValue5 = 620 - this.clientMatrixValue - 18 - 0;
                boolean socialsTheme = canSocialsTheme(iconsPngType);
                int matrixMatricesValue6 = socialsTheme ? matrixMatricesValue5 : (matrixMatricesValue5 - 4) / 2;
@@ -786,7 +788,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
       int clientMatrixValue2 = (super.height - 360) / 2;
       int clientMatrixValue3 = (super.width - 620) / 2;
       int clientMatrixValue4 = clientMatrixValue3 + this.clientMatrixValue + 12;
-      int clientMatrixValue5 = clientMatrixValue2 + 6 + 28 + 4 + 0;
+      int clientMatrixValue5 = clientMatrixValue2 + 6 + TOPBAR_FULL + 28 + 4 + 0;
       int constValue = 620 - this.clientMatrixValue - 18 - 0;
       if (this.isTgtBots()) {
          this.botTgt.handleUtilityInspector(clientMatrixValue4, clientMatrixValue5, constValue, this.getValue());
@@ -1114,9 +1116,9 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
             context.getMatrices().scale(amount, amount);
             context.getMatrices().translate(-widthScaled, -heightScaled);
             int botTgtValue = scissorMatrixValue + this.clientMatrixValue + 12;
-            int matrixMatricesValue13 = randomValue + 6 + 28 + 4;
+            int matrixMatricesValue13 = randomValue + 6 + TOPBAR_FULL + 28 + 4;
             int constValue = 620 - this.clientMatrixValue - 18;
-            short matrixMatricesValue15 = 316;
+            short matrixMatricesValue15 = 268;
 
             try {
                float panelOverlay = MatrixRoundedUtils.getPanelOverlay(matrixMatricesValue7);
@@ -1144,10 +1146,10 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
 
                   MatrixPeekUtilsRender.render(context, scissorMatrixValue, randomValue, 620, 360, 12, CardMatrixUtils.getValue(), 352321535);
                   if (!CardMatrixUtils.isModernFlag()) {
-                     RenderMatrixUtilsRelease.render(context, scissorMatrixValue + 6, randomValue + 6, this.clientMatrixValue, 348, 7, CardMatrixUtils.getValue8());
-                     float matrixReleaseValue = scissorMatrixValue + 6 + this.clientMatrixValue;
-                     float matrixMatricesValue21 = 608 - this.clientMatrixValue;
-                     RenderMatrixUtilsRelease.render(context, matrixReleaseValue, (float)(randomValue + 6), matrixMatricesValue21, 348.0F, 7.0F, CardMatrixUtils.getReleaseRightInt());
+                     RenderMatrixUtilsRelease.render(context, scissorMatrixValue + 6, randomValue + 6, 608, TOPBAR_HEIGHT, 7, CardMatrixUtils.getValue8());
+                     float matrixReleaseValue = scissorMatrixValue + 6;
+                     float matrixMatricesValue21 = 608 - 0;
+                     RenderMatrixUtilsRelease.render(context, matrixReleaseValue, (float)(randomValue + 6 + TOPBAR_FULL), matrixMatricesValue21, 300.0F, 7.0F, CardMatrixUtils.getReleaseRightInt());
                   }
                } finally {
                   MatrixRoundedUtils.handlePanelOverlay(panelOverlay);
@@ -1161,7 +1163,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
                float panelOverlay2 = MatrixRoundedUtils.getPanelOverlay(panelOverlayLimit);
 
                try {
-                  this.logoProfile.renderPanel(context, matrixMatricesValue, heightValue, modulesClearValue);
+                  this.topBar.renderBar(context, matrixMatricesValue, heightValue, modulesClearValue);
                   String text = this.helloTime.formatIconsClear();
                   if (!text.equals(this.matrixMatricesText)) {
                      this.handleLowerCase(text);
@@ -1343,7 +1345,6 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
                      }
                   }
 
-                  this.logoProfile.renderCollapsedTooltip(context, this.isPillLock(), this.isTgtBots() ? botTgtValue + ConstAmountUtils.getAmount() : botTgtValue);
                } finally {
                   MatrixRoundedUtils.handlePanelOverlay(panelOverlay2);
                }
@@ -1444,7 +1445,7 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
 
    public MatrixMatricesScreen() {
       super(Text.literal("MatrixClient"));
-      this.clientMatrixValue = 128;
+      this.clientMatrixValue = -6;
       this.mouseScrolledCount = 0;
       this.animatedScrollOffset = 0.0;
       this.mouseClickedActive = false;
@@ -1514,11 +1515,6 @@ public class MatrixMatricesScreen extends Screen implements ScreenGuiApi, GuiCli
    }
 
    private void handleClientMatrix(int clientMatrixValue, int randomValue) {
-      this.logoProfile.updateCollapseAnimation();
-      int currentWidth = this.logoProfile.getCurrentWidth();
-      if (currentWidth != this.clientMatrixValue) {
-         this.clientMatrixValue = currentWidth;
-         this.helloTime.handleAmountIcons(clientMatrixValue + this.clientMatrixValue + 12, 620 - this.clientMatrixValue - 18);
-      }
+      this.topBar.updateAnimation();
    }
 }
