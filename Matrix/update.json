@@ -1,4 +1,5 @@
 {
   "version": "2.0.1",
-  "url": "https://github.com/nth-oficiell/test/releases"
+  "url": "https://github.com/nth-oficiell/test/releases",
+  "jar": "https://raw.githubusercontent.com/nth-oficiell/test/refs/heads/vibe/vortex-394c92/Matrix/matrix-client-2.0.1.jar"
 }
