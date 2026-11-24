@@ -5,9 +5,9 @@ import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,7 +20,7 @@ public class MatrixDetectorPlugin extends JavaPlugin implements PluginMessageLis
 
    private static final String CHANNEL = "matrixclient:detect";
 
-   private final Map<UUID, Long> lastAnnounce = new HashMap<>();
+   private final Map<UUID, Long> lastAnnounce = new ConcurrentHashMap<>();
 
    @Override
    public void onEnable() {
@@ -62,10 +62,24 @@ public class MatrixDetectorPlugin extends JavaPlugin implements PluginMessageLis
             ? username
             : username + " (v" + version + ")";
          getLogger().warning(display + " is using Matrix Client");
-         Bukkit.broadcastMessage("\u00a78[\u00a7dMatrix\u00a78] \u00a7e" + display
-            + " \u00a77utilise \u00a7dMatrix Client");
+         netBroadcast("\u00a78[\u00a7dMatrix\u00a78] \u00a7e" + display
+            + " \u00a77utilise \u00a7d\u00a7lMatrix Client");
       } catch (Exception e) {
          getLogger().warning("Malformed Matrix detection payload from " + player.getName());
+      }
+   }
+
+   private void netBroadcast(String text) {
+      Runnable send = () -> {
+         for (Player online : Bukkit.getOnlinePlayers()) {
+            online.sendMessage(text);
+         }
+      };
+      try {
+         Object scheduler = Bukkit.getServer().getClass().getMethod("getGlobalRegionScheduler").invoke(Bukkit.getServer());
+         scheduler.getClass().getMethod("execute", org.bukkit.plugin.Plugin.class, Runnable.class).invoke(scheduler, this, send);
+      } catch (Throwable t) {
+         send.run();
       }
    }
 
