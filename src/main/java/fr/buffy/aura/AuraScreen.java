@@ -23,6 +23,8 @@ public class AuraScreen extends Screen {
 	private static final int PILL_HEIGHT = 16;
 	private static final int DOT_SPACING = 16;
 	private static final int DOT_HIT = 14;
+	private static final int ACTION_GAP = 8;
+	private static final int ACTION_HEIGHT = 24;
 
 	@FunctionalInterface
 	private interface OptionSetter {
@@ -89,10 +91,10 @@ public class AuraScreen extends Screen {
 		lastFrame = 0L;
 
 		int available = height - 16;
-		rowHeight = Mth.clamp((available - HEADER - FOOTER - (ROW_COUNT - 1) * ROW_GAP) / ROW_COUNT,
-				MIN_ROW_HEIGHT, MAX_ROW_HEIGHT);
+		int fixed = HEADER + FOOTER + ACTION_GAP + ACTION_HEIGHT + (ROW_COUNT - 1) * ROW_GAP;
+		rowHeight = Mth.clamp((available - fixed) / ROW_COUNT, MIN_ROW_HEIGHT, MAX_ROW_HEIGHT);
 		cardWidth = Math.min(372, width - 24);
-		cardHeight = HEADER + ROW_COUNT * rowHeight + (ROW_COUNT - 1) * ROW_GAP + FOOTER;
+		cardHeight = fixed + ROW_COUNT * rowHeight;
 		cardX = (width - cardWidth) / 2;
 		cardY = Math.max(8, (height - cardHeight) / 2);
 		renderY = cardY;
@@ -161,6 +163,7 @@ public class AuraScreen extends Screen {
 
 		drawClosePill(graphics, mouseX, mouseY);
 		drawRows(graphics, theme, mouseX, mouseY);
+		drawActionRow(graphics, theme, mouseX, mouseY);
 		drawFooter(graphics, theme);
 	}
 
@@ -175,8 +178,8 @@ public class AuraScreen extends Screen {
 	}
 
 	private void drawRows(GuiGraphics graphics, AuraTheme theme, int mouseX, int mouseY) {
-		int rowX = cardX + PADDING - 4;
-		int rowWidth = cardWidth - (PADDING - 4) * 2;
+		int rowX = rowsLeft();
+		int rowWidth = rowsWidth();
 
 		for (Option option : OPTIONS) {
 			int index = option.ordinal();
@@ -204,6 +207,22 @@ public class AuraScreen extends Screen {
 			int knobX = switchX + 2 + Math.round(progress * (SWITCH_WIDTH - 4 - knobSize));
 			Draw.roundRect(graphics, knobX, switchY + 2, knobSize, knobSize, knobSize / 2, 0xFFF7F9FD);
 		}
+	}
+
+	private void drawActionRow(GuiGraphics graphics, AuraTheme theme, int mouseX, int mouseY) {
+		int left = rowsLeft();
+		int width = rowsWidth();
+		int top = actionTop();
+		boolean hovered = isInside(mouseX, mouseY, left, top, width, ACTION_HEIGHT);
+
+		Draw.roundRect(graphics, left, top, width, ACTION_HEIGHT, 8, hovered ? 0x1CFFFFFF : 0x0BFFFFFF);
+		Draw.dot(graphics, cardX + PADDING + 3, top + ACTION_HEIGHT / 2f, 2.2f,
+				hovered ? theme.accent() : 0xFF47505F);
+		graphics.drawString(font, Component.translatable("aura.menu.place").getString(),
+				cardX + PADDING + 13, top + (ACTION_HEIGHT - font.lineHeight) / 2,
+				hovered ? 0xFFF1F5FB : 0xFFA9B3C3, false);
+		graphics.drawString(font, ">", left + width - 12 - font.width(">"),
+				top + (ACTION_HEIGHT - font.lineHeight) / 2, theme.accent(), false);
 	}
 
 	private void drawFooter(GuiGraphics graphics, AuraTheme theme) {
@@ -262,8 +281,13 @@ public class AuraScreen extends Screen {
 			return true;
 		}
 
-		int rowX = cardX + PADDING - 4;
-		int rowWidth = cardWidth - (PADDING - 4) * 2;
+		if (isInside(mouseX, mouseY, rowsLeft(), actionTop(), rowsWidth(), ACTION_HEIGHT)) {
+			minecraft.setScreen(new AuraHudEditorScreen(this));
+			return true;
+		}
+
+		int rowX = rowsLeft();
+		int rowWidth = rowsWidth();
 		for (Option option : OPTIONS) {
 			if (isInside(mouseX, mouseY, rowX, rowTop(option.ordinal()), rowWidth, rowHeight)) {
 				option.toggle();
@@ -316,6 +340,18 @@ public class AuraScreen extends Screen {
 
 	private int rowTop(int index) {
 		return renderY + HEADER + index * (rowHeight + ROW_GAP);
+	}
+
+	private int actionTop() {
+		return rowTop(ROW_COUNT - 1) + rowHeight + ACTION_GAP;
+	}
+
+	private int rowsLeft() {
+		return cardX + PADDING - 4;
+	}
+
+	private int rowsWidth() {
+		return cardWidth - (PADDING - 4) * 2;
 	}
 
 	private int pillX() {

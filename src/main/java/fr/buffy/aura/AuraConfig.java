@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.Mth;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -14,6 +15,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public final class AuraConfig {
+	public static final float MIN_SCALE = 0.5f;
+	public static final float MAX_SCALE = 2.0f;
+
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("aura.json");
 	private static final Path TEMP = PATH.resolveSibling("aura.json.tmp");
@@ -26,6 +30,11 @@ public final class AuraConfig {
 	public boolean time = true;
 	public boolean fullbright = false;
 	public int theme = 0;
+	/** Coin superieur gauche du HUD, en pixels GUI. */
+	public int hudX = 8;
+	public int hudY = 8;
+	/** Echelle du HUD, entre MIN_SCALE et MAX_SCALE. */
+	public float hudScale = 1f;
 	/** Luminosite d'origine du joueur, conservee pour la restituer meme apres un redemarrage. */
 	public Double savedGamma = null;
 
@@ -56,6 +65,9 @@ public final class AuraConfig {
 			loaded.time = readBoolean(json, "time", loaded.time);
 			loaded.fullbright = readBoolean(json, "fullbright", loaded.fullbright);
 			loaded.theme = Math.floorMod(readInt(json, "theme", loaded.theme), AuraTheme.count());
+			loaded.hudX = Math.max(0, readInt(json, "hudX", loaded.hudX));
+			loaded.hudY = Math.max(0, readInt(json, "hudY", loaded.hudY));
+			loaded.hudScale = Mth.clamp(readFloat(json, "hudScale", loaded.hudScale), MIN_SCALE, MAX_SCALE);
 			loaded.savedGamma = readGamma(json);
 			instance = loaded;
 		} catch (Exception exception) {
@@ -90,6 +102,14 @@ public final class AuraConfig {
 			return fallback;
 		}
 		return element.getAsInt();
+	}
+
+	private static float readFloat(JsonObject json, String key, float fallback) {
+		JsonElement element = json.get(key);
+		if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
+			return fallback;
+		}
+		return element.getAsFloat();
 	}
 
 	private static Double readGamma(JsonObject json) {
