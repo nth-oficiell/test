@@ -60,8 +60,21 @@ public final class Draw {
 		return (int) Math.round(radius - Math.sqrt(inside));
 	}
 
-	public static void dot(GuiGraphics graphics, float centerX, float centerY, float radius, int color) {
-		int size = Math.max(1, Math.round(radius * 2f));
+	/** Interrupteur : piste colorée selon l'état, pastille blanche qui glisse. */
+	public static void toggleSwitch(GuiGraphics graphics, int x, int y, int width, int height, float progress,
+									int accent) {
+		roundRect(graphics, x, y, width, height, height / 2, lerpColor(0xFF2B3241, accent, progress));
+
+		int knobSize = height - 4;
+		int knobX = x + 2 + Math.round(progress * (width - 4 - knobSize));
+		roundRect(graphics, knobX, y + 2, knobSize, knobSize, knobSize / 2, 0xFFF7F9FD);
+	}
+
+	public static boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
+		return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+	}
+
+	public static void dot(GuiGraphics graphics, float centerX, float centerY, float radius, int color) {		int size = Math.max(1, Math.round(radius * 2f));
 		roundRect(graphics, Math.round(centerX - radius), Math.round(centerY - radius), size, size, size / 2, color);
 	}
 

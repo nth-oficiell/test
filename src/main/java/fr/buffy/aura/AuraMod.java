@@ -43,6 +43,7 @@ public class AuraMod implements ClientModInitializer {
 		});
 
 		HudElementRegistry.addLast(id("hud"), AuraHud::render);
+		AuraCrosshair.register();
 		applyFullbright(AuraConfig.get().fullbright);
 	}
 

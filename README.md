@@ -6,7 +6,8 @@ Mod **client** pour **Minecraft 1.21.11** (Fabric) : un menu animé, un HUD dép
 
 - **Menu** ouvert avec la touche **O** : fond animé, carte à bordure dégradée, interrupteurs animés, sélecteur de thème.
 - **HUD déplaçable** : coordonnées, FPS, jour et heure du monde. On le place où on veut (glisser-déposer) et on règle son échelle de 50 % à 200 %. Position et échelle sont conservées.
-- **Trois thèmes** : Aurore, Océan, Émeraude, appliqués au menu et au HUD.
+- **Réticule personnalisé** : une croix aux couleurs du thème, taille et opacité réglables, avec aperçu. Le réticule du jeu est masqué tant que celui d'Aura est actif.
+- **Trois thèmes** : Aurore, Océan, Émeraude, appliqués au menu, au HUD et au réticule.
 - **Plein jour** : luminosité maximale à la demande, sans perdre le réglage de luminosité du joueur.
 - **Réglages persistants** dans `config/aura.json` : tout est rechargé au démarrage suivant.
 - **Uniquement côté client** : aucun paquet réseau, aucun mixin, aucune modification du serveur.
@@ -41,7 +42,8 @@ Mod **client** pour **Minecraft 1.21.11** (Fabric) : un menu animé, un HUD dép
 | **Échap** ou **O** | Fermer le menu |
 | Clic sur une ligne | Activer / désactiver l'option |
 | Clic sur une pastille de couleur | Changer de thème |
-| Clic sur « Position du HUD » | Ouvrir l'écran de placement |
+| Clic sur « Position du HUD » | Ouvrir l'écran de placement du HUD |
+| Clic sur « Réticule » | Régler l'activation, la taille et l'opacité du réticule |
 | Glisser le HUD | Le déplacer (il reste dans l'écran) |
 | Molette, ou **-** / **=** | Changer l'échelle du HUD par pas de 25 % |
 | **Échap** (écran de placement) | Terminer et enregistrer |
@@ -64,6 +66,9 @@ Fichier : `config/aura.json` (créé à la première modification). Il peut êtr
 | `theme` | entier | `0` | Thème : 0 Aurore, 1 Océan, 2 Émeraude |
 | `hudX` / `hudY` | entiers | `8` / `8` | Coin supérieur gauche du HUD, en pixels GUI |
 | `hudScale` | nombre | `1.0` | Échelle du HUD, bornée entre `0.5` et `2.0` |
+| `crosshair` | booléen | `true` | Réticule personnalisé (remplace celui du jeu) |
+| `crosshairSize` | entier | `9` | Longueur des branches du réticule, en pixels (`3` à `20`) |
+| `crosshairOpacity` | entier | `85` | Opacité du réticule, en pourcentage (`20` à `100`) |
 | `savedGamma` | nombre ou absent | `null` | Luminosité d'origine du joueur, mémorisée pendant le plein jour |
 
 ## Compiler depuis les sources
@@ -79,6 +84,8 @@ cd test
 Le jar est produit dans `build/libs/aura-1.0.0.jar` (une copie est versionnée dans `artifacts/`).
 
 ## Limites connues
+
+- Le réticule d'Aura remplace l'élément de HUD « crosshair » du jeu ; l'indicateur d'attaque et le reste du HUD ne sont pas touchés.
 
 - Le plein jour passe par l'option de luminosité du jeu : elle est restaurée automatiquement quand tu le désactives, y compris après un redémarrage. Si tu **supprimes le mod** alors que le plein jour est actif, `options.txt` garde la luminosité à 100 % — remets-la à la main dans les options.
 - La position du HUD est enregistrée en pixels GUI : changer le réglage « Échelle de l'interface » décale légèrement le HUD, il suffit de le replacer.
