@@ -64,6 +64,7 @@ public class Module implements PanicDestructUtils.Target, HudShowUtils.View {
         } else {
             this.onDisable();
         }
+        ModuleConfigAutosave.updateFlag2();
     }
 
     public void loadExtraData(JsonElement element) {

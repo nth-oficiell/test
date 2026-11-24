@@ -120,7 +120,9 @@ public class MatrixClient implements ClientModInitializer {
       DonutPayloads.register();
       fontManager = new ClientFonts();
       ModuleRegistry.registerAllModules();
+      ModuleConfigAutosave.loadModuleConfig();
       DiscordRichPresence.startPresenceUpdates();
+      ClientLifecycleEvents.CLIENT_STOPPING.register((ClientStopping)client -> ModuleConfigAutosave.updateFlag());
       ClientLifecycleEvents.CLIENT_STOPPING.register((ClientStopping)client -> DiscordRichPresence.shutdownPresence());
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(client, handler) -> BlockStateHelper.updateHashOpen());
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> {
