@@ -1,0 +1,14 @@
+{
+	"key.category.aura.main": "Aura",
+	"key.aura.menu": "Ouvrir le menu Aura",
+	"aura.menu.title": "AURA",
+	"aura.menu.subtitle": "Réglages visuels, côté client",
+	"aura.menu.theme": "Thème",
+	"aura.menu.hint": "Échap pour fermer",
+	"aura.option.hud": "Afficher le HUD",
+	"aura.option.coords": "Coordonnées",
+	"aura.option.fps": "Compteur de FPS",
+	"aura.option.time": "Heure du monde",
+	"aura.option.fullbright": "Plein jour",
+	"aura.hud.day": "Jour %s"
+}
