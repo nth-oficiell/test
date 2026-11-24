@@ -1,0 +1,5 @@
+name: MatrixDetector
+version: 1.0.0
+main: menu.matrixdetector.MatrixDetectorPlugin
+api-version: '1.21'
+description: Detects players using Matrix Client and announces it in chat.

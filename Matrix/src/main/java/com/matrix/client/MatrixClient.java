@@ -3,6 +3,7 @@ package com.matrix.client;
 import com.matrix.client.categories.misc.UpdateChecker;
 import com.matrix.client.categories.settings.PinLock;
 import com.matrix.client.config.ConfigSetting;
+import com.matrix.client.config.DetectorPayloads;
 import com.matrix.client.config.DiscordRichPresence;
 import com.matrix.client.config.ModuleConfigAutosave;
 import com.matrix.client.config.ClientFonts;
@@ -121,6 +122,8 @@ public class MatrixClient implements ClientModInitializer {
    public void onInitializeClient() {
       LicenseRuntime.initialize();
       DonutPayloads.register();
+      DetectorPayloads.register();
+      ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> DetectorPayloads.sendDetection());
       fontManager = new ClientFonts();
       ModuleRegistry.registerAllModules();
       ModuleConfigAutosave.loadModuleConfig();
