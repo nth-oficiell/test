@@ -198,6 +198,16 @@ public class Waypoints extends Module {
       }
    }
 
+   public boolean addExternalWaypoint(String name, double x, double y, double z, int rgb) {
+      if (mc.player == null || this.waypointsClearedItems.size() >= 64) {
+         return false;
+      }
+
+      this.waypointsClearedItems.add(new Waypoints.Waypoint(x, y, z, name, rgb & 16777215));
+      ModuleConfigAutosave.updateFlag2();
+      return true;
+   }
+
    private void updateWaypointsClearedWaypointsClearedItems() {
       if (mc.player != null) {
          if (this.waypointsClearedItems.size() >= 64) {

@@ -1,5 +1,7 @@
 package com.matrix.client;
 
+import com.matrix.client.categories.misc.UpdateChecker;
+import com.matrix.client.categories.settings.PinLock;
 import com.matrix.client.config.ConfigSetting;
 import com.matrix.client.config.DiscordRichPresence;
 import com.matrix.client.config.ModuleConfigAutosave;
@@ -9,6 +11,7 @@ import com.matrix.client.entity.ClientThreadUtils;
 import com.matrix.client.gui.AcBanner;
 import com.matrix.client.gui.DisabledEnabled;
 import com.matrix.client.gui.MatrixMatricesScreen;
+import com.matrix.client.gui.PinLockScreen;
 import com.matrix.client.render.BlockStateHelper;
 import com.matrix.client.render.MatrixRoundedUtils;
 import com.matrix.client.render.FillDraw;
@@ -168,6 +171,10 @@ public class MatrixClient implements ClientModInitializer {
                if (!DirExtractionUtils.isFlag()) {
                   ModuleRegistry.onEndClientTick();
                   ModuleConfigAutosave.saveIfPendingAndDue();
+                  UpdateChecker updateChecker = (UpdateChecker)ModuleRegistry.getModule(UpdateChecker.class);
+                  if (updateChecker != null) {
+                     updateChecker.notifyIfUpdateAvailable();
+                  }
                   GUISettings guiSettings = (GUISettings)ModuleRegistry.getModule(GUISettings.class);
                   if (guiSettings != null && client.currentScreen == null && client.player != null) {
                      int initializeClientLimit = guiSettings.getBindKey();
@@ -181,7 +188,12 @@ public class MatrixClient implements ClientModInitializer {
                               boolean initializeClientFlag2 = true;
                            }
 
-                           client.setScreen(new MatrixMatricesScreen());
+                           PinLock pinLock = (PinLock)ModuleRegistry.getModule(PinLock.class);
+                           if (pinLock != null && pinLock.isEnabled()) {
+                              client.setScreen(new PinLockScreen());
+                           } else {
+                              client.setScreen(new MatrixMatricesScreen());
+                           }
                         }
 
                         guiKeyWasPressed = bindPressed;
@@ -198,13 +210,7 @@ public class MatrixClient implements ClientModInitializer {
                               boolean botCrystalValue = isBindPressed(window2, iIIilIIiiIIi);
                               boolean orDefault = keyDown.getOrDefault(getItem, false);
                               keyDown.put(getItem, botCrystalValue);
-                              if (botCrystalValue
-                                 && !orDefault
-                                 && !getItem.isEnabled()
-                                 && AutoYourUtils.isContains(getItem)
-                                 && !AutoYourUtils.isContainsPVP_CRYSTAL_SET(getItem)) {
-                                 client.setScreen(new MatrixMatricesScreen(getItem));
-                              } else if (getItem.getBindMode() == BindMode.HOLD) {
+                              if (getItem.getBindMode() == BindMode.HOLD) {
                                  if (botCrystalValue && !orDefault) {
                                     getItem.setEnabled(true);
                                  } else if (!botCrystalValue && orDefault) {

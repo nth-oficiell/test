@@ -507,9 +507,6 @@ public class BetaListening implements GlfwListeningApi {
    }
 
    public void updateNext() {
-      if (AutoYourUtils.isContains(this.next) && !AutoYourUtils.isContainsPVP_CRYSTAL_SET(this.next)) {
-         this.updateAnywayEnable();
-      }
    }
 
    public int getListeningFlag() {
@@ -552,23 +549,7 @@ public class BetaListening implements GlfwListeningApi {
    private void handle(int value) {
       if (value >= 0) {
          this.betaListeningStringList.clear();
-
-         for (Module getItem : PngIcons.getInstance().getItems()) {
-            if (getItem != this.next && getItem.getBindKey() == value) {
-               this.betaListeningStringList.add(getItem.getCategory());
-            }
-
-            for (ConfigSetting autoEspBase : getItem.getSettings()) {
-               if (autoEspBase instanceof KeybindSetting keybindBase && keybindBase.isGlobalHotkey() && ToggleSanitizedUtils.canFlag(value, keybindBase.getKeyCode())) {
-                  this.betaListeningStringList.add(getItem.getCategory() + ": " + keybindBase.getSettingName());
-               }
-            }
-         }
-
-         if (!this.betaListeningStringList.isEmpty()) {
-            this.betaListeningValue = value;
-            this.updateTimeFlagAnywayActive();
-         }
+         this.betaListeningValue = value;
       }
    }
 
@@ -1126,13 +1107,7 @@ public class BetaListening implements GlfwListeningApi {
    }
 
    public void updateLockedModule() {
-      if (AutoYourUtils.isContainsKey(this.next)) {
-         DisabledEnabled.getInstance().handleDisabledEnabled("Module Locked", AutoYourUtils.getOrDefaultForIlIllIiIll(this.next), false);
-      } else if (!this.next.isEnabled() && AutoYourUtils.isContains(this.next) && !AutoYourUtils.isContainsPVP_CRYSTAL_SET(this.next)) {
-         this.updateAnywayEnable();
-      } else {
-         this.next.toggle();
-      }
+      this.next.toggle();
    }
 
    private void renderListeningRenderer(DrawContext context, float listeningRendererValue, float editValue) {
