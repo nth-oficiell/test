@@ -10,6 +10,8 @@ import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -38,10 +40,63 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
    private final int vertexTextureValue = 255;
    private  boolean matrixclientFlag;
    public static int matrixclientCount = 0;
+   private final float[] glyphWidthTable;
+   private final float[] glyphHeightTable;
+   private float waveHeightAmount = -1.0F;
+   private final Map<String, Float> textWidthCache;
+   private static final String[] GLYPH_STRINGS = new String[256];
+   private static final Color[] SHADOW_COLORS = new Color[256];
+
+   public static String getGlyphString(char ch) {
+      if (ch >= 256) {
+         return String.valueOf(ch);
+      } else {
+         String glyph = GLYPH_STRINGS[ch];
+         if (glyph == null) {
+            glyph = String.valueOf(ch);
+            GLYPH_STRINGS[ch] = glyph;
+         }
+
+         return glyph;
+      }
+   }
+
+   private static Color getShadowColor(int alpha) {
+      if (alpha < 0 || alpha > 255) {
+         return new Color(0, 0, 0, alpha);
+      } else {
+         Color shadow = SHADOW_COLORS[alpha];
+         if (shadow == null) {
+            shadow = new Color(0, 0, 0, alpha);
+            SHADOW_COLORS[alpha] = shadow;
+         }
+
+         return shadow;
+      }
+   }
+
+   private static boolean isRenderable(String text) {
+      for (int i = 0; i < text.length(); i++) {
+         char ch = text.charAt(i);
+         if (ch < ' ' || ch >= 255) {
+            return false;
+         }
+      }
+
+      return true;
+   }
 
    @Override
    public float getAbcdefghijklmnopqrstuvwxyzBrown() {
-      return (float)this.getStringBounds("W").getHeight() / 2.0F;
+      if (this.waveHeightAmount < 0.0F) {
+         if (this.fontMetrics == null) {
+            return 0.0F;
+         }
+
+         this.waveHeightAmount = (float)this.getStringBounds("W").getHeight() / 2.0F;
+      }
+
+      return this.waveHeightAmount;
    }
 
    private void handlePopPush(MatrixStack matrices, String vertexTextureText, float vertexTextureValue, float abcdefghijklmnopqrstuvwxyzBrown, Color color, Color color4, boolean vertexTextureFlag) {
@@ -99,7 +154,22 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
 
    @Override
    public float getAbcdefghijklmnopqrstuvwxyzMatrixfont(String matrixfontText) {
-      return (float)this.getStringBounds(CardStatusUtilsFlag.getOrDefault(matrixfontText)).getWidth() / 2.0F;
+      if (matrixfontText == null || matrixfontText.isEmpty()) {
+         return 0.0F;
+      }
+
+      Float cached = this.textWidthCache.get(matrixfontText);
+      if (cached != null) {
+         return cached;
+      }
+
+      float width = (float)this.getStringBounds(CardStatusUtilsFlag.getOrDefault(matrixfontText)).getWidth() / 2.0F;
+      if (this.textWidthCache.size() >= 2048) {
+         this.textWidthCache.clear();
+      }
+
+      this.textWidthCache.put(matrixfontText, width);
+      return width;
    }
 
    public String formatText(String formatText, float vertexTextureLimit) {
@@ -123,6 +193,9 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
    private VertexTextureFont(InputStream inputStream, float matrixclientAmount, Integer integer, boolean matrixclientFlag) {
       this.vertexTextureTable = new float[223];
       this.fontMetricsTable = new float[223];
+      this.glyphWidthTable = new float[223];
+      this.glyphHeightTable = new float[223];
+      this.textWidthCache = new HashMap<>();
       this.nativeImageActive = false;
       this.matrixclientFlag = true;
       this.matrixclientAmount = matrixclientAmount;
@@ -151,6 +224,13 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
       this.graphics.setColor(Color.white);
       this.fontMetrics = this.graphics.getFontMetrics();
       if (this.fontMetrics != null) {
+         for (int i = 32; i < 255; i++) {
+            Rectangle2D glyphBounds = this.fontMetrics.getStringBounds(getGlyphString((char)i), this.graphics);
+            this.glyphWidthTable[i - 32] = (float)glyphBounds.getWidth();
+            this.glyphHeightTable[i - 32] = (float)glyphBounds.getHeight() + this.fontMetrics.getMaxDescent() + 1.0F;
+         }
+
+         this.waveHeightAmount = (float)this.fontMetrics.getStringBounds("W", this.graphics).getHeight() / 2.0F;
          float fontMetricsTotal = 5.0F;
          float fontMetricsTotal2 = 5.0F;
 
@@ -158,7 +238,7 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
             this.graphics.drawString(String.valueOf((char)i), fontMetricsTotal, fontMetricsTotal2 + this.fontMetrics.getAscent());
             this.vertexTextureTable[i - 32] = fontMetricsTotal;
             this.fontMetricsTable[i - 32] = fontMetricsTotal2 - this.fontMetrics.getMaxDescent();
-            fontMetricsTotal += this.fontMetrics.stringWidth(String.valueOf((char)i)) + 2.0F;
+            fontMetricsTotal += this.fontMetrics.stringWidth(getGlyphString((char)i)) + 2.0F;
             if (fontMetricsTotal >= 250 - this.fontMetrics.getMaxAdvance()) {
                fontMetricsTotal = 5.0F;
                fontMetricsTotal2 += this.fontMetrics.getMaxAscent() + this.fontMetrics.getMaxDescent() + Math.round(this.matrixclientAmount / 2.0F);
@@ -170,17 +250,21 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
    }
 
    private float getVertexTexture(BufferBuilder bufferBuilder, Matrix4f matrix4f, char ch, float vertexTextureValue, float abcdefghijklmnopqrstuvwxyzBrown, float redScaled, float greenScaled, float blueScaled, float vertexTextureValue6) {
-      Rectangle2D stringBounds = this.fontMetrics.getStringBounds(String.valueOf(ch), this.graphics);
-      float vertexTextureFactor = this.vertexTextureTable[ch - ' '];
-      float vertexTextureFactor2 = this.fontMetricsTable[ch - ' '];
-      float width = (float)stringBounds.getWidth();
-      float vertexTextureValue7 = (float)stringBounds.getHeight() + this.fontMetrics.getMaxDescent() + 1.0F;
+      if (ch < ' ' || ch >= 255) {
+         return vertexTextureValue;
+      }
+
+      int vertexTextureIndex = ch - ' ';
+      float vertexTextureFactor = this.vertexTextureTable[vertexTextureIndex];
+      float vertexTextureFactor2 = this.fontMetricsTable[vertexTextureIndex];
+      float width = this.glyphWidthTable[vertexTextureIndex];
+      float vertexTextureValue7 = this.glyphHeightTable[vertexTextureIndex];
       float vertexTextureFactor3 = 0.0039063F;
       bufferBuilder.vertex(matrix4f, vertexTextureValue, abcdefghijklmnopqrstuvwxyzBrown + vertexTextureValue7, 0.0F).texture(vertexTextureFactor * vertexTextureFactor3, (vertexTextureFactor2 + vertexTextureValue7) * vertexTextureFactor3).color(redScaled, greenScaled, blueScaled, vertexTextureValue6);
       bufferBuilder.vertex(matrix4f, vertexTextureValue + width, abcdefghijklmnopqrstuvwxyzBrown + vertexTextureValue7, 0.0F).texture((vertexTextureFactor + width) * vertexTextureFactor3, (vertexTextureFactor2 + vertexTextureValue7) * vertexTextureFactor3).color(redScaled, greenScaled, blueScaled, vertexTextureValue6);
       bufferBuilder.vertex(matrix4f, vertexTextureValue + width, abcdefghijklmnopqrstuvwxyzBrown, 0.0F).texture((vertexTextureFactor + width) * vertexTextureFactor3, vertexTextureFactor2 * vertexTextureFactor3).color(redScaled, greenScaled, blueScaled, vertexTextureValue6);
       bufferBuilder.vertex(matrix4f, vertexTextureValue, abcdefghijklmnopqrstuvwxyzBrown, 0.0F).texture(vertexTextureFactor * vertexTextureFactor3, vertexTextureFactor2 * vertexTextureFactor3).color(redScaled, greenScaled, blueScaled, vertexTextureValue6);
-      return vertexTextureValue + (float)this.getStringBounds(String.valueOf(ch)).getWidth();
+      return vertexTextureValue + width;
    }
 
    public VertexTextureFont(InputStream inputStream, float vertexTextureValue, int integer) {
@@ -218,7 +302,7 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
    private void handleFont(String fontText, float fontValue, float abcdefghijklmnopqrstuvwxyzBrown, Color color, boolean fontFlag) {
       fontText = CardStatusUtilsFlag.getOrDefault(fontText);
       int minAlpha = Math.min(187, color.getAlpha());
-      this.handlePopPush(MatrixClient.fontManager.getMatrixStack(), fontText, fontValue, abcdefghijklmnopqrstuvwxyzBrown, color, new Color(0, 0, 0, minAlpha == -1 ? color.getAlpha() : minAlpha), fontFlag);
+      this.handlePopPush(MatrixClient.fontManager.getMatrixStack(), fontText, fontValue, abcdefghijklmnopqrstuvwxyzBrown, color, getShadowColor(minAlpha == -1 ? color.getAlpha() : minAlpha), fontFlag);
    }
 
    @Override
@@ -238,17 +322,25 @@ public class VertexTextureFont implements AbcdefghijklmnopqrstuvwxyzBrownApi {
    }
 
    private void handlePositionBegin(MatrixStack matrices, String positionBeginText, float positionBeginValue, float abcdefghijklmnopqrstuvwxyzBrown, Color color) {
-      StringBuilder stringBuilder = new StringBuilder();
-
-      for (char positionBeginLimit : positionBeginText.toCharArray()) {
-         if (positionBeginLimit >= ' ' && positionBeginLimit < 255) {
-            stringBuilder.append(positionBeginLimit);
-         } else {
-            stringBuilder.append("?");
-         }
+      if (positionBeginText == null || positionBeginText.isEmpty()) {
+         return;
       }
 
-      positionBeginText = stringBuilder.toString();
+      if (!isRenderable(positionBeginText)) {
+         StringBuilder stringBuilder = new StringBuilder(positionBeginText.length());
+
+         for (int i = 0; i < positionBeginText.length(); i++) {
+            char positionBeginLimit = positionBeginText.charAt(i);
+            if (positionBeginLimit >= ' ' && positionBeginLimit < 255) {
+               stringBuilder.append(positionBeginLimit);
+            } else {
+               stringBuilder.append('?');
+            }
+         }
+
+         positionBeginText = stringBuilder.toString();
+      }
+
       if (!positionBeginText.isEmpty()) {
          positionBeginValue *= 2.0F;
          abcdefghijklmnopqrstuvwxyzBrown *= 2.0F;

@@ -764,7 +764,9 @@ public final class NativeHud {
 
          for (int i = 0; i < nativeHudText.length(); i++) {
             char charAt = nativeHudText.charAt(i);
-            nativeHudTotal += charAt >= '0' && charAt <= '9' ? nativeHudValue : fontRenderer.getAbcdefghijklmnopqrstuvwxyzMatrixfont(String.valueOf(charAt)) * nativeHudFactor;
+            nativeHudTotal += charAt >= '0' && charAt <= '9'
+               ? nativeHudValue
+               : fontRenderer.getAbcdefghijklmnopqrstuvwxyzMatrixfont(VertexTextureFont.getGlyphString(charAt)) * nativeHudFactor;
          }
 
          return nativeHudTotal;
