@@ -128,7 +128,7 @@ public class MatrixClient implements ClientModInitializer {
       ModuleRegistry.registerAllModules();
       ModuleConfigAutosave.loadModuleConfig();
       DiscordRichPresence.startPresenceUpdates();
-      ClientLifecycleEvents.CLIENT_STOPPING.register((ClientStopping)client -> ModuleConfigAutosave.updateFlag());
+      ClientLifecycleEvents.CLIENT_STOPPING.register((ClientStopping)client -> ModuleConfigAutosave.saveNow());
       ClientLifecycleEvents.CLIENT_STOPPING.register((ClientStopping)client -> DiscordRichPresence.shutdownPresence());
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(client, handler) -> BlockStateHelper.updateHashOpen());
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> {
@@ -154,7 +154,6 @@ public class MatrixClient implements ClientModInitializer {
                QueueCommand queueCommand = new QueueCommand(context.matrices(), new Matrix4f(), tickProgress);
                queueCommand.commandQueue = context.commandQueue();
                ModuleRegistry.dispatchRender3D(queueCommand);
-               VertexBuilderUtils.updateDrawImmediate();
             }
          }
       });
@@ -172,7 +171,6 @@ public class MatrixClient implements ClientModInitializer {
          .register(
             (EndTick)client -> {
                if (!DirExtractionUtils.isFlag()) {
-                  ModuleRegistry.onEndClientTick();
                   ModuleConfigAutosave.saveIfPendingAndDue();
                   UpdateChecker updateChecker = (UpdateChecker)ModuleRegistry.getModule(UpdateChecker.class);
                   if (updateChecker != null) {

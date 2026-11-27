@@ -1,0 +1,3 @@
+
+# Local toolchains (JDKs used only to run Gradle)
+.tools/

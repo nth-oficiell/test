@@ -5,7 +5,7 @@ Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Mat
 ## Contenu
 - `matrix-client-2.0.1.jar` — le mod compilé, prêt à mettre dans `.minecraft/mods`
 - ⚠️ Supprime l'ancien `vortex-client-2.0.1.jar` de `.minecraft/mods` (l'addon donutlarp original n'est pas requis, tout est intégré)
-- `Vortex/` — sources complètes (Gradle / Fabric Loom)
+- `Matrix/` — sources complètes (Gradle / Fabric Loom)
 
 ## Changements
 - Modules shader supprimés : `HandShader`, `MotionBlur` (+ mixin `MixinGameRendererMotionBlur`, util `MotionBlurTexture`) — plus de crash de shader
@@ -28,9 +28,20 @@ Client utilitaire Minecraft Fabric (1.21.11) — rebrand de CorzClient → **Mat
 
 ## Build
 ```
+cd Matrix
 ./gradlew build
 ```
-Nécessite JDK 25 (Loom 1.18).
+Le jar remappé est écrit dans `Matrix/build/libs/matrix-client-2.0.1.jar`.
+Nécessite JDK 25 pour lancer Gradle (Loom 1.18) ; le bytecode est compilé avec `--release 21`, donc le mod tourne sur un client Minecraft en Java 21+.
+Le jar produit se trouve dans `Matrix/build/libs/`.
+
+## Module `Optimizer` (Misc)
+Module de perf, pas de triche — tout est branché sur des chemins chauds réels :
+- **Chunk Scan Budget** / **Scan Budget** (25–200 %) : multiplie le budget de temps par tick partagé par les scanners de chunks (`ChunkScanScheduler`). Baisser = moins de travail par tick, donc moins de pics.
+- **Particle Cap** / **Particles / Tick** (désactivé par défaut) : jette les particules au-delà du quota par tick (`MixinParticleManager`) pour lisser les explosions de particules.
+- **Profiler** : mesure `onGameTick`, `dispatchRender3D` et `dispatchRender2D` dans `ModuleRegistry` (EMA + pic), résumé envoyé en chat à la désactivation du module.
+
+Les scanners de chunks ne gardent plus qu'un nombre borné de chunks suivis (8192) au lieu de croître indéfiniment.
 
 ## Mise à jour : module SkinChanger (Visuals)
 - Nouveau module `SkinChanger` dans Visuals : importe un PNG de skin depuis ton PC (bouton Import) ou dépose-le dans `.minecraft/config/corzclient/skins/` (bouton Reload)

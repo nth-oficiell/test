@@ -22,7 +22,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public final class VertexBuilderUtils {
-   private static boolean immediateActive;
    private static final BufferAllocator BUFFER_ALLOCATOR = new BufferAllocator(2097152);
    public static final RenderPipeline vertexBuilderRenderPipeline = RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
       .withLocation(Identifier.of("matrixclient", "pipeline/esp_filled"))
@@ -147,10 +146,6 @@ public final class VertexBuilderUtils {
    }
 
    public static void updateDrawImmediate() {
-      if (!immediateActive) {
-         immediateActive = true;
-      }
-
       IMMEDIATE.draw();
    }
 

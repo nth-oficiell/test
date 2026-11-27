@@ -7,6 +7,18 @@ import java.util.Properties;
 public final class ModuleIdentities {
    private static final Properties PROPERTIES = loadIdentitiesProperties();
 
+   /**
+    * Names are immutable, but {@link Properties} is a synchronized {@link java.util.Hashtable} and
+    * {@code getName()} is called all over the HUD and tick paths. A {@link ClassValue} resolves each
+    * module class once and is then a plain array read with no lock and no map hashing.
+    */
+   private static final ClassValue<String> NAMES = new ClassValue<String>() {
+      @Override
+      protected String computeValue(Class<?> type) {
+         return PROPERTIES.getProperty(type.getName(), type.getSimpleName());
+      }
+   };
+
    private static Properties loadIdentitiesProperties() {
       Properties properties = new Properties();
 
@@ -27,6 +39,6 @@ public final class ModuleIdentities {
    }
 
    public static String getProperty(Class<?> class2) {
-      return PROPERTIES.getProperty(class2.getName(), class2.getSimpleName());
+      return NAMES.get(class2);
    }
 }

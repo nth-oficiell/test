@@ -51,24 +51,24 @@ public final class DonutPayloads {
       try {
          PayloadTypeRegistry.playS2C().register(BasesPayload.ID, BasesPayload.CODEC);
       } catch (Throwable e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] failed to register a donut payload: " + e);
       }
       try {
          PayloadTypeRegistry.playS2C().register(ActivityPayload.ID, ActivityPayload.CODEC);
       } catch (Throwable e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] failed to register a donut payload: " + e);
       }
       try {
          ClientPlayNetworking.registerGlobalReceiver(BasesPayload.ID, (payload, context) ->
             context.client().execute(() -> DonutBaseStore.handle(payload.data())));
       } catch (Throwable e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] failed to register a donut payload: " + e);
       }
       try {
          ClientPlayNetworking.registerGlobalReceiver(ActivityPayload.ID, (payload, context) ->
             context.client().execute(() -> DonutActivityStore.handle(payload.data())));
       } catch (Throwable e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] failed to register a donut payload: " + e);
       }
    }
 }

@@ -121,6 +121,7 @@ import com.matrix.client.utils.EntityDamageUtils;
 import com.matrix.client.categories.network.FakeLag;
 import com.matrix.client.utils.InventoryPlayer;
 import com.matrix.client.categories.network.KnockbackDelay;
+import com.matrix.client.categories.misc.Optimizer;
 import com.matrix.client.categories.settings.ClientSounds;
 import com.matrix.client.categories.configs.Configs;
 import com.matrix.client.categories.socials.Friends;
@@ -181,6 +182,11 @@ import com.matrix.client.utils.SwordBot;
 public class ModuleRegistry {
     private static final Map<Class<? extends Module>, Module> modulesByClass;
     private static final List<Module> modules;
+    // Resolved once at registration: the per-frame dispatch paths used to hash modulesByClass and
+    // run instanceof for every one of these lookups on each frame.
+    private static AutoBuilder autoBuilderCache;
+    private static VillagerTradeBot villagerTradeBotCache;
+    private static AutoAreaMiner autoAreaMinerCache;
     private static final Map<IconsPngType, List<Module>> modulesByCategory;
 
     static {
@@ -193,6 +199,13 @@ public class ModuleRegistry {
         modules.add(module);
         modulesByClass.putIfAbsent(module.getClass(), module);
         modulesByCategory.get(module.getPageType()).add(module);
+        if (module instanceof AutoBuilder autoBuilder) {
+            autoBuilderCache = autoBuilder;
+        } else if (module instanceof VillagerTradeBot villagerTradeBot) {
+            villagerTradeBotCache = villagerTradeBot;
+        } else if (module instanceof AutoAreaMiner autoAreaMiner) {
+            autoAreaMinerCache = autoAreaMiner;
+        }
     }
 
     public static Module getModule(Class<? extends Module> clazz) {
@@ -310,6 +323,7 @@ public class ModuleRegistry {
         registerModule(new NoFlame());
         registerModule(new Notifications());
         registerModule(new ObsidianOptimizer());
+        registerModule(new Optimizer());
         registerModule(new Panic());
         registerModule(new Particles());
         registerModule(new PearlCatch());
@@ -366,13 +380,13 @@ public class ModuleRegistry {
         if (DirExtractionUtils.isFlag()) {
             return;
         }
+        long profilerStart = Optimizer.isProfiling() ? System.nanoTime() : 0L;
         ExtUtils.updateFlagAction();
         ClientThreadUtils.updateOptionsTime();
         PlayerInputOverride.updateFlagTick();
         EntityDamageUtils.updateTimeInstance();
         ConnectionTimeUtils.update();
-        Module autoBuilderModule = getModule(AutoBuilder.class);
-        AutoBuilder autoBuilder = autoBuilderModule instanceof AutoBuilder ab ? ab : null;
+        AutoBuilder autoBuilder = autoBuilderCache;
         if (autoBuilder != null) {
             autoBuilder.updateTeamLeaving();
         }
@@ -384,15 +398,15 @@ public class ModuleRegistry {
             autoBuilder.updateRestockDestroyed();
             autoBuilder.updateCancelledWorld();
         }
-        Module villagerModule = getModule(VillagerTradeBot.class);
-        if (villagerModule instanceof VillagerTradeBot villagerTradeBot) {
+        VillagerTradeBot villagerTradeBot = villagerTradeBotCache;
+        if (villagerTradeBot != null) {
             villagerTradeBot.updateVillagerTrader();
         }
         InstanceTimeUtils.updateDequeArray();
         MathClampUtils.updateFlagClamp();
-    }
-
-    public static void onEndClientTick() {
+        if (profilerStart != 0L) {
+            Optimizer.recordTick(System.nanoTime() - profilerStart);
+        }
     }
 
     public static void dispatchPacketSend(InventoryPlayer packetSendEvent) {
@@ -419,43 +433,51 @@ public class ModuleRegistry {
         if (DirExtractionUtils.isFlag()) {
             return;
         }
+        long profilerStart = Optimizer.isProfiling() ? System.nanoTime() : 0L;
         VertexBuilderUtils.handleCameraMatrix((MatrixStack) render3DEvent.matrices);
         for (Module module : modules) {
             if (!module.isEnabled()) continue;
             module.onRender3D(render3DEvent);
         }
-        Module autoBuilderModule = getModule(AutoBuilder.class);
-        if (autoBuilderModule instanceof AutoBuilder autoBuilder) {
+        AutoBuilder autoBuilder = autoBuilderCache;
+        if (autoBuilder != null) {
             autoBuilder.handleStateEnum(render3DEvent);
             autoBuilder.handleWriteCamera(render3DEvent);
         }
-        Module areaMinerModule = getModule(AutoAreaMiner.class);
-        if (areaMinerModule instanceof AutoAreaMiner autoAreaMiner && !autoAreaMiner.isEnabled()) {
+        AutoAreaMiner autoAreaMiner = autoAreaMinerCache;
+        if (autoAreaMiner != null && !autoAreaMiner.isEnabled()) {
             autoAreaMiner.handleProgressTick(render3DEvent);
         }
-        Module villagerModule = getModule(VillagerTradeBot.class);
-        if (villagerModule instanceof VillagerTradeBot villagerTradeBot) {
+        VillagerTradeBot villagerTradeBot = villagerTradeBotCache;
+        if (villagerTradeBot != null) {
             villagerTradeBot.handlePickCamera(render3DEvent);
         }
         VertexBuilderUtils.updateDrawImmediate();
+        if (profilerStart != 0L) {
+            Optimizer.recordRender3D(System.nanoTime() - profilerStart);
+        }
     }
 
     public static void dispatchRender2D(TickProgress render2DEvent) {
         if (DirExtractionUtils.isFlag()) {
             return;
         }
+        long profilerStart = Optimizer.isProfiling() ? System.nanoTime() : 0L;
         for (Module module : modules) {
             if (!module.isEnabled()) continue;
             module.onRender2D(render2DEvent);
         }
-        Module autoBuilderModule = getModule(AutoBuilder.class);
-        if (autoBuilderModule instanceof AutoBuilder autoBuilder) {
+        AutoBuilder autoBuilder = autoBuilderCache;
+        if (autoBuilder != null) {
             autoBuilder.handleChestPlayer(render2DEvent);
             autoBuilder.handleBaseLeaving(render2DEvent);
         }
-        Module villagerModule = getModule(VillagerTradeBot.class);
-        if (villagerModule instanceof VillagerTradeBot villagerTradeBot) {
+        VillagerTradeBot villagerTradeBot = villagerTradeBotCache;
+        if (villagerTradeBot != null) {
             villagerTradeBot.handlePickRight(render2DEvent);
+        }
+        if (profilerStart != 0L) {
+            Optimizer.recordRender2D(System.nanoTime() - profilerStart);
         }
     }
 
@@ -487,8 +509,8 @@ public class ModuleRegistry {
             if (!module.isEnabled()) continue;
             module.onPreItemUse(preItemUseEvent);
         }
-        Module villagerModule = getModule(VillagerTradeBot.class);
-        if (villagerModule instanceof VillagerTradeBot villagerTradeBot) {
+        VillagerTradeBot villagerTradeBot = villagerTradeBotCache;
+        if (villagerTradeBot != null) {
             villagerTradeBot.handleVillagerTrader(preItemUseEvent);
         }
     }
@@ -501,8 +523,8 @@ public class ModuleRegistry {
             if (!module.isEnabled()) continue;
             module.onButtonClick(event);
         }
-        Module autoBuilderModule = getModule(AutoBuilder.class);
-        if (autoBuilderModule instanceof AutoBuilder autoBuilder) {
+        AutoBuilder autoBuilder = autoBuilderCache;
+        if (autoBuilder != null) {
             autoBuilder.handleKeybindScreen(event);
         }
     }
@@ -515,12 +537,12 @@ public class ModuleRegistry {
             if (!module.isEnabled()) continue;
             module.onSwordBot(event);
         }
-        Module autoBuilderModule = getModule(AutoBuilder.class);
-        if (autoBuilderModule instanceof AutoBuilder autoBuilder) {
+        AutoBuilder autoBuilder = autoBuilderCache;
+        if (autoBuilder != null) {
             autoBuilder.handleKeybindScreen(event);
         }
-        Module villagerModule = getModule(VillagerTradeBot.class);
-        if (villagerModule instanceof VillagerTradeBot villagerTradeBot) {
+        VillagerTradeBot villagerTradeBot = villagerTradeBotCache;
+        if (villagerTradeBot != null) {
             villagerTradeBot.handleKeybindScreen(event);
         }
     }

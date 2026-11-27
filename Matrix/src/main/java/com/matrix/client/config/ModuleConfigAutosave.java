@@ -28,7 +28,15 @@ public class ModuleConfigAutosave {
       }
    }
 
+   /**
+    * Marks the config dirty instead of writing it. Settings change in bursts (a slider drag calls
+    * this on every step), and a full synchronous save per change stalls the client thread.
+    */
    public static void updateFlag() {
+      savePending = true;
+   }
+
+   public static void saveNow() {
       saveModuleConfig();
       savePending = false;
    }
@@ -43,8 +51,7 @@ public class ModuleConfigAutosave {
 
    public static void saveIfPendingAndDue() {
       if (savePending && System.currentTimeMillis() - lastSaveTimeMs > 500L) {
-         saveModuleConfig();
-         savePending = false;
+         saveNow();
       }
    }
 }

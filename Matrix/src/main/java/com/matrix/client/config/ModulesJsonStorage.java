@@ -24,6 +24,7 @@ import ai.auth.Module;
 
 public final class ModulesJsonStorage {
    public static final String MODULES_JSON = "modules.json";
+   public static final int SCHEMA_VERSION = 2;
    private static final String MAC_CONTEXT = "corz-live-state-v1";
    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
    private static final Map<String, String> LEGACY_MODULE_NAMES = Map.of("Auto Crystal", "Crystal Aura", "Custom Sky", "ShaderFog");
@@ -161,7 +162,7 @@ public final class ModulesJsonStorage {
    static synchronized void writeModulesJson(Path path, List<Module> list, boolean jsonModulesFlag)  throws java.io.IOException {
       Files.createDirectories(path);
       byte[] bytes = GSON.toJson(serializeModules(list)).getBytes(StandardCharsets.UTF_8);
-      Files.write(path.resolve("modules.json"), bytes);
+      PresetFileStore.writeFileAtomically(path.resolve("modules.json"), bytes);
       if (jsonModulesFlag) {
          writeSnapshot(path, bytes);
       }
@@ -169,6 +170,7 @@ public final class ModulesJsonStorage {
 
    private static JsonObject serializeModules(List<Module> list) {
       JsonObject jsonObject = new JsonObject();
+      jsonObject.addProperty("schemaVersion", SCHEMA_VERSION);
 
       for (Module ilIllIiIll2 : list) {
          JsonObject jsonObject2 = new JsonObject();
@@ -253,6 +255,10 @@ public final class ModulesJsonStorage {
 
    private static void applyModulesJson(JsonObject json, List<Module> list) {
       try {
+         int schemaVersion = json.has("schemaVersion") ? json.get("schemaVersion").getAsInt() : 1;
+         if (schemaVersion > SCHEMA_VERSION) {
+            System.err.println("[Matrix] modules.json uses schema " + schemaVersion + ", this build understands " + SCHEMA_VERSION + "; unknown fields are ignored");
+         }
          for (Module Module : list) {
             JsonElement fogCrystal = findModuleJson(json, Module);
             if (fogCrystal != null) {

@@ -5,12 +5,6 @@ plugins {
 repositories {
 }
 
-sourceSets.configureEach {
-	java {
-		exclude 'com/vortex/**'
-	}
-}
-
 loom {
 	mixin {
 		useLegacyMixinAp = true
@@ -39,6 +33,4 @@ java {
 
 tasks.named('jar') {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	exclude 'assets/vortexclient/**'
-	exclude 'vortex-client.mixins.json'
 }

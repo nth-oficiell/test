@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class DonutActivityStore {
+   private static final int MAX_ENTRIES_PER_UPDATE = 65536;
    private static volatile List<Activity> current = List.of();
    private static volatile long updated;
 
@@ -25,11 +26,14 @@ public final class DonutActivityStore {
       ArrayList<Activity> list = new ArrayList<>();
       try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(data))) {
          int n = in.readInt();
+         if (n < 0 || n > MAX_ENTRIES_PER_UPDATE) {
+            return;
+         }
          for (int i = 0; i < n; i++) {
             list.add(new Activity(in.readInt(), in.readInt(), in.readInt()));
          }
       } catch (IOException e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] malformed activity payload: " + e.getMessage());
          return;
       }
       current = List.copyOf(list);

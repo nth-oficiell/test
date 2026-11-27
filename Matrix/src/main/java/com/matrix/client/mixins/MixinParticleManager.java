@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.matrix.client.categories.misc.Optimizer;
 import com.matrix.client.categories.visuals.NoExplosions;
 import com.matrix.client.categories.visuals.NoFarmLag;
 import com.matrix.client.categories.visuals.Particles;
@@ -60,6 +61,10 @@ public class MixinParticleManager {
    private void onAddParticle(
       ParticleEffect particleEffect, double particleValue, double particleValue2, double particleValue3, double particleValue4, double particleValue5, double particleValue6, CallbackInfoReturnable<Particle> callbackInfoReturnable
    ) {
+      if (Optimizer.shouldDropParticle()) {
+         callbackInfoReturnable.setReturnValue(null);
+         return;
+      }
       NoFarmLag farmLag = NoFarmLag.getNoFarmLag();
       if (farmLag != null && farmLag.isBase() && particleEffect.getType() == ParticleTypes.NOTE) {
          callbackInfoReturnable.setReturnValue(null);

@@ -1,5 +1,6 @@
 package com.matrix.client.utils;
 
+import com.matrix.client.categories.misc.Optimizer;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import java.util.Arrays;
@@ -10,6 +11,8 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.WorldChunk;
 
 public final class ChunkScanScheduler {
+   private static final int MAX_TRACKED_CHUNKS = 8192;
+   private static final int TRACKED_CHUNKS_LOW_WATER = 4096;
    private int[] spiralOffsets;
    private static long nanosUsedThisTick;
    private int lastRadius;
@@ -25,12 +28,44 @@ public final class ChunkScanScheduler {
    public static long getFpsScaledBudgetNanos(int fpsValue) {
       long baseMicrosScaled = fpsValue * 1000L;
       int currentFps = MinecraftClient.getInstance().getCurrentFps();
+      long budget;
       if (currentFps > 0 && currentFps < 25) {
-         return baseMicrosScaled / 4L;
+         budget = baseMicrosScaled / 4L;
       } else if (currentFps > 0 && currentFps < 45) {
-         return baseMicrosScaled / 2L;
+         budget = baseMicrosScaled / 2L;
       } else {
-         return currentFps >= 100 ? baseMicrosScaled + baseMicrosScaled / 2L : baseMicrosScaled;
+         budget = currentFps >= 100 ? baseMicrosScaled + baseMicrosScaled / 2L : baseMicrosScaled;
+      }
+      return budget * Optimizer.getScanBudgetPercent() / 100L;
+   }
+
+   /**
+    * All scheduler instances share one global per-tick budget ({@link #nanosUsedThisTick}), so a
+    * single module scanning aggressively cannot starve the others. Entries are bounded as well:
+    * a chunk that falls out of the cache is simply rescanned, which is cheaper than growing forever.
+    *
+    * <p>When the cache is still oversized after the age pass, it is trimmed down to a low-water mark
+    * instead of being cleared: clearing made every chunk look unscanned again, so the next ticks
+    * rescanned everything at once and produced exactly the frametime spike this class exists to avoid.
+    */
+   private void pruneTrackedChunks(long nowMs, long rescanMs) {
+      long cutoff = nowMs - Math.max(rescanMs, 60000L);
+      LongIterator iterator = this.scannedAtMs.keySet().iterator();
+      while (iterator.hasNext()) {
+         long key = iterator.nextLong();
+         if (this.scannedAtMs.get(key) < cutoff) {
+            iterator.remove();
+         }
+      }
+      if (this.scannedAtMs.size() > MAX_TRACKED_CHUNKS) {
+         int toRemove = this.scannedAtMs.size() - TRACKED_CHUNKS_LOW_WATER;
+         LongIterator eviction = this.scannedAtMs.keySet().iterator();
+         while (eviction.hasNext() && toRemove-- > 0) {
+            eviction.nextLong();
+            eviction.remove();
+         }
+         this.spiralCursor = 0;
+         this.rescanCursor = 0;
       }
    }
 
@@ -73,6 +108,9 @@ public final class ChunkScanScheduler {
    public int scanChunks(ClientWorld clientWorld, int chunkValue, int chunkValue2, int chunkLimit, long time2, long chunkValue3, ChunkScanScheduler.Scanner scanner) {
       if (clientWorld != null && chunkLimit >= 0) {
          this.lastScanTimeMs = time2;
+         if (this.scannedAtMs.size() > MAX_TRACKED_CHUNKS) {
+            this.pruneTrackedChunks(System.currentTimeMillis(), time2);
+         }
          if (chunkLimit != this.lastRadius) {
             this.buildSpiralOffsets(chunkLimit);
          }

@@ -12,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public final class DonutBaseStore {
+   private static final int MAX_ENTRIES_PER_UPDATE = 65536;
    private static final Map<Integer, Base> BASES = new ConcurrentHashMap<>();
    private static final List<Consumer<Base>> LISTENERS = new CopyOnWriteArrayList<>();
    private static final Map<Long, Spawner> SPAWNERS = new ConcurrentHashMap<>();
@@ -64,6 +65,9 @@ public final class DonutBaseStore {
          if (type == 3) {
             ArrayList<Spawner> newSpawners = new ArrayList<>();
             int n = in.readInt();
+            if (n < 0 || n > MAX_ENTRIES_PER_UPDATE) {
+               return;
+            }
             for (int i = 0; i < n; i++) {
                Spawner sp = new Spawner(in.readInt(), in.readInt(), in.readInt(), in.readInt(), in.readUTF());
                if (SPAWNERS.put(key(sp.x(), sp.y(), sp.z()), sp) == null) {
@@ -78,6 +82,9 @@ public final class DonutBaseStore {
             return;
          }
          int count = in.readInt();
+         if (count < 0 || count > MAX_ENTRIES_PER_UPDATE) {
+            return;
+         }
          for (int i = 0; i < count; i++) {
             Base b = new Base(in.readInt(), in.readInt(), in.readInt(), in.readInt(), in.readInt(), in.readInt(), in.readInt());
             if (BASES.putIfAbsent(b.id(), b) == null) {
@@ -85,7 +92,7 @@ public final class DonutBaseStore {
             }
          }
       } catch (IOException e) {
-         e.printStackTrace();
+         System.err.println("[Matrix] malformed base payload: " + e.getMessage());
       }
       for (Base b : added) {
          for (Consumer<Base> l : LISTENERS) {
