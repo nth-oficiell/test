@@ -36,12 +36,17 @@ Nécessite JDK 25 pour lancer Gradle (Loom 1.18) ; le bytecode est compilé avec
 Le jar produit se trouve dans `Matrix/build/libs/`.
 
 ## Module `Optimizer` (Misc)
-Module de perf, pas de triche — tout est branché sur des chemins chauds réels :
+Module de perf (gains de FPS), pas de triche — tout est branché sur des chemins chauds réels :
+- **Entity Cull** (activé) / **Entity Distance** (64 blocs, 16–160) : les mobs, items au sol, armor stands et bateaux au-delà de la distance ne sont plus rendus (`MixinEntityRenderManagerOptimizer` sur `shouldRender`). Les joueurs restent toujours visibles.
+- **Cull Players** (désactivé) : applique la même distance aux joueurs, pour ceux qui veulent le maximum de FPS en zone bondée.
+- **Block Entity Cull** (activé) / **Block Entity Distance** (48 blocs, 8–96) : coffres, panneaux, bannières, têtes et lits lointains ne sont plus rendus (`MixinBlockEntityRenderManagerOptimizer`).
+- **Particle Cap** (désactivé) / **Particles / Tick** : jette les particules au-delà du quota par tick (`MixinParticleManager`) pour lisser les explosions de particules.
 - **Chunk Scan Budget** / **Scan Budget** (25–200 %) : multiplie le budget de temps par tick partagé par les scanners de chunks (`ChunkScanScheduler`). Baisser = moins de travail par tick, donc moins de pics.
-- **Particle Cap** / **Particles / Tick** (désactivé par défaut) : jette les particules au-delà du quota par tick (`MixinParticleManager`) pour lisser les explosions de particules.
-- **Profiler** : mesure `onGameTick`, `dispatchRender3D` et `dispatchRender2D` dans `ModuleRegistry` (EMA + pic), résumé envoyé en chat à la désactivation du module.
+- **Profiler** : mesure `onGameTick`, `dispatchRender3D` et `dispatchRender2D` dans `ModuleRegistry` (EMA + pic) et compte les entités cull, résumé envoyé en chat à la désactivation du module.
 
 Les scanners de chunks ne gardent plus qu'un nombre borné de chunks suivis (8192) au lieu de croître indéfiniment.
+
+Le jar prêt à jouer est aussi versionné ici : `Matrix/matrix-client-2.0.1.jar` (c'est l'URL utilisée par `update.json`).
 
 ## Mise à jour : module SkinChanger (Visuals)
 - Nouveau module `SkinChanger` dans Visuals : importe un PNG de skin depuis ton PC (bouton Import) ou dépose-le dans `.minecraft/config/corzclient/skins/` (bouton Reload)

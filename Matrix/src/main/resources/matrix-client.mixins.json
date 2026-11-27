@@ -89,6 +89,8 @@
     "MixinWindow",
     "MixinMouse",
     "MixinEntityRenderManagerFarmLag",
+    "MixinEntityRenderManagerOptimizer",
+    "MixinBlockEntityRenderManagerOptimizer",
     "MixinSectionBuilderFarmLag",
     "MixinWorldRendererFarmLag",
     "MixinPistonBlockEntityRendererFarmLag",
